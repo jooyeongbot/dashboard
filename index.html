@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PULSE DASHBOARD — 날씨 & 주식</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<script src="https://s3.tradingview.com/tv.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #05080f; --surface: #0c1220; --surface2: #111927;
+  --border: rgba(100,160,255,0.13); --accent: #4f9cff; --accent2: #7ec8ff;
+  --text: #d8eaff; --muted: #5a7499;
+  --up: #26d98b; --down: #ff4f4f; --warn: #ffb347;
+  --cold: #7ec8ff; --hot: #ff6b47;
+}
+body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-weight: 300; min-height: 100vh; overflow-x: hidden; }
+body::before { content:''; position:fixed; inset:0; background:radial-gradient(ellipse 60% 40% at 20% 20%, rgba(79,156,255,0.05) 0%, transparent 60%), radial-gradient(ellipse 50% 60% at 80% 80%, rgba(38,217,139,0.03) 0%, transparent 60%); pointer-events:none; z-index:0; }
+
+/* ── NAV ── */
+.nav { position:sticky; top:0; z-index:100; background:rgba(5,8,15,.92); backdrop-filter:blur(12px); border-bottom:1px solid var(--border); }
+.nav-inner { max-width:1280px; margin:0 auto; padding:0 20px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+.nav-logo { font-family:'Bebas Neue',cursive; font-size:1.6rem; letter-spacing:.1em; color:var(--accent2); text-shadow:0 0 30px rgba(126,200,255,.3); padding:14px 0; line-height:1; }
+.nav-logo small { font-family:'DM Mono',monospace; font-size:.55rem; color:var(--muted); letter-spacing:.25em; display:block; margin-top:2px; }
+.nav-tabs { display:flex; gap:4px; }
+.tab-btn { font-family:'DM Mono',monospace; font-size:.72rem; letter-spacing:.12em; padding:8px 20px; border-radius:8px; border:1px solid transparent; background:transparent; color:var(--muted); cursor:pointer; transition:all .2s; display:flex; align-items:center; gap:7px; }
+.tab-btn:hover { color:var(--text); background:var(--surface2); }
+.tab-btn.active { background:rgba(79,156,255,.12); border-color:rgba(79,156,255,.3); color:var(--accent2); }
+.tab-btn .tab-icon { font-size:1rem; }
+.nav-right { display:flex; align-items:center; gap:12px; padding:10px 0; }
+#clock { font-family:'DM Mono',monospace; font-size:.88rem; color:var(--text); }
+.market-badge { font-family:'DM Mono',monospace; font-size:.6rem; padding:3px 9px; border-radius:20px; letter-spacing:.1em; }
+.market-badge.open  { background:rgba(38,217,139,.12); border:1px solid rgba(38,217,139,.3); color:var(--up); }
+.market-badge.close { background:rgba(255,79,79,.1);   border:1px solid rgba(255,79,79,.25); color:var(--down); }
+.market-badge.pre   { background:rgba(255,179,71,.1);  border:1px solid rgba(255,179,71,.25); color:var(--warn); }
+
+/* ── SECTIONS ── */
+.section { display:none; }
+.section.active { display:block; }
+.wrap { position:relative; z-index:1; max-width:1280px; margin:0 auto; padding:0 20px 80px; }
+
+/* ── SHARED ── */
+.sec-head { display:flex; align-items:center; gap:12px; margin-bottom:16px; margin-top:36px; }
+.sec-title { font-family:'DM Mono',monospace; font-size:.66rem; letter-spacing:.2em; color:var(--muted); text-transform:uppercase; white-space:nowrap; }
+.sec-line { flex:1; height:1px; background:var(--border); }
+.dots { display:inline-flex; gap:3px; }
+.dots span { width:4px; height:4px; border-radius:50%; background:var(--muted); animation:pulse 1.2s ease-in-out infinite; }
+.dots span:nth-child(2){animation-delay:.2s} .dots span:nth-child(3){animation-delay:.4s}
+@keyframes pulse { 0%,80%,100%{transform:scale(.6);opacity:.3}40%{transform:scale(1);opacity:1} }
+@keyframes fadeUp { from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)} }
+footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+.ft { font-family:'DM Mono',monospace; font-size:.6rem; color:var(--muted); }
+.ft span { color:var(--accent); }
+
+/* ══════════════════════════════════════
+   WEATHER STYLES
+══════════════════════════════════════ */
+.w-search-label { font-family:'DM Mono',monospace; font-size:.66rem; letter-spacing:.2em; color:var(--muted); text-transform:uppercase; margin-bottom:10px; }
+.w-search-row { display:flex; gap:10px; }
+.w-search-input { flex:1; max-width:440px; background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:13px 18px; font-size:.95rem; color:var(--text); font-family:'DM Sans',sans-serif; outline:none; transition:border-color .2s, box-shadow .2s; }
+.w-search-input::placeholder { color:var(--muted); }
+.w-search-input:focus { border-color:rgba(79,156,255,.5); box-shadow:0 0 0 3px rgba(79,156,255,.08); }
+.w-btn { background:var(--accent); color:#fff; border:none; border-radius:8px; padding:13px 24px; font-size:.88rem; font-weight:500; cursor:pointer; font-family:'DM Sans',sans-serif; transition:background .2s; white-space:nowrap; }
+.w-btn:hover { background:var(--accent2); color:var(--bg); }
+.w-btn:disabled { opacity:.45; cursor:not-allowed; }
+.w-chips { display:flex; flex-wrap:wrap; gap:7px; margin-top:12px; }
+.w-chip { background:var(--surface2); border:1px solid var(--border); border-radius:20px; padding:5px 13px; font-size:.76rem; color:var(--muted); cursor:pointer; font-family:'DM Mono',monospace; transition:all .2s; }
+.w-chip:hover { border-color:var(--accent); color:var(--accent2); background:rgba(79,156,255,.06); }
+.w-err { background:rgba(255,90,70,.08); border:1px solid rgba(255,90,70,.2); border-radius:8px; padding:12px 16px; color:#ff8070; font-size:.82rem; margin-top:10px; display:none; font-family:'DM Mono',monospace; }
+#w-detail { display:none; margin:36px 0; animation:fadeUp .35s ease; }
+.w-detail-box { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:32px 36px; display:grid; grid-template-columns:1fr auto; gap:28px; align-items:center; position:relative; overflow:hidden; }
+.w-detail-box::before { content:''; position:absolute; top:-50px; right:-50px; width:220px; height:220px; border-radius:50%; background:radial-gradient(circle, rgba(79,156,255,.08) 0%, transparent 70%); pointer-events:none; }
+.d-city { font-family:'Bebas Neue',cursive; font-size:3rem; letter-spacing:.04em; line-height:1; }
+.d-country { font-family:'DM Mono',monospace; font-size:.7rem; color:var(--muted); letter-spacing:.15em; margin-top:4px; }
+.d-desc { font-size:.9rem; color:var(--muted); margin-top:10px; font-style:italic; }
+.d-stats { display:flex; gap:24px; margin-top:20px; padding-top:20px; border-top:1px solid var(--border); flex-wrap:wrap; }
+.stat-lbl { font-family:'DM Mono',monospace; font-size:.6rem; color:var(--muted); letter-spacing:.12em; text-transform:uppercase; margin-bottom:3px; }
+.stat-val { font-size:1rem; }
+.d-icon { font-size:3.2rem; }
+.d-temp { font-family:'Bebas Neue',cursive; font-size:4.8rem; line-height:1; }
+.d-deg { font-family:'DM Mono',monospace; font-size:.6rem; color:var(--muted); letter-spacing:.1em; margin-top:2px; }
+.w-hourly { display:flex; gap:9px; overflow-x:auto; padding-bottom:6px; margin-top:20px; scrollbar-width:thin; scrollbar-color:var(--border) transparent; }
+.h-card { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:11px 14px; text-align:center; min-width:66px; flex-shrink:0; }
+.h-card.now { border-color:var(--accent); background:rgba(79,156,255,.07); }
+.h-time { font-family:'DM Mono',monospace; font-size:.62rem; color:var(--muted); }
+.h-icon { font-size:1.3rem; margin:5px 0; }
+.h-temp { font-size:.9rem; font-weight:500; }
+.w-weekly { display:grid; grid-template-columns:repeat(7,1fr); gap:9px; margin-top:20px; }
+@media(max-width:700px){ .w-weekly { grid-template-columns:repeat(4,1fr); } }
+.wd-card { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:12px 10px; text-align:center; cursor:pointer; transition:all .2s; }
+.wd-card:hover { border-color:rgba(79,156,255,.35); }
+.wd-card.today { border-color:var(--accent); background:rgba(79,156,255,.07); }
+.wd-card.selected { border-color:var(--accent2); background:rgba(126,200,255,.12); box-shadow:0 0 12px rgba(126,200,255,.15); }
+.wd-day { font-family:'DM Mono',monospace; font-size:.62rem; color:var(--muted); margin-bottom:4px; }
+.wd-icon { font-size:1.4rem; margin:5px 0; }
+.wd-range { font-size:.82rem; font-weight:500; }
+.wd-range span { color:var(--muted); font-size:.72rem; }
+.wd-rain { font-family:'DM Mono',monospace; font-size:.6rem; color:var(--accent); margin-top:3px; }
+.world-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(175px,1fr)); gap:11px; }
+.wc-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:17px; cursor:pointer; transition:all .22s; }
+.wc-card:hover { border-color:rgba(79,156,255,.4); transform:translateY(-3px); box-shadow:0 8px 32px rgba(0,0,0,.35); }
+.wc-city { font-family:'Bebas Neue',cursive; font-size:1.28rem; letter-spacing:.05em; line-height:1; }
+.wc-country { font-family:'DM Mono',monospace; font-size:.58rem; color:var(--muted); letter-spacing:.1em; margin-bottom:13px; }
+.wc-row { display:flex; justify-content:space-between; align-items:flex-end; }
+.wc-temp { font-family:'Bebas Neue',cursive; font-size:2.2rem; line-height:1; }
+.wc-icon { font-size:1.85rem; }
+.wc-desc { font-size:.7rem; color:var(--muted); margin-top:3px; font-style:italic; }
+.c-cold{color:var(--cold)} .c-cool{color:#90d4ff} .c-mild{color:#a8e6a3} .c-warm{color:var(--warn)} .c-hot{color:var(--hot)}
+@media(max-width:600px){.w-detail-box{grid-template-columns:1fr}.d-city{font-size:2.2rem}.d-temp{font-size:3.8rem}}
+
+/* ══════════════════════════════════════
+   STOCK STYLES
+══════════════════════════════════════ */
+.ticker-wrap { overflow:hidden; background:var(--surface); border-bottom:1px solid var(--border); padding:8px 0; margin-bottom:0; }
+.ticker-track { display:flex; gap:36px; white-space:nowrap; animation:ticker 40s linear infinite; width:max-content; }
+.ticker-wrap:hover .ticker-track { animation-play-state:paused; }
+@keyframes ticker { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+.tick-item { font-family:'DM Mono',monospace; font-size:.72rem; display:flex; gap:7px; align-items:center; }
+.tick-sym { color:var(--accent2); }
+.idx-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; }
+@media(max-width:900px){ .idx-grid { grid-template-columns:repeat(3,1fr); } }
+@media(max-width:500px){ .idx-grid { grid-template-columns:repeat(2,1fr); } }
+.idx-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:16px 18px; }
+.idx-name { font-family:'DM Mono',monospace; font-size:.62rem; color:var(--muted); letter-spacing:.1em; margin-bottom:8px; }
+.idx-price { font-family:'Bebas Neue',cursive; font-size:1.8rem; letter-spacing:.03em; line-height:1; }
+.idx-chg { font-family:'DM Mono',monospace; font-size:.72rem; margin-top:5px; }
+.idx-abs { font-size:.65rem; color:var(--muted); margin-left:4px; }
+.stock-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(170px,1fr)); gap:10px; }
+.s-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:16px; cursor:pointer; transition:all .22s; }
+.s-card:hover { border-color:rgba(79,156,255,.4); transform:translateY(-3px); box-shadow:0 8px 32px rgba(0,0,0,.4); }
+.s-card.active { border-color:var(--accent); background:rgba(79,156,255,.07); }
+.sc-sym { font-family:'Bebas Neue',cursive; font-size:1.5rem; letter-spacing:.05em; line-height:1; }
+.sc-name { font-family:'DM Mono',monospace; font-size:.58rem; color:var(--muted); letter-spacing:.06em; margin-bottom:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.sc-row { display:flex; justify-content:space-between; align-items:flex-end; }
+.sc-price { font-family:'Bebas Neue',cursive; font-size:1.9rem; line-height:1; }
+.sc-pct { font-family:'DM Mono',monospace; font-size:.75rem; padding:3px 7px; border-radius:5px; }
+.sc-pct.up   { background:rgba(38,217,139,.12); color:var(--up); }
+.sc-pct.down { background:rgba(255,79,79,.1);   color:var(--down); }
+.sc-vol { font-family:'DM Mono',monospace; font-size:.6rem; color:var(--muted); margin-top:5px; }
+#chart-section { display:none; margin-top:0; animation:fadeUp .3s ease; }
+.chart-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; flex-wrap:wrap; gap:10px; }
+.chart-title { font-family:'Bebas Neue',cursive; font-size:1.6rem; letter-spacing:.05em; }
+.chart-sub { font-family:'DM Mono',monospace; font-size:.65rem; color:var(--muted); margin-top:2px; }
+.chart-intervals { display:flex; gap:6px; }
+.intv-btn { font-family:'DM Mono',monospace; font-size:.65rem; padding:5px 11px; border-radius:6px; border:1px solid var(--border); background:var(--surface2); color:var(--muted); cursor:pointer; transition:all .2s; }
+.intv-btn:hover,.intv-btn.active { border-color:var(--accent); color:var(--accent2); background:rgba(79,156,255,.08); }
+#tv-chart { border-radius:12px; overflow:hidden; border:1px solid var(--border); }
+.close-btn { font-family:'DM Mono',monospace; font-size:.65rem; padding:5px 13px; border-radius:6px; border:1px solid rgba(255,79,79,.25); background:rgba(255,79,79,.07); color:var(--down); cursor:pointer; transition:all .2s; }
+.close-btn:hover { background:rgba(255,79,79,.15); }
+.gl-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+@media(max-width:600px){ .gl-grid { grid-template-columns:1fr; } }
+.gl-box { background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+.gl-head { padding:12px 16px; font-family:'DM Mono',monospace; font-size:.65rem; letter-spacing:.15em; border-bottom:1px solid var(--border); }
+.gl-head.gainer { color:var(--up); }
+.gl-head.loser  { color:var(--down); }
+.gl-row { display:flex; align-items:center; justify-content:space-between; padding:10px 16px; border-bottom:1px solid rgba(100,160,255,.06); cursor:pointer; transition:background .15s; }
+.gl-row:last-child { border-bottom:none; }
+.gl-row:hover { background:rgba(79,156,255,.05); }
+.gl-sym { font-family:'Bebas Neue',cursive; font-size:1.1rem; letter-spacing:.05em; }
+.gl-name { font-family:'DM Mono',monospace; font-size:.6rem; color:var(--muted); margin-top:1px; max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.gl-price { font-family:'DM Mono',monospace; font-size:.82rem; text-align:right; }
+.gl-pct { font-family:'DM Mono',monospace; font-size:.78rem; font-weight:500; text-align:right; }
+.up   { color:var(--up); }
+.down { color:var(--down); }
+.flat { color:var(--muted); }
+</style>
+</head>
+<body>
+
+<!-- ── NAV ── -->
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="nav-logo">PULSE<small>// WEATHER & MARKET DASHBOARD</small></div>
+    <div class="nav-tabs">
+      <button class="tab-btn active" onclick="showTab('weather')" id="tab-weather">
+        <span class="tab-icon">🌤</span> 날씨
+      </button>
+      <button class="tab-btn" onclick="showTab('stock')" id="tab-stock">
+        <span class="tab-icon">📈</span> 주식
+      </button>
+    </div>
+    <div class="nav-right">
+      <div id="clock">--:--:--</div>
+      <div class="market-badge close" id="market-status">CLOSED</div>
+    </div>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════
+     WEATHER SECTION
+══════════════════════════════════════ -->
+<div class="section active" id="section-weather">
+  <!-- Ticker: 세계 날씨 요약 -->
+  <div class="ticker-wrap">
+    <div class="ticker-track" id="w-ticker-track">
+      <span class="tick-item"><span class="tick-sym">서울</span><span id="wt-0">—</span></span>
+      <span class="tick-item"><span class="tick-sym">도쿄</span><span id="wt-1">—</span></span>
+      <span class="tick-item"><span class="tick-sym">뉴욕</span><span id="wt-2">—</span></span>
+      <span class="tick-item"><span class="tick-sym">런던</span><span id="wt-3">—</span></span>
+      <span class="tick-item"><span class="tick-sym">파리</span><span id="wt-4">—</span></span>
+      <span class="tick-item"><span class="tick-sym">두바이</span><span id="wt-5">—</span></span>
+      <span class="tick-item"><span class="tick-sym">시드니</span><span id="wt-6">—</span></span>
+      <span class="tick-item"><span class="tick-sym">싱가포르</span><span id="wt-7">—</span></span>
+      <span class="tick-item"><span class="tick-sym">서울</span><span id="wt-0b">—</span></span>
+      <span class="tick-item"><span class="tick-sym">도쿄</span><span id="wt-1b">—</span></span>
+      <span class="tick-item"><span class="tick-sym">뉴욕</span><span id="wt-2b">—</span></span>
+      <span class="tick-item"><span class="tick-sym">런던</span><span id="wt-3b">—</span></span>
+      <span class="tick-item"><span class="tick-sym">파리</span><span id="wt-4b">—</span></span>
+      <span class="tick-item"><span class="tick-sym">두바이</span><span id="wt-5b">—</span></span>
+      <span class="tick-item"><span class="tick-sym">시드니</span><span id="wt-6b">—</span></span>
+      <span class="tick-item"><span class="tick-sym">싱가포르</span><span id="wt-7b">—</span></span>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <!-- 검색 -->
+    <div style="margin:36px 0 40px">
+      <div class="w-search-label">// 도시 검색 — 실시간 날씨 조회</div>
+      <div class="w-search-row">
+        <input class="w-search-input" id="w-inp" type="text" placeholder="도시명 입력 (Seoul, Tokyo, Paris, 서울...)" />
+        <button class="w-btn" id="w-searchBtn" onclick="wDoSearch()">조회</button>
+      </div>
+      <div class="w-err" id="w-err"></div>
+      <div class="w-chips" id="w-chips"></div>
+    </div>
+
+    <!-- 상세 날씨 -->
+    <div id="w-detail">
+      <div class="sec-head"><div class="sec-title">// 상세 날씨</div><div class="sec-line"></div></div>
+      <div class="w-detail-box">
+        <div>
+          <div class="d-city" id="d-city">—</div>
+          <div class="d-country" id="d-country">—</div>
+          <div class="d-desc" id="d-desc">—</div>
+          <div class="d-stats">
+            <div><div class="stat-lbl">체감온도</div><div class="stat-val" id="d-feels">—</div></div>
+            <div><div class="stat-lbl">습도</div><div class="stat-val" id="d-hum">—</div></div>
+            <div><div class="stat-lbl">풍속</div><div class="stat-val" id="d-wind">—</div></div>
+            <div><div class="stat-lbl">강수확률</div><div class="stat-val" id="d-rain">—</div></div>
+            <div><div class="stat-lbl">최저/최고</div><div class="stat-val" id="d-range">—</div></div>
+          </div>
+        </div>
+        <div style="text-align:center">
+          <div class="d-icon" id="d-icon">—</div>
+          <div class="d-temp" id="d-temp">—</div>
+          <div class="d-deg">°C</div>
+        </div>
+      </div>
+      <div class="sec-head" style="margin-top:24px">
+        <div class="sec-title">// 24시간 예보</div>
+        <div class="sec-line"></div>
+        <div id="hourly-date" style="font-family:'DM Mono',monospace;font-size:.6rem;color:var(--accent2);white-space:nowrap;"></div>
+      </div>
+      <div class="w-hourly" id="w-hourly"></div>
+      <div class="sec-head" style="margin-top:28px"><div class="sec-title">// 7일 예보</div><div class="sec-line"></div></div>
+      <div class="w-weekly" id="w-weekly"></div>
+    </div>
+
+    <!-- 세계 도시 그리드 -->
+    <div style="margin-top:40px">
+      <div class="sec-head"><div class="sec-title">// 세계 주요 도시 — 실시간</div><div class="sec-line"></div></div>
+      <div class="world-grid" id="w-grid"></div>
+    </div>
+
+    <footer>
+      <div class="ft">PULSE DASHBOARD · 실시간 날씨</div>
+      <div class="ft">DATA BY <span>OPEN-METEO.COM</span> · FREE & NO API KEY</div>
+    </footer>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     STOCK SECTION
+══════════════════════════════════════ -->
+<div class="section" id="section-stock">
+  <!-- Ticker -->
+  <div class="ticker-wrap">
+    <div class="ticker-track" id="s-ticker-track">
+      <span class="tick-item"><span class="tick-sym">S&P500</span><span id="tt-gspc">—</span></span>
+      <span class="tick-item"><span class="tick-sym">NASDAQ</span><span id="tt-ixic">—</span></span>
+      <span class="tick-item"><span class="tick-sym">DOW</span><span id="tt-dji">—</span></span>
+      <span class="tick-item"><span class="tick-sym">RUSSELL</span><span id="tt-rut">—</span></span>
+      <span class="tick-item"><span class="tick-sym">VIX</span><span id="tt-vix">—</span></span>
+      <span class="tick-item"><span class="tick-sym">AAPL</span><span id="tt-aapl">—</span></span>
+      <span class="tick-item"><span class="tick-sym">NVDA</span><span id="tt-nvda">—</span></span>
+      <span class="tick-item"><span class="tick-sym">MSFT</span><span id="tt-msft">—</span></span>
+      <span class="tick-item"><span class="tick-sym">TSLA</span><span id="tt-tsla">—</span></span>
+      <span class="tick-item"><span class="tick-sym">META</span><span id="tt-meta">—</span></span>
+      <span class="tick-item"><span class="tick-sym">S&P500</span><span id="tt-gspc2">—</span></span>
+      <span class="tick-item"><span class="tick-sym">NASDAQ</span><span id="tt-ixic2">—</span></span>
+      <span class="tick-item"><span class="tick-sym">DOW</span><span id="tt-dji2">—</span></span>
+      <span class="tick-item"><span class="tick-sym">RUSSELL</span><span id="tt-rut2">—</span></span>
+      <span class="tick-item"><span class="tick-sym">VIX</span><span id="tt-vix2">—</span></span>
+      <span class="tick-item"><span class="tick-sym">AAPL</span><span id="tt-aapl2">—</span></span>
+      <span class="tick-item"><span class="tick-sym">NVDA</span><span id="tt-nvda2">—</span></span>
+      <span class="tick-item"><span class="tick-sym">MSFT</span><span id="tt-msft2">—</span></span>
+      <span class="tick-item"><span class="tick-sym">TSLA</span><span id="tt-tsla2">—</span></span>
+      <span class="tick-item"><span class="tick-sym">META</span><span id="tt-meta2">—</span></span>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <!-- 지수 -->
+    <div class="sec-head"><div class="sec-title">// 주요 지수</div><div class="sec-line"></div></div>
+    <div class="idx-grid">
+      <div class="idx-card" id="idx-0"><div class="idx-name">S&P 500</div><div class="idx-price"><div class="dots"><span></span><span></span><span></span></div></div></div>
+      <div class="idx-card" id="idx-1"><div class="idx-name">NASDAQ</div><div class="idx-price"><div class="dots"><span></span><span></span><span></span></div></div></div>
+      <div class="idx-card" id="idx-2"><div class="idx-name">DOW JONES</div><div class="idx-price"><div class="dots"><span></span><span></span><span></span></div></div></div>
+      <div class="idx-card" id="idx-3"><div class="idx-name">RUSSELL 2000</div><div class="idx-price"><div class="dots"><span></span><span></span><span></span></div></div></div>
+      <div class="idx-card" id="idx-4"><div class="idx-name">VIX (공포지수)</div><div class="idx-price"><div class="dots"><span></span><span></span><span></span></div></div></div>
+    </div>
+
+    <!-- 차트 -->
+    <div id="chart-section">
+      <div class="sec-head"><div class="sec-title">// 차트</div><div class="sec-line"></div></div>
+      <div class="chart-header">
+        <div>
+          <div class="chart-title" id="chart-title">—</div>
+          <div class="chart-sub" id="chart-sub">—</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <div class="chart-intervals">
+            <button class="intv-btn active" onclick="setInterval_('1',this)">1분</button>
+            <button class="intv-btn" onclick="setInterval_('5',this)">5분</button>
+            <button class="intv-btn" onclick="setInterval_('15',this)">15분</button>
+            <button class="intv-btn" onclick="setInterval_('60',this)">1시간</button>
+            <button class="intv-btn" onclick="setInterval_('D',this)">1일</button>
+            <button class="intv-btn" onclick="setInterval_('W',this)">1주</button>
+          </div>
+          <button class="close-btn" onclick="closeChart()">✕ 닫기</button>
+        </div>
+      </div>
+      <div id="tv-chart"></div>
+    </div>
+
+    <!-- 빅테크 -->
+    <div class="sec-head"><div class="sec-title">// 빅테크 & 주요 종목</div><div class="sec-line"></div></div>
+    <div class="stock-grid" id="stock-grid"></div>
+
+    <!-- 급등락 -->
+    <div class="sec-head"><div class="sec-title">// 급등락 종목</div><div class="sec-line"></div></div>
+    <div class="gl-grid">
+      <div class="gl-box">
+        <div class="gl-head gainer">▲ 급등 TOP 8</div>
+        <div id="gainers-list"><div style="padding:16px;font-family:'DM Mono',monospace;font-size:.7rem;color:var(--muted)">로딩 중...</div></div>
+      </div>
+      <div class="gl-box">
+        <div class="gl-head loser">▼ 급락 TOP 8</div>
+        <div id="losers-list"><div style="padding:16px;font-family:'DM Mono',monospace;font-size:.7rem;color:var(--muted)">로딩 중...</div></div>
+      </div>
+    </div>
+
+    <footer>
+      <div class="ft">PULSE DASHBOARD · 미국 주식 실시간</div>
+      <div class="ft">DATA BY <span>YAHOO FINANCE</span> · CHART BY <span>TRADINGVIEW</span></div>
+    </footer>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+//  TAB NAVIGATION
+// ═══════════════════════════════════════════
+let stockLoaded = false;
+
+function showTab(tab) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`section-${tab}`).classList.add('active');
+  document.getElementById(`tab-${tab}`).classList.add('active');
+  if (tab === 'stock' && !stockLoaded) {
+    stockLoaded = true;
+    sLoadAll();
+  }
+}
+
+// ═══════════════════════════════════════════
+//  CLOCK & MARKET STATUS
+// ═══════════════════════════════════════════
+function updateClock() {
+  document.getElementById('clock').textContent = new Date().toLocaleTimeString('ko-KR');
+  const ny = new Date(new Date().toLocaleString('en-US', {timeZone:'America/New_York'}));
+  const day = ny.getDay(), mins = ny.getHours()*60 + ny.getMinutes();
+  const badge = document.getElementById('market-status');
+  if (day===0||day===6) { badge.textContent='CLOSED'; badge.className='market-badge close'; }
+  else if (mins>=570&&mins<930) { badge.textContent='OPEN'; badge.className='market-badge open'; }
+  else if (mins>=240&&mins<570) { badge.textContent='PRE-MKT'; badge.className='market-badge pre'; }
+  else if (mins>=930&&mins<1200){ badge.textContent='AFTER-HRS'; badge.className='market-badge pre'; }
+  else { badge.textContent='CLOSED'; badge.className='market-badge close'; }
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ═══════════════════════════════════════════
+//  WEATHER
+// ═══════════════════════════════════════════
+const WMO = {
+  0:{icon:'☀️',desc:'맑음'},1:{icon:'🌤️',desc:'대체로 맑음'},2:{icon:'⛅',desc:'부분적 흐림'},
+  3:{icon:'☁️',desc:'흐림'},45:{icon:'🌫️',desc:'안개'},48:{icon:'🌫️',desc:'결빙 안개'},
+  51:{icon:'🌦️',desc:'가벼운 이슬비'},53:{icon:'🌦️',desc:'이슬비'},55:{icon:'🌧️',desc:'강한 이슬비'},
+  61:{icon:'🌧️',desc:'가벼운 비'},63:{icon:'🌧️',desc:'비'},65:{icon:'🌧️',desc:'강한 비'},
+  71:{icon:'🌨️',desc:'가벼운 눈'},73:{icon:'❄️',desc:'눈'},75:{icon:'❄️',desc:'폭설'},
+  77:{icon:'🌨️',desc:'진눈깨비'},80:{icon:'🌦️',desc:'소나기'},81:{icon:'🌧️',desc:'강한 소나기'},
+  82:{icon:'⛈️',desc:'폭우'},85:{icon:'🌨️',desc:'눈 소나기'},95:{icon:'⛈️',desc:'뇌우'},
+  96:{icon:'⛈️',desc:'우박 뇌우'},99:{icon:'⛈️',desc:'강한 우박 뇌우'}
+};
+const getW = c => WMO[c] || {icon:'🌡️',desc:'알 수 없음'};
+const tc = t => t<=0?'c-cold':t<=10?'c-cool':t<=22?'c-mild':t<=32?'c-warm':'c-hot';
+
+const CITIES = [
+  {city:'서울',country:'대한민국',lat:37.5665,lon:126.9780},
+  {city:'도쿄',country:'일본',lat:35.6762,lon:139.6503},
+  {city:'뉴욕',country:'미국',lat:40.7128,lon:-74.0060},
+  {city:'런던',country:'영국',lat:51.5074,lon:-0.1278},
+  {city:'파리',country:'프랑스',lat:48.8566,lon:2.3522},
+  {city:'두바이',country:'아랍에미리트',lat:25.2048,lon:55.2708},
+  {city:'시드니',country:'호주',lat:-33.8688,lon:151.2093},
+  {city:'베이징',country:'중국',lat:39.9042,lon:116.4074},
+  {city:'싱가포르',country:'싱가포르',lat:1.3521,lon:103.8198},
+  {city:'방콕',country:'태국',lat:13.7563,lon:100.5018},
+  {city:'뭄바이',country:'인도',lat:19.0760,lon:72.8777},
+  {city:'모스크바',country:'러시아',lat:55.7558,lon:37.6173},
+  {city:'베를린',country:'독일',lat:52.5200,lon:13.4050},
+  {city:'로마',country:'이탈리아',lat:41.9028,lon:12.4964},
+  {city:'이스탄불',country:'터키',lat:41.0082,lon:28.9784},
+  {city:'카이로',country:'이집트',lat:30.0444,lon:31.2357},
+  {city:'토론토',country:'캐나다',lat:43.6532,lon:-79.3832},
+  {city:'상파울루',country:'브라질',lat:-23.5505,lon:-46.6333},
+];
+const QUICK = ['서울','도쿄','뉴욕','런던','파리','두바이','시드니'];
+let lastWeatherData = null;
+
+document.getElementById('w-chips').innerHTML = QUICK.map(c =>
+  `<button class="w-chip" onclick="wSearchByName('${c}')">${c}</button>`).join('');
+
+async function wFetchWeather(lat, lon) {
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,precipitation_probability&hourly=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min,weather_code,precipitation_probability_max&forecast_days=7&timezone=auto`;
+  const r = await fetch(url);
+  if (!r.ok) throw new Error('fetch error');
+  return r.json();
+}
+
+async function wGeocode(name) {
+  const r = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(name)}&count=1&language=ko`);
+  const d = await r.json();
+  if (!d.results?.length) throw new Error('not found');
+  const l = d.results[0];
+  return {city:l.name, country:l.country||l.country_code, lat:l.latitude, lon:l.longitude};
+}
+
+function wRenderHourly(dayIndex) {
+  if (!lastWeatherData) return;
+  const d = lastWeatherData;
+  const DAYS = ['일','월','화','수','목','금','토'];
+  const date = d.daily.time[dayIndex];
+  const isToday = dayIndex === 0;
+  const nowH = new Date().getHours();
+  const start = dayIndex * 24;
+  const times = d.hourly.time.slice(start, start+24);
+  document.getElementById('hourly-date').textContent = isToday ? '오늘' : `${date} (${DAYS[new Date(date).getDay()]})`;
+  document.getElementById('w-hourly').innerHTML = times.map((t,i) => {
+    const idx = start+i;
+    const h = new Date(t).getHours();
+    const wh = getW(d.hourly.weather_code[idx]);
+    const ht = Math.round(d.hourly.temperature_2m[idx]);
+    const isNow = isToday && h === nowH;
+    return `<div class="h-card ${isNow?'now':''}">
+      <div class="h-time">${String(h).padStart(2,'0')}:00</div>
+      <div class="h-icon">${wh.icon}</div>
+      <div class="h-temp ${tc(ht)}">${ht}°</div>
+    </div>`;
+  }).join('');
+  if (isToday) document.getElementById('w-hourly').querySelector('.now')?.scrollIntoView({inline:'center',behavior:'smooth'});
+  else document.getElementById('w-hourly').scrollLeft = 0;
+  document.querySelectorAll('.wd-card').forEach((el,i) => el.classList.toggle('selected', i===dayIndex));
+}
+
+async function wShowDetail(cityName, countryName, lat, lon) {
+  const det = document.getElementById('w-detail');
+  det.style.display = 'block';
+  document.getElementById('d-city').textContent = cityName;
+  document.getElementById('d-country').textContent = countryName;
+  document.getElementById('d-desc').textContent = '로딩 중...';
+  document.getElementById('d-icon').textContent = '⏳';
+  document.getElementById('d-temp').textContent = '—';
+  document.getElementById('w-hourly').innerHTML = '';
+  document.getElementById('w-weekly').innerHTML = '';
+  det.scrollIntoView({behavior:'smooth', block:'start'});
+  try {
+    const d = await wFetchWeather(lat, lon);
+    const cur = d.current;
+    const w = getW(cur.weather_code);
+    const temp = Math.round(cur.temperature_2m);
+    document.getElementById('d-desc').textContent = w.desc;
+    document.getElementById('d-icon').textContent = w.icon;
+    const te = document.getElementById('d-temp');
+    te.textContent = temp; te.className = `d-temp ${tc(temp)}`;
+    document.getElementById('d-feels').textContent = Math.round(cur.apparent_temperature)+'°C';
+    document.getElementById('d-hum').textContent = cur.relative_humidity_2m+'%';
+    document.getElementById('d-wind').textContent = Math.round(cur.wind_speed_10m)+' km/h';
+    document.getElementById('d-rain').textContent = (cur.precipitation_probability??0)+'%';
+    document.getElementById('d-range').textContent = Math.round(d.daily.temperature_2m_min[0])+'° / '+Math.round(d.daily.temperature_2m_max[0])+'°';
+    lastWeatherData = d;
+    wRenderHourly(0);
+    const DAYS = ['일','월','화','수','목','금','토'];
+    document.getElementById('w-weekly').innerHTML = d.daily.time.map((date,i) => {
+      const wd = getW(d.daily.weather_code[i]);
+      const tmin = Math.round(d.daily.temperature_2m_min[i]);
+      const tmax = Math.round(d.daily.temperature_2m_max[i]);
+      const rain = d.daily.precipitation_probability_max[i]??0;
+      const dayName = i===0?'오늘':DAYS[new Date(date).getDay()];
+      return `<div class="wd-card ${i===0?'today selected':''}" onclick="wRenderHourly(${i})">
+        <div class="wd-day">${dayName}</div>
+        <div class="wd-icon">${wd.icon}</div>
+        <div class="wd-range"><span>${tmin}°</span> / ${tmax}°</div>
+        <div class="wd-rain">${rain}%</div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    document.getElementById('d-desc').textContent = '날씨 정보를 불러올 수 없습니다.';
+  }
+}
+
+function wBuildGrid() {
+  const grid = document.getElementById('w-grid');
+  grid.innerHTML = CITIES.map((c,i) => `
+    <div class="wc-card" id="wc-${i}" onclick="wShowDetail('${c.city}','${c.country}',${c.lat},${c.lon})">
+      <div class="wc-city">${c.city}</div>
+      <div class="wc-country">${c.country}</div>
+      <div class="dots"><span></span><span></span><span></span></div>
+    </div>`).join('');
+  CITIES.forEach(async (c,i) => {
+    try {
+      const d = await wFetchWeather(c.lat, c.lon);
+      const cur = d.current;
+      const w = getW(cur.weather_code);
+      const t = Math.round(cur.temperature_2m);
+      // weather ticker
+      const txt = `${w.icon} ${t}°C`;
+      const el1 = document.getElementById(`wt-${i}`);
+      const el2 = document.getElementById(`wt-${i}b`);
+      if (el1) el1.textContent = txt;
+      if (el2) el2.textContent = txt;
+      document.getElementById(`wc-${i}`).innerHTML = `
+        <div class="wc-city">${c.city}</div>
+        <div class="wc-country">${c.country}</div>
+        <div class="wc-row">
+          <div><div class="wc-temp ${tc(t)}">${t}°</div><div class="wc-desc">${w.desc}</div></div>
+          <div class="wc-icon">${w.icon}</div>
+        </div>`;
+    } catch {}
+  });
+}
+
+async function wDoSearch() {
+  const q = document.getElementById('w-inp').value.trim();
+  if (!q) return;
+  const btn = document.getElementById('w-searchBtn');
+  const errEl = document.getElementById('w-err');
+  btn.disabled = true; btn.textContent = '검색 중...';
+  errEl.style.display = 'none';
+  try {
+    const geo = await wGeocode(q);
+    await wShowDetail(geo.city, geo.country, geo.lat, geo.lon);
+  } catch {
+    errEl.textContent = '⚠ 도시를 찾을 수 없습니다. 영문 도시명으로 시도해보세요.';
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = '조회';
+  }
+}
+function wSearchByName(name) { document.getElementById('w-inp').value = name; wDoSearch(); }
+document.getElementById('w-inp').addEventListener('keydown', e => { if(e.key==='Enter') wDoSearch(); });
+
+// ═══════════════════════════════════════════
+//  STOCK
+// ═══════════════════════════════════════════
+const INDICES = [
+  {sym:'^GSPC', name:'S&P 500',      tvSym:'SP:SPX'},
+  {sym:'^IXIC', name:'NASDAQ',       tvSym:'NASDAQ:IXIC'},
+  {sym:'^DJI',  name:'DOW JONES',    tvSym:'DJ:DJI'},
+  {sym:'^RUT',  name:'RUSSELL 2000', tvSym:'TVC:RUT'},
+  {sym:'^VIX',  name:'VIX',          tvSym:'CBOE:VIX'},
+];
+const STOCKS = [
+  {sym:'AAPL',name:'Apple'},{sym:'MSFT',name:'Microsoft'},{sym:'NVDA',name:'NVIDIA'},
+  {sym:'GOOGL',name:'Alphabet'},{sym:'AMZN',name:'Amazon'},{sym:'META',name:'Meta'},
+  {sym:'TSLA',name:'Tesla'},{sym:'AMD',name:'AMD'},{sym:'NFLX',name:'Netflix'},
+  {sym:'ORCL',name:'Oracle'},{sym:'CRM',name:'Salesforce'},{sym:'PLTR',name:'Palantir'},
+];
+const POOL_EXTRA = [
+  'SOFI','MARA','COIN','SMCI','ASML','TSM','BABA','PYPL','SQ',
+  'UBER','LYFT','SNAP','SPOT','RBLX','HOOD','RIVN','INTC','QCOM',
+  'MU','ARM','AVGO','NOW','SHOP','ABNB','JPM','BAC','GS','WMT','NKE',
+];
+
+let quoteCache = {};
+let tvWidget = null;
+let currentSym = null;
+let currentInterval = '1';
+
+const fmt    = n => n==null?'—':n>=1000?n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):n.toFixed(2);
+const fmtPct = p => p==null?'—':(p>=0?'+':'')+p.toFixed(2)+'%';
+const cls    = p => p==null?'flat':p>0?'up':p<0?'down':'flat';
+const fmtVol = v => v==null?'—':v>=1e9?(v/1e9).toFixed(2)+'B':v>=1e6?(v/1e6).toFixed(2)+'M':v>=1e3?(v/1e3).toFixed(1)+'K':v;
+const arrow  = p => p>0?'▲':p<0?'▼':'—';
+
+async function sFetchQuotes(symbols) {
+  const syms = symbols.join(',');
+  const yfUrl = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${syms}&fields=regularMarketPrice,regularMarketChangePercent,regularMarketChange,regularMarketVolume,regularMarketDayHigh,regularMarketDayLow,shortName,marketCap`;
+  const proxies = [
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(yfUrl)}`,
+    `https://corsproxy.io/?${encodeURIComponent(yfUrl)}`,
+    `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(yfUrl)}`,
+  ];
+  try {
+    const r = await fetch(yfUrl);
+    if (r.ok) { const d=await r.json(); if(d?.quoteResponse?.result?.length) return d.quoteResponse.result; }
+  } catch {}
+  for (const proxy of proxies) {
+    try {
+      const r = await fetch(proxy);
+      if (!r.ok) continue;
+      const d = JSON.parse(await r.text());
+      if (d?.quoteResponse?.result?.length) return d.quoteResponse.result;
+    } catch {}
+  }
+  return [];
+}
+
+function sRenderIndex(i, q) {
+  const pct = q.regularMarketChangePercent;
+  const el = document.getElementById(`idx-${i}`);
+  if (!el) return;
+  el.innerHTML = `
+    <div class="idx-name">${INDICES[i].name}</div>
+    <div class="idx-price ${cls(pct)}">${fmt(q.regularMarketPrice)}</div>
+    <div class="idx-chg ${cls(pct)}">${arrow(pct)} ${fmtPct(pct)} <span class="idx-abs">${pct>=0?'+':''}${fmt(q.regularMarketChange)}</span></div>`;
+}
+
+function sBuildStockGrid() {
+  document.getElementById('stock-grid').innerHTML = STOCKS.map(s => `
+    <div class="s-card" id="sc-${s.sym}" onclick="sOpenChart('${s.sym}','${s.name}')">
+      <div class="sc-sym">${s.sym}</div>
+      <div class="sc-name">${s.name}</div>
+      <div class="sc-row">
+        <div class="sc-price" id="scp-${s.sym}"><div class="dots"><span></span><span></span><span></span></div></div>
+        <div class="sc-pct flat" id="scpct-${s.sym}">—</div>
+      </div>
+      <div class="sc-vol" id="scvol-${s.sym}">VOL —</div>
+    </div>`).join('');
+}
+
+function sUpdateStockCard(q) {
+  const pct = q.regularMarketChangePercent;
+  const priceEl = document.getElementById(`scp-${q.symbol}`);
+  const pctEl   = document.getElementById(`scpct-${q.symbol}`);
+  const volEl   = document.getElementById(`scvol-${q.symbol}`);
+  if (!priceEl) return;
+  priceEl.textContent = '$'+fmt(q.regularMarketPrice);
+  priceEl.className = `sc-price ${cls(pct)}`;
+  pctEl.textContent = fmtPct(pct);
+  pctEl.className = `sc-pct ${cls(pct)}`;
+  if (volEl) volEl.textContent = 'VOL '+fmtVol(q.regularMarketVolume);
+}
+
+const TICK_MAP = {'^GSPC':'gspc','^IXIC':'ixic','^DJI':'dji','^RUT':'rut','^VIX':'vix','AAPL':'aapl','NVDA':'nvda','MSFT':'msft','TSLA':'tsla','META':'meta'};
+function sUpdateTicker(q) {
+  const key = TICK_MAP[q.symbol];
+  if (!key) return;
+  const pct = q.regularMarketChangePercent;
+  const txt = `$${fmt(q.regularMarketPrice)} <span class="${cls(pct)}">${fmtPct(pct)}</span>`;
+  ['',2].forEach(sfx => { const el = document.getElementById(`tt-${key}${sfx}`); if(el) el.innerHTML=txt; });
+}
+
+function sRenderGainersLosers(quotes) {
+  const sorted = [...quotes].filter(q=>q.regularMarketChangePercent!=null)
+    .sort((a,b)=>b.regularMarketChangePercent-a.regularMarketChangePercent);
+  const glRow = q => {
+    const pct = q.regularMarketChangePercent;
+    return `<div class="gl-row" onclick="sOpenChart('${q.symbol}','${(q.shortName||'').substring(0,20)}')">
+      <div><div class="gl-sym">${q.symbol}</div><div class="gl-name">${(q.shortName||'').substring(0,20)}</div></div>
+      <div><div class="gl-price">$${fmt(q.regularMarketPrice)}</div><div class="gl-pct ${cls(pct)}">${fmtPct(pct)}</div></div>
+    </div>`;
+  };
+  document.getElementById('gainers-list').innerHTML = sorted.slice(0,8).map(glRow).join('');
+  document.getElementById('losers-list').innerHTML  = sorted.slice(-8).reverse().map(glRow).join('');
+}
+
+function sOpenChart(sym, name) {
+  currentSym = sym;
+  document.querySelectorAll('.s-card').forEach(el=>el.classList.remove('active'));
+  document.getElementById(`sc-${sym}`)?.classList.add('active');
+  const sec = document.getElementById('chart-section');
+  sec.style.display = 'block';
+  document.getElementById('chart-title').textContent = sym+' — '+name;
+  const q = quoteCache[sym];
+  if (q) {
+    const pct = q.regularMarketChangePercent;
+    document.getElementById('chart-sub').innerHTML =
+      `<span class="${cls(pct)}">$${fmt(q.regularMarketPrice)}  ${fmtPct(pct)}</span>  ·  고가 $${fmt(q.regularMarketDayHigh)}  ·  저가 $${fmt(q.regularMarketDayLow)}`;
+  }
+  sRenderTVChart(sym, currentInterval);
+  sec.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function sRenderTVChart(sym, interval) {
+  const idxMatch = INDICES.find(i=>i.sym===sym);
+  const tvSym = idxMatch ? idxMatch.tvSym : 'NASDAQ:'+sym;
+  document.getElementById('tv-chart').innerHTML = '';
+  new TradingView.widget({
+    container_id:'tv-chart', symbol:tvSym, interval, timezone:'America/New_York',
+    theme:'dark', style:'1', locale:'ko', toolbar_bg:'#0c1220',
+    enable_publishing:false, allow_symbol_change:true, save_image:false,
+    width:'100%', height:480, studies:['RSI@tv-basicstudies','MASimple@tv-basicstudies'],
+  });
+}
+
+function setInterval_(intv, btn) {
+  currentInterval = intv;
+  document.querySelectorAll('.intv-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if (currentSym) sRenderTVChart(currentSym, intv);
+}
+
+function closeChart() {
+  document.getElementById('chart-section').style.display = 'none';
+  document.querySelectorAll('.s-card').forEach(el=>el.classList.remove('active'));
+  currentSym = null;
+}
+
+async function sLoadAll() {
+  const primary = [...INDICES.map(i=>i.sym), ...STOCKS.map(s=>s.sym)];
+  const results1 = await sFetchQuotes(primary);
+  results1.forEach(q => { quoteCache[q.symbol]=q; sUpdateTicker(q); });
+  INDICES.forEach((idx,i) => { const q=results1.find(q=>q.symbol===idx.sym); if(q) sRenderIndex(i,q); });
+  STOCKS.forEach(s => { const q=results1.find(q=>q.symbol===s.sym); if(q) sUpdateStockCard(q); });
+  const results2 = await sFetchQuotes(POOL_EXTRA);
+  results2.forEach(q => { quoteCache[q.symbol]=q; });
+  const allQuotes = [...results1.filter(q=>!INDICES.find(i=>i.sym===q.symbol)), ...results2];
+  sRenderGainersLosers(allQuotes);
+}
+
+// ═══════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════
+wBuildGrid();
+sBuildStockGrid();
+setInterval(sLoadAll, 60000);
+</script>
+</body>
+</html>
