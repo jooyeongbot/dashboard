@@ -599,7 +599,7 @@ const POOL_EXTRA = [
 let quoteCache = {};
 let currentSym = null;
 let currentInterval = '1';
-let FH_KEY = localStorage.getItem('fh_key') || '';
+let FH_KEY = localStorage.getItem('fh_key') || 'd71u7spr01qjeeef6720d71u7spr01qjeeef672g';
 
 const fmt    = n => n==null?'—':n>=1000?n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):n.toFixed(2);
 const fmtPct = p => p==null?'—':(p>=0?'+':'')+p.toFixed(2)+'%';
