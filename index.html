@@ -149,6 +149,25 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
 #tv-chart { border-radius:12px; overflow:hidden; border:1px solid var(--border); }
 .close-btn { font-family:'DM Mono',monospace; font-size:.65rem; padding:5px 13px; border-radius:6px; border:1px solid rgba(255,79,79,.25); background:rgba(255,79,79,.07); color:var(--down); cursor:pointer; transition:all .2s; }
 .close-btn:hover { background:rgba(255,79,79,.15); }
+/* 3개월 수익률 */
+.top3m-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+@media(max-width:600px){ .top3m-grid { grid-template-columns:1fr; } }
+.top3m-row { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:14px 16px; display:flex; align-items:center; gap:14px; cursor:pointer; transition:all .2s; }
+.top3m-row:hover { border-color:rgba(79,156,255,.4); transform:translateY(-2px); }
+.top3m-rank { font-family:'Bebas Neue',cursive; font-size:1.6rem; color:var(--muted); min-width:32px; line-height:1; }
+.top3m-rank.gold   { color:#ffd700; }
+.top3m-rank.silver { color:#c0c0c0; }
+.top3m-rank.bronze { color:#cd7f32; }
+.top3m-info { flex:1; }
+.top3m-sym  { font-family:'Bebas Neue',cursive; font-size:1.2rem; letter-spacing:.04em; line-height:1; }
+.top3m-name { font-family:'DM Mono',monospace; font-size:.58rem; color:var(--muted); margin-top:2px; }
+.top3m-bar-wrap { flex:1; }
+.top3m-bar-bg { background:var(--surface2); border-radius:4px; height:6px; overflow:hidden; margin-top:6px; }
+.top3m-bar-fill { height:100%; border-radius:4px; background:var(--up); transition:width .6s ease; }
+.top3m-right { text-align:right; }
+.top3m-pct   { font-family:'Bebas Neue',cursive; font-size:1.5rem; color:var(--up); line-height:1; }
+.top3m-price { font-family:'DM Mono',monospace; font-size:.62rem; color:var(--muted); margin-top:2px; }
+
 .gl-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
 @media(max-width:600px){ .gl-grid { grid-template-columns:1fr; } }
 .gl-box { background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
@@ -346,6 +365,10 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
     <div class="sec-head"><div class="sec-title">// 빅테크 & 주요 종목</div><div class="sec-line"></div></div>
     <div class="stock-grid" id="stock-grid"></div>
 
+    <!-- 3개월 수익률 -->
+    <div class="sec-head"><div class="sec-title">// 3개월 수익률 TOP 10</div><div class="sec-line"></div></div>
+    <div id="top3m-list" style="font-family:'DM Mono',monospace;font-size:.7rem;color:var(--muted);padding:16px 0">분석 중...</div>
+
     <!-- 급등락 -->
     <div class="sec-head"><div class="sec-title">// 급등락 종목</div><div class="sec-line"></div></div>
     <div class="gl-grid">
@@ -437,6 +460,7 @@ function showTab(tab) {
     loadMiniCharts();
     loadHeatmap();
     sLoadAll();
+    loadTop3Month();
   }
 }
 
@@ -833,6 +857,55 @@ async function sLoadAll() {
     extraRes.forEach(q => { quoteCache[q.symbol]=q; });
     sRenderGainersLosers([...stockRes, ...extraRes]);
   });
+}
+
+// ═══════════════════════════════════════════
+//  3개월 수익률 TOP 10
+// ═══════════════════════════════════════════
+async function fetch3MonthReturn(sym) {
+  const url = `https://query2.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?interval=1wk&range=3mo`;
+  const r = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`);
+  if (!r.ok) throw new Error('fetch failed');
+  const d = await r.json();
+  const closes = d?.chart?.result?.[0]?.indicators?.quote?.[0]?.close;
+  if (!closes || closes.length < 2) throw new Error('no data');
+  const valid = closes.filter(v => v != null);
+  if (valid.length < 2) throw new Error('no data');
+  const first = valid[0], last = valid[valid.length - 1];
+  const pct = ((last - first) / first) * 100;
+  const meta = d?.chart?.result?.[0]?.meta;
+  return { sym, name: meta?.shortName || sym, pct, price: meta?.regularMarketPrice };
+}
+
+async function loadTop3Month() {
+  const el = document.getElementById('top3m-list');
+  const allSyms = [...STOCKS.map(s=>s.sym), ...POOL_EXTRA];
+  const results = await Promise.allSettled(allSyms.map(s => fetch3MonthReturn(s)));
+  const ok = results
+    .filter(r => r.status === 'fulfilled' && isFinite(r.value.pct))
+    .map(r => r.value)
+    .sort((a, b) => b.pct - a.pct)
+    .slice(0, 10);
+
+  if (!ok.length) { el.textContent = '데이터 없음'; return; }
+
+  const maxPct = ok[0].pct;
+  const rankClass = i => i===0?'gold':i===1?'silver':i===2?'bronze':'';
+  el.innerHTML = `<div class="top3m-grid">${ok.map((item, i) => `
+    <div class="top3m-row" onclick="sOpenChart('${item.sym}','${item.name.replace(/'/g,'&apos;')}')">
+      <div class="top3m-rank ${rankClass(i)}">${i+1}</div>
+      <div class="top3m-info">
+        <div class="top3m-sym">${item.sym}</div>
+        <div class="top3m-name">${item.name}</div>
+        <div class="top3m-bar-wrap">
+          <div class="top3m-bar-bg"><div class="top3m-bar-fill" style="width:${Math.max(4,(item.pct/maxPct)*100).toFixed(1)}%"></div></div>
+        </div>
+      </div>
+      <div class="top3m-right">
+        <div class="top3m-pct">+${item.pct.toFixed(1)}%</div>
+        <div class="top3m-price">${item.price != null ? '$'+item.price.toFixed(2) : '—'}</div>
+      </div>
+    </div>`).join('')}</div>`;
 }
 
 // ═══════════════════════════════════════════
