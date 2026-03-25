@@ -574,15 +574,14 @@ function wSearchByName(name) { document.getElementById('w-inp').value = name; wD
 document.getElementById('w-inp').addEventListener('keydown', e => { if(e.key==='Enter') wDoSearch(); });
 
 // ═══════════════════════════════════════════
-//  STOCK — Finnhub API
+//  STOCK — Yahoo Finance v8 (No API Key)
 // ═══════════════════════════════════════════
-// 지수는 대표 ETF로 표시 (Finnhub 지원)
 const INDICES = [
-  {sym:'SPY',  name:'S&P 500',      label:'S&P 500 (SPY)',     tvSym:'SP:SPX'},
-  {sym:'QQQ',  name:'NASDAQ 100',   label:'NASDAQ (QQQ)',       tvSym:'NASDAQ:IXIC'},
-  {sym:'DIA',  name:'DOW JONES',    label:'DOW (DIA)',          tvSym:'DJ:DJI'},
-  {sym:'IWM',  name:'RUSSELL 2000', label:'RUSSELL (IWM)',      tvSym:'TVC:RUT'},
-  {sym:'UVXY', name:'VIX',          label:'VIX (UVXY)',         tvSym:'CBOE:VIX'},
+  {sym:'^GSPC', name:'S&P 500',      label:'S&P 500',      tvSym:'SP:SPX'},
+  {sym:'^IXIC', name:'NASDAQ',       label:'NASDAQ',        tvSym:'NASDAQ:IXIC'},
+  {sym:'^DJI',  name:'DOW JONES',    label:'DOW JONES',     tvSym:'DJ:DJI'},
+  {sym:'^RUT',  name:'RUSSELL 2000', label:'RUSSELL 2000',  tvSym:'TVC:RUT'},
+  {sym:'^VIX',  name:'VIX',          label:'VIX 공포지수',  tvSym:'CBOE:VIX'},
 ];
 const STOCKS = [
   {sym:'AAPL',name:'Apple'},{sym:'MSFT',name:'Microsoft'},{sym:'NVDA',name:'NVIDIA'},
@@ -599,7 +598,6 @@ const POOL_EXTRA = [
 let quoteCache = {};
 let currentSym = null;
 let currentInterval = '1';
-let FH_KEY = localStorage.getItem('fh_key') || 'd71u7spr01qjeeef6720d71u7spr01qjeeef672g';
 
 const fmt    = n => n==null?'—':n>=1000?n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):n.toFixed(2);
 const fmtPct = p => p==null?'—':(p>=0?'+':'')+p.toFixed(2)+'%';
@@ -607,51 +605,31 @@ const cls    = p => p==null?'flat':p>0?'up':p<0?'down':'flat';
 const fmtVol = v => v==null?'—':v>=1e9?(v/1e9).toFixed(2)+'B':v>=1e6?(v/1e6).toFixed(2)+'M':v>=1e3?(v/1e3).toFixed(1)+'K':v;
 const arrow  = p => p>0?'▲':p<0?'▼':'—';
 
-// API Key UI
-function renderKeyBanner() {
-  let el = document.getElementById('fh-banner');
-  if (!el) {
-    el = document.createElement('div');
-    el.id = 'fh-banner';
-    el.style.cssText = 'font-family:"DM Mono",monospace;font-size:.72rem;padding:12px 20px;background:rgba(255,179,71,.07);border-bottom:1px solid rgba(255,179,71,.2);display:flex;align-items:center;gap:12px;flex-wrap:wrap;';
-    document.getElementById('section-stock').insertBefore(el, document.getElementById('section-stock').firstChild.nextSibling);
-  }
-  if (FH_KEY) {
-    el.innerHTML = `<span style="color:var(--up)">✓ Finnhub 연결됨</span><span style="color:var(--muted)">|</span><input id="fh-inp" value="${FH_KEY}" style="background:transparent;border:none;color:var(--muted);font-family:inherit;font-size:.7rem;width:220px;outline:none;" /><button onclick="saveKey()" style="padding:3px 10px;border-radius:5px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);cursor:pointer;font-family:inherit;font-size:.65rem;">변경</button>`;
-  } else {
-    el.innerHTML = `<span style="color:var(--warn)">⚠ Finnhub API 키 필요</span><a href="https://finnhub.io/register" target="_blank" style="color:var(--accent2);text-decoration:none;">finnhub.io 무료 가입 →</a><input id="fh-inp" placeholder="API 키 붙여넣기..." style="flex:1;max-width:320px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:5px 10px;color:var(--text);font-family:inherit;font-size:.72rem;outline:none;" /><button onclick="saveKey()" style="padding:5px 14px;border-radius:6px;border:none;background:var(--accent);color:#fff;cursor:pointer;font-family:inherit;font-size:.72rem;">저장</button>`;
-  }
-}
-
-function saveKey() {
-  const val = document.getElementById('fh-inp')?.value.trim();
-  if (!val) return;
-  FH_KEY = val;
-  localStorage.setItem('fh_key', val);
-  renderKeyBanner();
-  sLoadAll();
-}
-
-// Finnhub fetch (단일 종목)
-async function fhQuote(sym) {
-  const r = await fetch(`https://finnhub.io/api/v1/quote?symbol=${sym}&token=${FH_KEY}`);
-  if (!r.ok) throw new Error(r.status);
+// Yahoo Finance v8 chart API — API 키 불필요, 실시간
+async function yfQuote(sym) {
+  const url = `https://query2.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?interval=1m&range=1d`;
+  const proxied = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+  const r = await fetch(proxied);
+  if (!r.ok) throw new Error('fetch failed');
   const d = await r.json();
-  if (!d.c) throw new Error('no data');
+  const meta = d?.chart?.result?.[0]?.meta;
+  if (!meta?.regularMarketPrice) throw new Error('no data');
+  const prev = meta.previousClose ?? meta.chartPreviousClose ?? meta.regularMarketPrice;
+  const cur  = meta.regularMarketPrice;
   return {
     symbol: sym,
-    regularMarketPrice: d.c,
-    regularMarketChange: d.d,
-    regularMarketChangePercent: d.dp,
-    regularMarketDayHigh: d.h,
-    regularMarketDayLow: d.l,
-    regularMarketVolume: null,
-    shortName: sym,
+    regularMarketPrice: cur,
+    regularMarketChange: cur - prev,
+    regularMarketChangePercent: ((cur - prev) / prev) * 100,
+    regularMarketDayHigh: meta.regularMarketDayHigh,
+    regularMarketDayLow: meta.regularMarketDayLow,
+    regularMarketVolume: meta.regularMarketVolume,
+    shortName: meta.longName || meta.shortName || sym,
   };
 }
 
 async function sFetchAll(symbols) {
-  const results = await Promise.allSettled(symbols.map(s => fhQuote(s)));
+  const results = await Promise.allSettled(symbols.map(s => yfQuote(s)));
   return results.filter(r=>r.status==='fulfilled').map(r=>r.value);
 }
 
@@ -660,7 +638,7 @@ function sRenderIndex(i, q) {
   const el = document.getElementById(`idx-${i}`);
   if (!el) return;
   el.innerHTML = `
-    <div class="idx-name">${INDICES[i].label}</div>
+    <div class="idx-name">${INDICES[i].name}</div>
     <div class="idx-price ${cls(pct)}">${fmt(q.regularMarketPrice)}</div>
     <div class="idx-chg ${cls(pct)}">${arrow(pct)} ${fmtPct(pct)} <span class="idx-abs">${pct>=0?'+':''}${fmt(q.regularMarketChange)}</span></div>`;
 }
@@ -689,7 +667,7 @@ function sUpdateStockCard(q) {
   pctEl.className = `sc-pct ${cls(pct)}`;
 }
 
-const TICK_MAP = {'SPY':'gspc','QQQ':'ixic','DIA':'dji','IWM':'rut','UVXY':'vix','AAPL':'aapl','NVDA':'nvda','MSFT':'msft','TSLA':'tsla','META':'meta'};
+const TICK_MAP = {'^GSPC':'gspc','^IXIC':'ixic','^DJI':'dji','^RUT':'rut','^VIX':'vix','AAPL':'aapl','NVDA':'nvda','MSFT':'msft','TSLA':'tsla','META':'meta'};
 function sUpdateTicker(q) {
   const key = TICK_MAP[q.symbol];
   if (!key) return;
@@ -755,12 +733,11 @@ function closeChart() {
 }
 
 async function sLoadAll() {
-  if (!FH_KEY) return;
   const idxSyms   = INDICES.map(i=>i.sym);
   const stockSyms = STOCKS.map(s=>s.sym);
   const [idxRes, stockRes] = await Promise.all([sFetchAll(idxSyms), sFetchAll(stockSyms)]);
-  idxRes.forEach((q,i)   => { quoteCache[q.symbol]=q; sRenderIndex(i,q); sUpdateTicker(q); });
-  stockRes.forEach(q     => { quoteCache[q.symbol]=q; sUpdateStockCard(q); sUpdateTicker(q); });
+  idxRes.forEach((q,i) => { quoteCache[q.symbol]=q; sRenderIndex(i,q); sUpdateTicker(q); });
+  stockRes.forEach(q   => { quoteCache[q.symbol]=q; sUpdateStockCard(q); sUpdateTicker(q); });
   const extraRes = await sFetchAll(POOL_EXTRA);
   extraRes.forEach(q => { quoteCache[q.symbol]=q; });
   sRenderGainersLosers([...stockRes, ...extraRes]);
@@ -771,9 +748,7 @@ async function sLoadAll() {
 // ═══════════════════════════════════════════
 wBuildGrid();
 sBuildStockGrid();
-renderKeyBanner();
-if (FH_KEY) sLoadAll();
-setInterval(() => { if(FH_KEY) sLoadAll(); }, 60000);
+setInterval(sLoadAll, 60000);
 </script>
 </body>
 </html>
