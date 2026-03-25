@@ -670,11 +670,23 @@ const cls    = p => p==null?'flat':p>0?'up':p<0?'down':'flat';
 const fmtVol = v => v==null?'—':v>=1e9?(v/1e9).toFixed(2)+'B':v>=1e6?(v/1e6).toFixed(2)+'M':v>=1e3?(v/1e3).toFixed(1)+'K':v;
 const arrow  = p => p>0?'▲':p<0?'▼':'—';
 
-// Yahoo Finance v8 chart API — API 키 불필요, 실시간
-async function yfQuote(sym) {
-  const url = `https://query2.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?interval=1m&range=1d`;
+// Yahoo Finance — 배치 요청 (v7 quote, allorigins 서버사이드 프록시)
+async function yfBatch(symbols) {
+  const syms = symbols.join(',');
+  const url = `https://query2.finance.yahoo.com/v7/finance/quote?symbols=${syms}&fields=regularMarketPrice,regularMarketChangePercent,regularMarketChange,regularMarketVolume,regularMarketDayHigh,regularMarketDayLow,shortName`;
   const proxied = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
   const r = await fetch(proxied);
+  if (!r.ok) throw new Error('fetch failed');
+  const d = await r.json();
+  const result = d?.quoteResponse?.result;
+  if (result?.length) return result;
+  throw new Error('empty');
+}
+
+// 개별 요청 fallback (배치 실패 시)
+async function yfSingle(sym) {
+  const url = `https://query2.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?interval=1m&range=1d`;
+  const r = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`);
   if (!r.ok) throw new Error('fetch failed');
   const d = await r.json();
   const meta = d?.chart?.result?.[0]?.meta;
@@ -682,19 +694,24 @@ async function yfQuote(sym) {
   const prev = meta.previousClose ?? meta.chartPreviousClose ?? meta.regularMarketPrice;
   const cur  = meta.regularMarketPrice;
   return {
-    symbol: sym,
-    regularMarketPrice: cur,
+    symbol: sym, regularMarketPrice: cur,
     regularMarketChange: cur - prev,
     regularMarketChangePercent: ((cur - prev) / prev) * 100,
     regularMarketDayHigh: meta.regularMarketDayHigh,
     regularMarketDayLow: meta.regularMarketDayLow,
     regularMarketVolume: meta.regularMarketVolume,
-    shortName: meta.longName || meta.shortName || sym,
+    shortName: meta.shortName || sym,
   };
 }
 
 async function sFetchAll(symbols) {
-  const results = await Promise.allSettled(symbols.map(s => yfQuote(s)));
+  // 배치 시도 (빠름: 요청 1번)
+  try {
+    const res = await yfBatch(symbols);
+    if (res.length > 0) return res;
+  } catch {}
+  // 개별 fallback (느리지만 확실)
+  const results = await Promise.allSettled(symbols.map(s => yfSingle(s)));
   return results.filter(r=>r.status==='fulfilled').map(r=>r.value);
 }
 
@@ -798,14 +815,24 @@ function closeChart() {
 }
 
 async function sLoadAll() {
-  const idxSyms   = INDICES.map(i=>i.sym);
-  const stockSyms = STOCKS.map(s=>s.sym);
-  const [idxRes, stockRes] = await Promise.all([sFetchAll(idxSyms), sFetchAll(stockSyms)]);
-  idxRes.forEach((q,i) => { quoteCache[q.symbol]=q; sRenderIndex(i,q); sUpdateTicker(q); });
-  stockRes.forEach(q   => { quoteCache[q.symbol]=q; sUpdateStockCard(q); sUpdateTicker(q); });
-  const extraRes = await sFetchAll(POOL_EXTRA);
-  extraRes.forEach(q => { quoteCache[q.symbol]=q; });
-  sRenderGainersLosers([...stockRes, ...extraRes]);
+  // 지수 + 빅테크 한 번에 배치 (빠른 렌더)
+  const primarySyms = [...INDICES.map(i=>i.sym), ...STOCKS.map(s=>s.sym)];
+  const primaryRes  = await sFetchAll(primarySyms);
+
+  const idxRes   = primaryRes.filter(q => INDICES.find(i=>i.sym===q.symbol));
+  const stockRes = primaryRes.filter(q => STOCKS.find(s=>s.sym===q.symbol));
+
+  idxRes.forEach((q,i) => {
+    const idx = INDICES.findIndex(i=>i.sym===q.symbol);
+    quoteCache[q.symbol]=q; sRenderIndex(idx,q); sUpdateTicker(q);
+  });
+  stockRes.forEach(q => { quoteCache[q.symbol]=q; sUpdateStockCard(q); sUpdateTicker(q); });
+
+  // 급등락용 extra pool — 백그라운드에서 처리
+  sFetchAll(POOL_EXTRA).then(extraRes => {
+    extraRes.forEach(q => { quoteCache[q.symbol]=q; });
+    sRenderGainersLosers([...stockRes, ...extraRes]);
+  });
 }
 
 // ═══════════════════════════════════════════
