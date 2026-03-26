@@ -122,7 +122,18 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
 @media(max-width:1000px){ .mini-grid { grid-template-columns:repeat(2,1fr); } }
 @media(max-width:500px) { .mini-grid { grid-template-columns:1fr; } }
 .mini-item { border-radius:12px; overflow:hidden; border:1px solid var(--border); height:200px; background:var(--surface); }
-.heatmap-wrap { border-radius:12px; overflow:hidden; border:1px solid var(--border); }
+.heatmap-wrap { border-radius:12px; border:1px solid var(--border); padding:16px; background:var(--surface); }
+.hm-sector { margin-bottom:18px; }
+.hm-sector-label { font-family:'DM Mono',monospace; font-size:.6rem; letter-spacing:.15em; color:var(--muted); margin-bottom:7px; text-transform:uppercase; }
+.hm-cells { display:flex; flex-wrap:wrap; gap:3px; }
+.hm-cell { border-radius:6px; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; transition:filter .15s, transform .1s; padding:3px 4px; box-sizing:border-box; text-align:center; }
+.hm-cell:hover { filter:brightness(1.25); transform:scale(1.04); z-index:2; }
+.hm-sym { font-family:'Bebas Neue',cursive; letter-spacing:.04em; color:#fff; line-height:1.1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
+.hm-pct { font-family:'DM Mono',monospace; line-height:1.3; }
+.hm-price-sm { font-family:'DM Mono',monospace; color:rgba(255,255,255,.65); line-height:1.2; }
+.hm-legend { display:flex; align-items:center; gap:8px; margin-top:14px; font-family:'DM Mono',monospace; font-size:.6rem; color:var(--muted); }
+.hm-legend-bar { width:160px; height:8px; border-radius:4px; background:linear-gradient(to right, #b71c1c, #c62828, #6d4040, #2a3240, #2e6b45, #1b7a3e, #0d5c2e); }
+.hm-refresh { font-family:'DM Mono',monospace; font-size:.58rem; color:var(--muted); margin-top:8px; text-align:right; }
 .idx-name { font-family:'JetBrains Mono',monospace; font-size:.62rem; color:var(--muted); letter-spacing:.1em; margin-bottom:8px; }
 .idx-price { font-family:'Bebas Neue',cursive; font-size:1.8rem; letter-spacing:.03em; line-height:1; }
 .idx-chg { font-family:'JetBrains Mono',monospace; font-size:.72rem; margin-top:5px; }
@@ -456,26 +467,102 @@ function loadMiniCharts() {
   });
 }
 
-function loadHeatmap() {
-  const el = document.getElementById('heatmap-wrap');
-  if (!el || el.dataset.loaded) return;
-  el.dataset.loaded = '1';
-  const w = document.createElement('div');
-  w.className = 'tradingview-widget-container__widget';
-  el.appendChild(w);
-  const s = document.createElement('script');
-  s.type = 'text/javascript';
-  s.async = true;
-  s.src = 'https://s3.tradingview.com/external-embedding/embed-widget-stock-heatmap.js';
-  s.textContent = JSON.stringify({
-    exchanges:[], dataSource:'SPX500', grouping:'sector',
-    blockSize:'market_cap_basic', blockColor:'change',
-    locale:'kr', colorTheme:'dark', hasTopBar:true,
-    isDataSetEnabled:true, isZoomEnabled:true,
-    hasSymbolTooltip:true, isMonoSize:false,
-    width:'100%', height:600,
+// ═══════════════════════════════════════════
+//  CUSTOM HEATMAP (Yahoo Finance 기반)
+// ═══════════════════════════════════════════
+const HM_SECTORS = [
+  { name:'기술 Technology',       syms:['AAPL','MSFT','NVDA','AVGO','ORCL','AMD','CSCO','QCOM','TXN','MU','ADI','NOW','ADBE','CRM','INTU','INTC','KLAC','LRCX','AMAT'] },
+  { name:'통신 Communication',    syms:['GOOGL','META','NFLX','DIS','T','VZ','CMCSA','TMUS'] },
+  { name:'소비재 Cons.Disc',       syms:['AMZN','TSLA','HD','MCD','NKE','SBUX','TJX','LOW','BKNG','CMG','ABNB','UBER'] },
+  { name:'필수소비재 Cons.Staples', syms:['WMT','PG','KO','PEP','COST','PM','MO','CL'] },
+  { name:'헬스케어 Healthcare',    syms:['LLY','UNH','JNJ','ABBV','MRK','TMO','ABT','DHR','BMY','AMGN','ISRG','MDT'] },
+  { name:'금융 Financials',        syms:['BRK-B','JPM','V','MA','BAC','WFC','GS','MS','C','AXP','BLK','SCHW'] },
+  { name:'에너지 Energy',          syms:['XOM','CVX','COP','EOG','SLB','MPC','PSX','OXY'] },
+  { name:'산업재 Industrials',     syms:['CAT','HON','UNP','GE','BA','RTX','DE','LMT','ETN','UPS'] },
+  { name:'소재 Materials',         syms:['LIN','APD','SHW','FCX','NEM'] },
+  { name:'부동산 Real Estate',     syms:['PLD','AMT','CCI','EQIX','PSA'] },
+  { name:'유틸리티 Utilities',     syms:['NEE','DUK','SO','D','AEP'] },
+];
+const HM_ALL_SYMS = HM_SECTORS.flatMap(s => s.syms);
+
+function hmColor(pct) {
+  const v = Math.max(-7, Math.min(7, pct || 0));
+  if (v < 0) {
+    const t = Math.min(1, -v / 7);
+    return `rgb(${Math.round(42+t*160)},${Math.round(42-t*22)},${Math.round(42-t*22)})`;
+  } else if (v === 0) {
+    return '#2a3240';
+  } else {
+    const t = Math.min(1, v / 7);
+    return `rgb(${Math.round(42-t*22)},${Math.round(42+t*140)},${Math.round(42-t*22)})`;
+  }
+}
+
+function hmSize(mcap) {
+  if (!mcap) return 62;
+  const b = Math.sqrt(mcap / 1e9) * 9;
+  return Math.max(55, Math.min(175, b));
+}
+
+async function hmFetch() {
+  const batches = [];
+  for (let i = 0; i < HM_ALL_SYMS.length; i += 50)
+    batches.push(HM_ALL_SYMS.slice(i, i+50));
+  const res = await Promise.allSettled(batches.map(b => yfBatch(b)));
+  const map = {};
+  res.forEach(r => {
+    if (r.status === 'fulfilled') r.value.forEach(q => { map[q.symbol] = q; });
   });
-  el.appendChild(s);
+  return map;
+}
+
+function hmRender(dataMap) {
+  const el = document.getElementById('heatmap-wrap');
+  const now = new Date().toLocaleTimeString('ko-KR');
+  const html = HM_SECTORS.map(sector => {
+    const stocks = sector.syms
+      .map(sym => ({ sym, q: dataMap[sym] || {} }))
+      .sort((a,b) => (b.q.marketCap||0) - (a.q.marketCap||0));
+
+    const cells = stocks.map(({sym, q}) => {
+      const pct  = q.regularMarketChangePercent;
+      const price = q.regularMarketPrice;
+      const sz   = hmSize(q.marketCap);
+      const bg   = hmColor(pct);
+      const pctTxt   = pct == null ? '—' : (pct>=0?'+':'')+pct.toFixed(2)+'%';
+      const priceTxt = price == null ? '' : price>=1000 ? '$'+Math.round(price).toLocaleString() : '$'+price.toFixed(2);
+      const symFs  = sz > 100 ? '.82rem' : sz > 70 ? '.7rem' : '.6rem';
+      const pctFs  = sz > 100 ? '.72rem' : sz > 70 ? '.62rem' : '.55rem';
+      const pctCl  = (pct||0) >= 0 ? 'color:#7effa0' : 'color:#ff9090';
+      return `<div class="hm-cell" style="background:${bg};width:${sz}px;height:${sz}px" onclick="sOpenChart('${sym}','${sym}')">
+        <div class="hm-sym" style="font-size:${symFs}">${sym}</div>
+        <div class="hm-pct" style="font-size:${pctFs};${pctCl}">${pctTxt}</div>
+        ${sz > 80 ? `<div class="hm-price-sm" style="font-size:${pctFs}">${priceTxt}</div>` : ''}
+      </div>`;
+    }).join('');
+
+    return `<div class="hm-sector">
+      <div class="hm-sector-label">${sector.name}</div>
+      <div class="hm-cells">${cells}</div>
+    </div>`;
+  }).join('');
+
+  el.innerHTML = html +
+    `<div class="hm-legend">
+      <span>-7%</span>
+      <div class="hm-legend-bar"></div>
+      <span>+7%</span>
+    </div>
+    <div class="hm-refresh">마지막 갱신: ${now} · 60초마다 자동 갱신</div>`;
+}
+
+let hmTimer = null;
+async function loadHeatmap() {
+  const el = document.getElementById('heatmap-wrap');
+  el.innerHTML = '<div style="padding:32px;font-family:\'DM Mono\',monospace;font-size:.7rem;color:var(--muted)">히트맵 데이터 수집 중... (약 5~10초)</div>';
+  const dm = await hmFetch();
+  hmRender(dm);
+  if (!hmTimer) hmTimer = setInterval(async () => { const d = await hmFetch(); hmRender(d); }, 60000);
 }
 
 function showTab(tab) {
