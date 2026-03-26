@@ -512,12 +512,12 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
 ══════════════════════════════════════ -->
 <div class="section" id="section-travel">
   <div class="wrap">
-    <!-- 위키 인기 여행지 -->
+    <!-- 네이버 DataLab 인기 여행지 -->
     <div class="sec-head" style="margin-top:24px">
-      <div><div class="sec-title">// 인기 여행지 검색 순위</div><div class="sec-desc">한국어 위키백과 월간 조회수 기준 · 지난달 데이터</div></div>
+      <div><div class="sec-title">// 인기 여행지 검색 순위</div><div class="sec-desc">네이버 DataLab 검색어 트렌드 기준 · 최근 3개월 · &quot;○○ 여행&quot; 키워드 검색량</div></div>
       <div class="sec-line"></div>
     </div>
-    <div id="wiki-rank-grid" style="font-family:'Noto Sans KR',sans-serif;font-size:.8rem;color:var(--muted);padding:12px 0">조회수 분석 중...</div>
+    <div id="wiki-rank-grid" style="font-family:'Noto Sans KR',sans-serif;font-size:.8rem;color:var(--muted);padding:12px 0"><span class="dots"><span></span><span></span><span></span></span> 검색 트렌드 분석 중...</div>
 
     <!-- 맑은 여행지 -->
     <div class="sec-head" style="margin-top:44px">
@@ -739,7 +739,7 @@ function showTab(tab) {
   }
   if (tab === 'travel' && !travelLoaded) {
     travelLoaded = true;
-    loadWikiRank();
+    loadNaverDataLab();
     loadTravel(false);
     loadFxChange();
   }
@@ -1483,6 +1483,117 @@ function tvRender() {
 // ═══════════════════════════════════════════
 //  WIKI RANK (위키백과 조회수 기반 인기 여행지)
 // ═══════════════════════════════════════════
+// ═══════════════════════════════════════════
+//  NAVER DATALAB 검색 트렌드
+// ═══════════════════════════════════════════
+const NAVER_CLIENT_ID     = 'Wh4ue8W05U7bOEi1_snR';
+const NAVER_CLIENT_SECRET = '_IfnWFFgLV';
+
+const DATALAB_CITIES = [
+  {name:'도쿄',      flag:'🇯🇵', kw:['도쿄 여행','도쿄여행','도쿄 관광']},
+  {name:'오사카',    flag:'🇯🇵', kw:['오사카 여행','오사카여행','오사카 관광']},
+  {name:'파리',      flag:'🇫🇷', kw:['파리 여행','파리여행','파리 관광']},
+  {name:'방콕',      flag:'🇹🇭', kw:['방콕 여행','방콕여행','방콕 관광']},
+  {name:'발리',      flag:'🇮🇩', kw:['발리 여행','발리여행','발리 관광']},
+  {name:'싱가포르',  flag:'🇸🇬', kw:['싱가포르 여행','싱가포르여행']},
+  {name:'홍콩',      flag:'🇭🇰', kw:['홍콩 여행','홍콩여행','홍콩 관광']},
+  {name:'바르셀로나',flag:'🇪🇸', kw:['바르셀로나 여행','바르셀로나여행']},
+  {name:'로마',      flag:'🇮🇹', kw:['로마 여행','로마여행','로마 관광']},
+  {name:'두바이',    flag:'🇦🇪', kw:['두바이 여행','두바이여행','두바이 관광']},
+  {name:'하와이',    flag:'🇺🇸', kw:['하와이 여행','하와이여행','하와이 관광']},
+  {name:'뉴욕',      flag:'🇺🇸', kw:['뉴욕 여행','뉴욕여행','뉴욕 관광']},
+  {name:'런던',      flag:'🇬🇧', kw:['런던 여행','런던여행','런던 관광']},
+  {name:'제주',      flag:'🇰🇷', kw:['제주도 여행','제주 여행','제주여행']},
+  {name:'부산',      flag:'🇰🇷', kw:['부산 여행','부산여행','부산 관광']},
+  {name:'다낭',      flag:'🇻🇳', kw:['다낭 여행','다낭여행','다낭 관광']},
+  {name:'세부',      flag:'🇵🇭', kw:['세부 여행','세부여행','세부 관광']},
+  {name:'타이페이',  flag:'🇹🇼', kw:['타이베이 여행','타이페이 여행','타이베이여행']},
+  {name:'후쿠오카',  flag:'🇯🇵', kw:['후쿠오카 여행','후쿠오카여행']},
+  {name:'몰디브',    flag:'🇲🇻', kw:['몰디브 여행','몰디브여행']},
+];
+
+async function dlFetch(groups, startDate, endDate) {
+  const body = JSON.stringify({
+    startDate, endDate, timeUnit: 'month', device: '', ages: [], gender: '',
+    keywordGroups: groups.map(c => ({groupName: c.name, keywords: c.kw}))
+  });
+  const r = await fetch('https://corsproxy.io/?url=' + encodeURIComponent('https://openapi.naver.com/v1/datalab/search'), {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Naver-Client-Id': NAVER_CLIENT_ID,
+      'X-Naver-Client-Secret': NAVER_CLIENT_SECRET,
+    },
+    body
+  });
+  if (!r.ok) throw new Error('DataLab ' + r.status);
+  return r.json();
+}
+
+async function loadNaverDataLab() {
+  const el = document.getElementById('wiki-rank-grid');
+  const endDate   = new Date().toISOString().slice(0,10);
+  const startD    = new Date(); startD.setMonth(startD.getMonth() - 3);
+  const startDate = startD.toISOString().slice(0,10);
+
+  // 도쿄를 앵커로 모든 배치에 포함시켜 배치 간 비율 정규화
+  const TOKYO  = DATALAB_CITIES[0];
+  const others = DATALAB_CITIES.slice(1); // 19개 도시
+  const batches = [];
+  for (let i = 0; i < others.length; i += 4) {
+    batches.push([TOKYO, ...others.slice(i, i + 4)]); // 도쿄 + 최대 4개 = 최대 5그룹
+  }
+
+  try {
+    const batchResults = await Promise.allSettled(
+      batches.map(b => dlFetch(b, startDate, endDate))
+    );
+
+    // 배치 0에서 도쿄 기준 ratio 추출
+    const b0 = batchResults[0].status === 'fulfilled' ? batchResults[0].value : null;
+    const tokyoRef = b0?.results?.find(r => r.title === '도쿄')?.data?.slice(-1)[0]?.ratio ?? null;
+
+    if (tokyoRef === null) throw new Error('No reference data');
+
+    const cityScores = [];
+
+    batchResults.forEach((res, bi) => {
+      if (res.status !== 'fulfilled' || !res.value?.results) return;
+      const tokyoBatch = res.value.results.find(r => r.title === '도쿄')?.data?.slice(-1)[0]?.ratio;
+      const scale = (tokyoBatch && tokyoBatch > 0) ? (tokyoRef / tokyoBatch) : 1;
+
+      res.value.results.forEach(r => {
+        if (bi > 0 && r.title === '도쿄') return; // 중복 제거
+        const latest = r.data?.slice(-1)[0];
+        if (!latest) return;
+        const city = DATALAB_CITIES.find(c => c.name === r.title);
+        if (!city) return;
+        cityScores.push({ ...city, score: latest.ratio * scale });
+      });
+    });
+
+    if (!cityScores.length) throw new Error('Empty');
+
+    cityScores.sort((a, b) => b.score - a.score);
+    const maxS = cityScores[0].score || 1;
+    const rankCls = i => i===0?'gold':i===1?'silver':i===2?'bronze':'normal';
+
+    el.className = 'wiki-grid';
+    el.innerHTML = cityScores.map((c, i) => `
+      <div class="wiki-card">
+        <div class="wiki-rank-num ${rankCls(i)}">${i + 1}</div>
+        <div class="wiki-city">${c.flag} ${c.name}</div>
+        <div class="wiki-bar-wrap"><div class="wiki-bar" style="width:${Math.round(c.score / maxS * 100)}%"></div></div>
+        <div class="wiki-views">검색 지수 ${c.score.toFixed(1)}</div>
+      </div>`).join('');
+
+  } catch(e) {
+    console.warn('Naver DataLab failed, falling back to Wikipedia:', e);
+    loadWikiRank();
+  }
+}
+
+// ── Wikipedia 폴백 ──
 const WIKI_CITIES = [
   {name:'도쿄',      flag:'🇯🇵', article:'도쿄'},
   {name:'오사카',    flag:'🇯🇵', article:'오사카'},
@@ -1525,7 +1636,7 @@ async function loadWikiRank() {
     ...c, views: results[i].status==='fulfilled' ? results[i].value : 0
   })).filter(c=>c.views>0).sort((a,b)=>b.views-a.views);
 
-  if (!data.length) { el.innerHTML='<div>데이터 없음</div>'; return; }
+  if (!data.length) { el.innerHTML='<div style="color:var(--muted)">데이터를 불러올 수 없습니다</div>'; return; }
   const maxV = data[0].views;
   const fmtV = v => v>=1e6?(v/1e6).toFixed(1)+'M':v>=1000?(v/1000).toFixed(0)+'K':v;
   const rankCls = i => i===0?'gold':i===1?'silver':i===2?'bronze':'normal';
@@ -1536,7 +1647,7 @@ async function loadWikiRank() {
       <div class="wiki-rank-num ${rankCls(i)}">${i+1}</div>
       <div class="wiki-city">${c.flag} ${c.name}</div>
       <div class="wiki-bar-wrap"><div class="wiki-bar" style="width:${Math.round(c.views/maxV*100)}%"></div></div>
-      <div class="wiki-views">조회 ${fmtV(c.views)}회 / 월</div>
+      <div class="wiki-views">위키 조회 ${fmtV(c.views)}회/월</div>
     </div>`).join('');
 }
 
