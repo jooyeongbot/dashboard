@@ -816,10 +816,13 @@ function showTab(tab) {
     loadMiniCharts();
     loadHeatmap();
     sLoadAll();
-    loadTop3Month();
     loadForex();
     loadForexCharts();
-    loadVolRank();
+    // 3개월 수익률은 sLoadAll 완료 후 순차 실행 (Finnhub rate limit 준수)
+    sLoadAll().then(() => {
+      loadVolRank();
+      setTimeout(loadTop3Month, 2000);
+    });
   }
   if (tab === 'travel' && !travelLoaded) {
     travelLoaded = true;
