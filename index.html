@@ -577,14 +577,23 @@ function hmSize(mcap) {
 }
 
 async function hmFetch() {
-  const batches = [];
-  for (let i = 0; i < HM_ALL_SYMS.length; i += 25)
-    batches.push(HM_ALL_SYMS.slice(i, i+25));
-  const res = await Promise.allSettled(batches.map(b => yfBatch(b)));
   const map = {};
-  res.forEach(r => {
+  // 1단계: 배치로 한번에 시도 (빠름)
+  const batches = [];
+  for (let i = 0; i < HM_ALL_SYMS.length; i += 20)
+    batches.push(HM_ALL_SYMS.slice(i, i+20));
+  const batchRes = await Promise.allSettled(batches.map(b => yfBatch(b)));
+  batchRes.forEach(r => {
     if (r.status === 'fulfilled') r.value.forEach(q => { map[q.symbol] = q; });
   });
+  // 2단계: 배치에서 누락된 심볼은 v8 개별 fallback
+  const missing = HM_ALL_SYMS.filter(s => !map[s]);
+  if (missing.length > 0) {
+    const indivRes = await Promise.allSettled(missing.map(s => yfSingle(s)));
+    indivRes.forEach((r, i) => {
+      if (r.status === 'fulfilled') map[missing[i]] = r.value;
+    });
+  }
   return map;
 }
 
