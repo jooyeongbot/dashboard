@@ -1218,8 +1218,9 @@ async function loadVolRank() {
   }
 
   const byVol = (a,b) => (b.regularMarketVolume||0) - (a.regularMarketVolume||0);
-  const rising = quotes.filter(q => (q.regularMarketChangePercent??0) > 0).sort(byVol).slice(0,5);
-  const falling = quotes.filter(q => (q.regularMarketChangePercent??0) < 0).sort(byVol).slice(0,5);
+  const sorted = [...quotes].sort(byVol); // 전체를 거래량 순으로 먼저 정렬
+  const rising  = sorted.filter(q => (q.regularMarketChangePercent??0) > 0).slice(0,5);
+  const falling = sorted.filter(q => (q.regularMarketChangePercent??0) < 0).slice(0,5);
 
   const volRow = q => `
     <div class="gl-row" onclick="sOpenChart('${q.symbol}','${q.shortName||q.symbol}')">
