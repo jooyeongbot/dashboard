@@ -491,6 +491,9 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
       <button class="tv-filter-btn" onclick="tvSetFilter('japan',this)">🇯🇵 일본</button>
       <button class="tv-filter-btn" onclick="tvSetFilter('asia',this)">🌏 아시아</button>
       <button class="tv-filter-btn" onclick="tvSetFilter('world',this)">🌍 해외</button>
+      <input id="tv-search" type="text" placeholder="🔍 도시 / 나라 검색..." oninput="tvSearch(this.value)"
+        style="font-family:'Noto Sans KR','Inter',sans-serif;font-size:.75rem;padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);color:var(--text);outline:none;width:200px;margin-left:4px;transition:border-color .2s"
+        onfocus="this.style.borderColor='rgba(79,156,255,.5)'" onblur="this.style.borderColor='var(--border)'">
     </div>
     <div id="tv-grid" class="tv-grid">
       <div class="tv-loading">🌍 여행지 날씨 분석 중...</div>
@@ -1304,12 +1307,20 @@ const WMO_TYPE = wc => wc<=2?'sunny':wc<=45?'cloudy':wc<=48?'cloudy':'rainy';
 const DAY_NAMES = ['일','월','화','수','목','금','토'];
 
 let tvFilter = 'all';
+let tvSearchQ = '';
 let tvData = [];
 
 function tvSetFilter(f, btn) {
   tvFilter = f;
+  tvSearchQ = '';
+  document.getElementById('tv-search').value = '';
   document.querySelectorAll('.tv-filter-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
+  tvRender();
+}
+
+function tvSearch(q) {
+  tvSearchQ = q.trim().toLowerCase();
   tvRender();
 }
 
@@ -1354,7 +1365,8 @@ async function loadTravel(forceRefresh) {
 
 function tvRender() {
   const filtered = (tvFilter==='all' ? tvData : tvData.filter(c=>c.cat===tvFilter))
-    .filter(c => c.clearDays === 5); // 5일 내내 비 없는 곳만
+    .filter(c => c.clearDays === 5)
+    .filter(c => !tvSearchQ || c.name.includes(tvSearchQ) || c.en.toLowerCase().includes(tvSearchQ) || c.flag.includes(tvSearchQ));
   const sorted = [...filtered].sort((a,b)=>b.score-a.score);
   const maxScore = sorted[0]?.score || 100;
   const el = document.getElementById('tv-grid');
