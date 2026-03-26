@@ -602,7 +602,7 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
 
     <!-- 네이버 뉴스 -->
     <div class="sec-head" style="margin-top:24px">
-      <div><div class="sec-title">// 최신 한국 뉴스</div><div class="sec-desc">연합뉴스 · KBS · MBC · SBS · 조선일보 · 한국경제 RSS 통합 · 최신순</div></div>
+      <div><div class="sec-title">// 인기 한국 뉴스</div><div class="sec-desc">Google 뉴스 트렌드 기준 · 많이 다뤄진 기사 상위 노출 · 여러 언론사 통합</div></div>
       <div class="sec-line"></div>
     </div>
     <div class="tv-filter" id="news-cat-filter">
@@ -1951,9 +1951,21 @@ async function loadFxChange() {
     // 현재 + 1달 전
     const pastDate = new Date(); pastDate.setMonth(pastDate.getMonth()-1);
     const pastStr = pastDate.toISOString().slice(0,10);
+    const fxFetch = async (path) => {
+      const url = `https://api.frankfurter.app/${path}`;
+      const tries = [
+        url,
+        `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+        `https://corsproxy.io/?${encodeURIComponent(url)}`,
+      ];
+      for (const t of tries) {
+        try { const r = await fetch(t); if (r.ok) return r.json(); } catch {}
+      }
+      throw new Error('fetch failed');
+    };
     const [curR, oldR] = await Promise.all([
-      fetch(`https://api.frankfurter.app/latest?from=USD&to=KRW,${toSyms}`).then(r=>r.json()),
-      fetch(`https://api.frankfurter.app/${pastStr}?from=USD&to=KRW,${toSyms}`).then(r=>r.json()),
+      fxFetch(`latest?from=USD&to=KRW,${toSyms}`),
+      fxFetch(`${pastStr}?from=USD&to=KRW,${toSyms}`),
     ]);
     const curKRW = curR.rates.KRW;
     const oldKRW = oldR.rates.KRW;
