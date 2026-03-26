@@ -602,7 +602,7 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
 
     <!-- 네이버 뉴스 -->
     <div class="sec-head" style="margin-top:24px">
-      <div><div class="sec-title">// 최신 한국 뉴스</div><div class="sec-desc">연합뉴스 RSS · 최신순 · 카테고리 선택 가능</div></div>
+      <div><div class="sec-title">// 최신 한국 뉴스</div><div class="sec-desc">연합뉴스 · KBS · MBC · SBS · 조선일보 · 한국경제 RSS 통합 · 최신순</div></div>
       <div class="sec-line"></div>
     </div>
     <div class="tv-filter" id="news-cat-filter">
@@ -621,7 +621,7 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
 
     <footer>
       <div class="ft">PULSE DASHBOARD · 한국 뉴스</div>
-      <div class="ft">DATA BY <span>연합뉴스 RSS</span></div>
+      <div class="ft">DATA BY <span>연합뉴스</span> · <span>KBS</span> · <span>MBC</span> · <span>SBS</span> · <span>조선일보</span> · <span>한국경제</span></div>
     </footer>
   </div>
 </div>
@@ -1830,16 +1830,16 @@ function getDomain(url) {
   try { return new URL(url).hostname.replace(/^www\./,''); } catch { return ''; }
 }
 
-const NEWS_RSS = {
-  all: 'https://www.yna.co.kr/rss/news.xml',
-  pol: 'https://www.yna.co.kr/rss/politics.xml',
-  eco: 'https://www.yna.co.kr/rss/economy.xml',
-  soc: 'https://www.yna.co.kr/rss/society.xml',
-  int: 'https://www.yna.co.kr/rss/international.xml',
-  it:  'https://www.yna.co.kr/rss/it.xml',
-  ent: 'https://www.yna.co.kr/rss/entertainment.xml',
-  spt: 'https://www.yna.co.kr/rss/sports.xml',
-};
+// 언론사별 카테고리 RSS 목록
+const NEWS_SOURCES = [
+  { name:'연합뉴스', feeds:{ all:'https://www.yna.co.kr/rss/news.xml', pol:'https://www.yna.co.kr/rss/politics.xml', eco:'https://www.yna.co.kr/rss/economy.xml', soc:'https://www.yna.co.kr/rss/society.xml', int:'https://www.yna.co.kr/rss/international.xml', it:'https://www.yna.co.kr/rss/it.xml', ent:'https://www.yna.co.kr/rss/entertainment.xml', spt:'https://www.yna.co.kr/rss/sports.xml' }},
+  { name:'KBS뉴스',  feeds:{ all:'https://news.kbs.co.kr/rss/rss.xml' }},
+  { name:'MBC뉴스',  feeds:{ all:'https://imnews.imbc.com/rss/news/news_00.xml' }},
+  { name:'SBS뉴스',  feeds:{ all:'https://news.sbs.co.kr/news/SectionRssFeed.do?sectionId=01' }},
+  { name:'조선일보', feeds:{ all:'https://www.chosun.com/arc/outboundfeeds/rss/?outputType=xml' }},
+  { name:'한국경제', feeds:{ all:'https://www.hankyung.com/feed/all-news', eco:'https://www.hankyung.com/feed/economy', it:'https://www.hankyung.com/feed/it' }},
+];
+
 let currentNewsCat = 'all';
 const newsCache = {};
 
@@ -1850,35 +1850,53 @@ function setNewsCategory(key, btn) {
   loadNaverNews(key);
 }
 
+async function fetchRSS(url, sourceName) {
+  const proxied = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+  const r = await fetch(proxied);
+  if (!r.ok) throw new Error('fail');
+  const text = await r.text();
+  const xml  = new DOMParser().parseFromString(text, 'text/xml');
+  return [...xml.querySelectorAll('item')].map(n => {
+    // <link> 는 텍스트노드로만 있는 경우가 많아 nextSibling으로도 시도
+    const linkEl = n.querySelector('link');
+    const link   = linkEl?.textContent?.trim() || linkEl?.nextSibling?.textContent?.trim() || '';
+    return {
+      title:   n.querySelector('title')?.textContent       || '',
+      link,
+      desc:    n.querySelector('description')?.textContent || '',
+      pubDate: n.querySelector('pubDate')?.textContent     || '',
+      source:  sourceName,
+    };
+  }).filter(it => it.title && it.link);
+}
+
 async function loadNaverNews(catKey) {
   const el = document.getElementById('news-grid');
   if (newsCache[catKey]) { renderNewsItems(newsCache[catKey]); return; }
-  el.innerHTML = '<div class="tv-loading">📰 뉴스 불러오는 중...</div>';
-  const rssUrl  = NEWS_RSS[catKey] || NEWS_RSS.all;
-  const proxied = `https://api.allorigins.win/raw?url=${encodeURIComponent(rssUrl)}`;
-  try {
-    const r = await fetch(proxied);
-    if (!r.ok) throw new Error('fetch 실패');
-    const text = await r.text();
-    const xml   = new DOMParser().parseFromString(text, 'text/xml');
-    const items = [...xml.querySelectorAll('item')].map(n => ({
-      title:   n.querySelector('title')?.textContent       || '',
-      link:    n.querySelector('link')?.textContent        || '',
-      desc:    n.querySelector('description')?.textContent || '',
-      pubDate: n.querySelector('pubDate')?.textContent     || '',
-    })).filter(it => it.title && it.link);
-    if (!items.length) throw new Error('데이터 없음');
-    newsCache[catKey] = items;
-    renderNewsItems(items);
-  } catch(e) {
-    el.innerHTML = `<div style="color:var(--muted);padding:24px;font-size:.8rem">뉴스를 불러올 수 없습니다 (${e.message})</div>`;
+  el.innerHTML = '<div class="tv-loading">📰 여러 언론사 뉴스 불러오는 중...</div>';
+
+  const results = await Promise.allSettled(
+    NEWS_SOURCES.map(src => fetchRSS(src.feeds[catKey] || src.feeds.all, src.name))
+  );
+
+  const allItems = results
+    .filter(r => r.status === 'fulfilled')
+    .flatMap(r => r.value)
+    .sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate))
+    .slice(0, 50);
+
+  if (!allItems.length) {
+    el.innerHTML = '<div style="color:var(--muted);padding:24px;font-size:.8rem">뉴스를 불러올 수 없습니다</div>';
+    return;
   }
+  newsCache[catKey] = allItems;
+  renderNewsItems(allItems);
 }
 
 function renderNewsItems(items) {
   const el = document.getElementById('news-grid');
   const strip = s => s.replace(/<!\[CDATA\[|\]\]>/g,'').replace(/<[^>]+>/g,'').replace(/&quot;/g,'"').replace(/&amp;/g,'&').replace(/&#0*39;/g,"'").trim();
-  el.innerHTML = items.slice(0, 30).map(it => {
+  el.innerHTML = items.map(it => {
     const title = strip(it.title);
     const desc  = strip(it.desc).slice(0, 90);
     const ago   = it.pubDate ? timeAgo(Math.floor(new Date(it.pubDate).getTime()/1000)) : '';
@@ -1886,7 +1904,7 @@ function renderNewsItems(items) {
       <div class="news-title">${title}</div>
       ${desc ? `<div style="font-size:.74rem;color:var(--muted);line-height:1.55;margin-top:-4px">${desc}…</div>` : ''}
       <div class="news-meta">
-        <span class="news-domain">연합뉴스</span>
+        <span class="news-domain">${it.source}</span>
         ${ago ? `<span class="news-time">${ago}</span>` : ''}
       </div>
     </div>`;
