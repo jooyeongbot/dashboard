@@ -621,7 +621,7 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
 
     <footer>
       <div class="ft">PULSE DASHBOARD · 한국 뉴스</div>
-      <div class="ft">DATA BY <span>연합뉴스</span> · <span>KBS</span> · <span>MBC</span> · <span>SBS</span> · <span>조선일보</span> · <span>한국경제</span></div>
+      <div class="ft">DATA BY <span>GOOGLE NEWS RSS</span> · 한국어 트렌드 기사</div>
     </footer>
   </div>
 </div>
@@ -1836,15 +1836,17 @@ function getDomain(url) {
   try { return new URL(url).hostname.replace(/^www\./,''); } catch { return ''; }
 }
 
-// 언론사별 카테고리 RSS 목록
-const NEWS_SOURCES = [
-  { name:'연합뉴스', feeds:{ all:'https://www.yna.co.kr/rss/news.xml', pol:'https://www.yna.co.kr/rss/politics.xml', eco:'https://www.yna.co.kr/rss/economy.xml', soc:'https://www.yna.co.kr/rss/society.xml', int:'https://www.yna.co.kr/rss/international.xml', it:'https://www.yna.co.kr/rss/it.xml', ent:'https://www.yna.co.kr/rss/entertainment.xml', spt:'https://www.yna.co.kr/rss/sports.xml' }},
-  { name:'KBS뉴스',  feeds:{ all:'https://news.kbs.co.kr/rss/rss.xml' }},
-  { name:'MBC뉴스',  feeds:{ all:'https://imnews.imbc.com/rss/news/news_00.xml' }},
-  { name:'SBS뉴스',  feeds:{ all:'https://news.sbs.co.kr/news/SectionRssFeed.do?sectionId=01' }},
-  { name:'조선일보', feeds:{ all:'https://www.chosun.com/arc/outboundfeeds/rss/?outputType=xml' }},
-  { name:'한국경제', feeds:{ all:'https://www.hankyung.com/feed/all-news', eco:'https://www.hankyung.com/feed/economy', it:'https://www.hankyung.com/feed/it' }},
-];
+// Google 뉴스 RSS — 트렌드(많이 다뤄진) 순 정렬
+const NEWS_GOOGLE_RSS = {
+  all: 'https://news.google.com/rss?hl=ko&gl=KR&ceid=KR:ko',
+  pol: 'https://news.google.com/rss/headlines/section/topic/POLITICS?hl=ko&gl=KR&ceid=KR:ko',
+  eco: 'https://news.google.com/rss/headlines/section/topic/BUSINESS?hl=ko&gl=KR&ceid=KR:ko',
+  soc: 'https://news.google.com/rss/headlines/section/topic/NATION?hl=ko&gl=KR&ceid=KR:ko',
+  int: 'https://news.google.com/rss/headlines/section/topic/WORLD?hl=ko&gl=KR&ceid=KR:ko',
+  it:  'https://news.google.com/rss/headlines/section/topic/TECHNOLOGY?hl=ko&gl=KR&ceid=KR:ko',
+  ent: 'https://news.google.com/rss/headlines/section/topic/ENTERTAINMENT?hl=ko&gl=KR&ceid=KR:ko',
+  spt: 'https://news.google.com/rss/headlines/section/topic/SPORTS?hl=ko&gl=KR&ceid=KR:ko',
+};
 
 let currentNewsCat = 'all';
 const newsCache = {};
@@ -1856,8 +1858,7 @@ function setNewsCategory(key, btn) {
   loadNaverNews(key);
 }
 
-async function fetchRSS(url, sourceName) {
-  // 두 프록시 동시 요청 — 더 빠른 쪽 사용
+async function fetchRSS(url, fallbackSource) {
   const proxies = [
     `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
     `https://corsproxy.io/?${encodeURIComponent(url)}`,
@@ -1870,12 +1871,14 @@ async function fetchRSS(url, sourceName) {
   return [...xml.querySelectorAll('item')].map(n => {
     const linkEl = n.querySelector('link');
     const link   = linkEl?.textContent?.trim() || linkEl?.nextSibling?.textContent?.trim() || '';
+    // Google News RSS는 <source> 태그에 언론사명이 들어있음
+    const source = n.querySelector('source')?.textContent?.trim() || fallbackSource || '';
     return {
       title:   n.querySelector('title')?.textContent       || '',
       link,
       desc:    n.querySelector('description')?.textContent || '',
       pubDate: n.querySelector('pubDate')?.textContent     || '',
-      source:  sourceName,
+      source,
     };
   }).filter(it => it.title && it.link);
 }
@@ -1884,27 +1887,15 @@ async function loadNaverNews(catKey) {
   const el = document.getElementById('news-grid');
   if (newsCache[catKey]) { renderNewsItems(newsCache[catKey]); return; }
   el.innerHTML = '<div class="tv-loading">📰 뉴스 불러오는 중...</div>';
-
-  let accumulated = [];
-
-  // 각 소스 완료되는 즉시 렌더링 (전체 기다리지 않음)
-  const promises = NEWS_SOURCES.map(async src => {
-    try {
-      const items = await fetchRSS(src.feeds[catKey] || src.feeds.all, src.name);
-      accumulated = [...accumulated, ...items]
-        .sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate))
-        .slice(0, 50);
-      renderNewsItems(accumulated);
-    } catch {}
-  });
-
-  await Promise.allSettled(promises);
-
-  if (!accumulated.length) {
+  try {
+    const url = NEWS_GOOGLE_RSS[catKey] || NEWS_GOOGLE_RSS.all;
+    const items = await fetchRSS(url, null);
+    if (!items.length) throw new Error('empty');
+    newsCache[catKey] = items;
+    renderNewsItems(items);
+  } catch(e) {
     el.innerHTML = '<div style="color:var(--muted);padding:24px;font-size:.8rem">뉴스를 불러올 수 없습니다</div>';
-    return;
   }
-  newsCache[catKey] = accumulated;
 }
 
 function renderNewsItems(items) {
