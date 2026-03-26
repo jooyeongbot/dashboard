@@ -481,20 +481,13 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
     <div class="sec-head"><div><div class="sec-title">// 3개월 수익률 TOP 10</div><div class="sec-desc">3개월 전 종가 대비 현재 주가 상승률 기준 · 탭 진입 시 1회 산출</div></div><div class="sec-line"></div></div>
     <div id="top3m-list" style="font-family:'Roboto Mono',monospace;font-size:.7rem;color:var(--muted);padding:16px 0">분석 중...</div>
 
-    <!-- 거래량 상위 매수/매도 -->
+    <!-- 거래량 상위 -->
     <div class="sec-head">
-      <div><div class="sec-title">// 거래량 상위 종목</div><div class="sec-desc">미국 증시 당일 거래량 상위 25개 중 · 상승 마감 = 매수 우위 / 하락 마감 = 매도 우위 · Yahoo Finance · 60초 갱신</div></div>
+      <div><div class="sec-title">// 거래량 상위 종목</div><div class="sec-desc">당일 미국 증시 거래량 많은 순 TOP 10 · Yahoo Finance · 60초 갱신</div></div>
       <div class="sec-line"></div>
     </div>
-    <div class="gl-grid">
-      <div class="gl-box">
-        <div class="gl-head gainer">▲ 매수 우위 TOP 5</div>
-        <div id="vol-buy-list"><div style="padding:16px;font-family:'Roboto Mono',monospace;font-size:.7rem;color:var(--muted)">로딩 중...</div></div>
-      </div>
-      <div class="gl-box">
-        <div class="gl-head loser">▼ 매도 우위 TOP 5</div>
-        <div id="vol-sell-list"><div style="padding:16px;font-family:'Roboto Mono',monospace;font-size:.7rem;color:var(--muted)">로딩 중...</div></div>
-      </div>
+    <div class="gl-box" id="vol-rank-box">
+      <div id="vol-rank-list"><div style="padding:16px;font-family:'Roboto Mono',monospace;font-size:.7rem;color:var(--muted)">로딩 중...</div></div>
     </div>
 
     <!-- 급등락 -->
@@ -1187,12 +1180,10 @@ async function setGLMode(mode, btn) {
 //  거래량 상위 매수/매도 종목
 // ═══════════════════════════════════════════
 async function loadVolRank() {
-  const buyEl  = document.getElementById('vol-buy-list');
-  const sellEl = document.getElementById('vol-sell-list');
-  const loading = '<div style="padding:16px;font-family:\'Roboto Mono\',monospace;font-size:.7rem;color:var(--muted)">로딩 중...</div>';
-  buyEl.innerHTML = sellEl.innerHTML = loading;
+  const el = document.getElementById('vol-rank-list');
+  el.innerHTML = '<div style="padding:16px;font-family:\'Roboto Mono\',monospace;font-size:.7rem;color:var(--muted)">로딩 중...</div>';
 
-  const url = 'https://query2.finance.yahoo.com/v1/finance/screener/predefined/saved?scrIds=most_actives&count=25&start=0';
+  const url = 'https://query2.finance.yahoo.com/v1/finance/screener/predefined/saved?scrIds=most_actives&count=10&start=0';
   const proxies = [
     `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
     `https://corsproxy.io/?${encodeURIComponent(url)}`,
@@ -1211,32 +1202,26 @@ async function loadVolRank() {
   }
 
   if (!quotes) {
-    const err = '<div style="padding:16px;font-family:\'Roboto Mono\',monospace;font-size:.7rem;color:var(--muted)">데이터를 불러올 수 없습니다</div>';
-    buyEl.innerHTML = sellEl.innerHTML = err;
+    el.innerHTML = '<div style="padding:16px;font-size:.7rem;color:var(--muted)">데이터를 불러올 수 없습니다</div>';
     return;
   }
 
-  const volRow = q => `
+  const top10 = [...quotes].sort((a,b) => (b.regularMarketVolume||0) - (a.regularMarketVolume||0)).slice(0,10);
+
+  el.innerHTML = top10.map((q, i) => `
     <div class="gl-row" onclick="sOpenChart('${q.symbol}','${q.shortName||q.symbol}')">
-      <div style="min-width:0">
-        <div class="gl-sym">${q.symbol}</div>
-        <div style="font-family:'Noto Sans KR',sans-serif;font-size:.65rem;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px">${(q.shortName||'').replace(/,?\s*(Inc\.?|Corp\.?|Ltd\.?|LLC\.?)$/i,'').trim()}</div>
+      <div style="display:flex;align-items:center;gap:10px;min-width:0">
+        <span style="font-family:'Roboto Mono',monospace;font-size:.7rem;color:var(--muted);width:16px;flex-shrink:0">${i+1}</span>
+        <div style="min-width:0">
+          <div class="gl-sym">${q.symbol}</div>
+          <div style="font-family:'Noto Sans KR',sans-serif;font-size:.65rem;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px">${(q.shortName||'').replace(/,?\s*(Inc\.?|Corp\.?|Ltd\.?|LLC\.?)$/i,'').trim()}</div>
+        </div>
       </div>
       <div style="text-align:right;flex-shrink:0">
-        <div class="gl-pct ${cls(q.regularMarketChangePercent)}">${fmtPct(q.regularMarketChangePercent)}</div>
-        <div style="font-family:'Roboto Mono',monospace;font-size:.6rem;color:var(--muted);margin-top:2px">VOL ${fmtVol(q.regularMarketVolume)}</div>
+        <div style="font-family:'Roboto Mono',monospace;font-size:.8rem;font-weight:600;color:var(--text)">${fmtVol(q.regularMarketVolume)}</div>
+        <div class="gl-pct ${cls(q.regularMarketChangePercent)}" style="margin-top:2px">${fmtPct(q.regularMarketChangePercent)}</div>
       </div>
-    </div>`;
-
-  const buyers  = quotes.filter(q => (q.regularMarketChangePercent ?? 0) > 0)
-                        .sort((a,b) => (b.regularMarketVolume||0) - (a.regularMarketVolume||0))
-                        .slice(0, 5);
-  const sellers = quotes.filter(q => (q.regularMarketChangePercent ?? 0) < 0)
-                        .sort((a,b) => (b.regularMarketVolume||0) - (a.regularMarketVolume||0))
-                        .slice(0, 5);
-
-  buyEl.innerHTML  = buyers.length  ? buyers.map(volRow).join('')  : '<div style="padding:16px;font-size:.7rem;color:var(--muted)">데이터 없음</div>';
-  sellEl.innerHTML = sellers.length ? sellers.map(volRow).join('') : '<div style="padding:16px;font-size:.7rem;color:var(--muted)">데이터 없음</div>';
+    </div>`).join('');
 }
 
 function sRenderGainersLosers(quotes) {
