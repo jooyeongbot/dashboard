@@ -1854,19 +1854,26 @@ function renderNewsItems(items) {
 //  FX CHANGE (한 달 전 대비 환율 변동)
 // ═══════════════════════════════════════════
 const FX_CHANGE_LIST = [
-  {sym:'USD', name:'미국 달러',       flag:'🇺🇸', mult:1},
-  {sym:'EUR', name:'유로',            flag:'🇪🇺', mult:1},
-  {sym:'JPY', name:'일본 엔 (100엔)', flag:'🇯🇵', mult:100},
-  {sym:'GBP', name:'영국 파운드',     flag:'🇬🇧', mult:1},
-  {sym:'CNY', name:'중국 위안',       flag:'🇨🇳', mult:1},
-  {sym:'AUD', name:'호주 달러',       flag:'🇦🇺', mult:1},
-  {sym:'CAD', name:'캐나다 달러',     flag:'🇨🇦', mult:1},
-  {sym:'THB', name:'태국 바트',       flag:'🇹🇭', mult:1},
-  {sym:'SGD', name:'싱가포르 달러',   flag:'🇸🇬', mult:1},
-  {sym:'HKD', name:'홍콩 달러',       flag:'🇭🇰', mult:1},
-  {sym:'PHP', name:'필리핀 페소',     flag:'🇵🇭', mult:1},
-  {sym:'IDR', name:'인도네시아 루피아 (1만루피아)', flag:'🇮🇩', mult:10000},
-  {sym:'MYR', name:'말레이시아 링깃', flag:'🇲🇾', mult:1},
+  {sym:'USD', name:'미국 달러',              flag:'🇺🇸', mult:1},
+  {sym:'EUR', name:'유로',                   flag:'🇪🇺', mult:1},
+  {sym:'JPY', name:'일본 엔 (100엔)',        flag:'🇯🇵', mult:100},
+  {sym:'GBP', name:'영국 파운드',            flag:'🇬🇧', mult:1},
+  {sym:'CNY', name:'중국 위안',              flag:'🇨🇳', mult:1},
+  {sym:'AUD', name:'호주 달러',              flag:'🇦🇺', mult:1},
+  {sym:'CAD', name:'캐나다 달러',            flag:'🇨🇦', mult:1},
+  {sym:'CHF', name:'스위스 프랑',            flag:'🇨🇭', mult:1},
+  {sym:'NZD', name:'뉴질랜드 달러',          flag:'🇳🇿', mult:1},
+  {sym:'THB', name:'태국 바트',              flag:'🇹🇭', mult:1},
+  {sym:'SGD', name:'싱가포르 달러',          flag:'🇸🇬', mult:1},
+  {sym:'HKD', name:'홍콩 달러',              flag:'🇭🇰', mult:1},
+  {sym:'PHP', name:'필리핀 페소',            flag:'🇵🇭', mult:1},
+  {sym:'IDR', name:'인도네시아 루피아 (만)', flag:'🇮🇩', mult:10000},
+  {sym:'MYR', name:'말레이시아 링깃',        flag:'🇲🇾', mult:1},
+  {sym:'VND', name:'베트남 동 (천동)',       flag:'🇻🇳', mult:1000},
+  {sym:'INR', name:'인도 루피',              flag:'🇮🇳', mult:1},
+  {sym:'TRY', name:'터키 리라',              flag:'🇹🇷', mult:1},
+  {sym:'AED', name:'UAE 디르함',             flag:'🇦🇪', mult:1},
+  {sym:'MXN', name:'멕시코 페소',            flag:'🇲🇽', mult:1},
 ];
 
 async function loadFxChange() {
@@ -1897,31 +1904,40 @@ async function loadFxChange() {
       const oldKrwPer = (1 / oldRate) * f.mult;
       const pct = ((curKrwPer - oldKrwPer) / oldKrwPer) * 100;
       return { ...f, curKrwPer, oldKrwPer, pct };
-    }).filter(Boolean).sort((a,b) => a.pct - b.pct); // 가장 싸진 순
+    }).filter(Boolean).sort((a,b) => a.pct - b.pct);
 
-    el.className = 'fxc-grid';
-    el.innerHTML = items.map(it => {
-      const cheaper = it.pct < -0.3;
-      const expensive = it.pct > 0.3;
-      const cls = cheaper?'cheaper':expensive?'expensive':'';
+    const cheaper7  = items.slice(0, 7);          // 가장 저렴해진 7개
+    const expensive7 = items.slice(-7).reverse(); // 가장 비싸진 7개
+
+    const fxcRow = (it, type) => {
       const pctCls = it.pct < 0 ? 'down' : 'up';
-      const pctTxt = (it.pct>=0?'+':'')+it.pct.toFixed(2)+'%';
-      const badge = cheaper
-        ? `<div class="fxc-badge good">✈️ 여행 비용 ↓ 유리</div>`
-        : expensive
-        ? `<div class="fxc-badge bad">💸 여행 비용 ↑ 불리</div>`
-        : `<div class="fxc-badge" style="color:var(--muted);border:1px solid var(--border)">— 변동 없음</div>`;
+      const pctTxt = (it.pct >= 0 ? '+' : '') + it.pct.toFixed(2) + '%';
       const multLabel = it.mult > 1 ? `${it.mult} ${it.sym}` : `1 ${it.sym}`;
-      return `<div class="fxc-card ${cls}">
-        <div class="fxc-flag">${it.flag}</div>
-        <div class="fxc-name">${it.name}</div>
-        <div class="fxc-sym">${it.sym}</div>
-        <div class="fxc-rate">${Math.round(it.curKrwPer).toLocaleString('ko-KR')} <span style="font-size:.62rem;color:var(--muted)">원</span></div>
-        <div class="fxc-pct ${pctCls}">${pctTxt} <span style="font-size:.6rem;font-weight:400;color:var(--muted)">(1개월)</span></div>
-        <div class="fxc-sub">${multLabel} = ${Math.round(it.oldKrwPer).toLocaleString('ko-KR')}원 → ${Math.round(it.curKrwPer).toLocaleString('ko-KR')}원</div>
-        ${badge}
+      return `<div class="gl-row" style="gap:10px">
+        <div style="font-size:1.3rem;flex-shrink:0">${it.flag}</div>
+        <div style="min-width:0;flex:1">
+          <div style="font-family:'Bebas Neue',cursive;font-size:1.1rem;letter-spacing:.04em;line-height:1">${it.sym}</div>
+          <div style="font-size:.62rem;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${it.name}</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:.58rem;color:var(--muted);margin-top:2px">${multLabel} = ${Math.round(it.oldKrwPer).toLocaleString('ko-KR')}원 → ${Math.round(it.curKrwPer).toLocaleString('ko-KR')}원</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:.82rem;font-weight:600;color:var(--text)">${Math.round(it.curKrwPer).toLocaleString('ko-KR')}원</div>
+          <div class="gl-pct ${pctCls}" style="margin-top:2px">${pctTxt}</div>
+        </div>
       </div>`;
-    }).join('');
+    };
+
+    el.className = '';
+    el.innerHTML = `<div class="gl-grid">
+      <div class="gl-box">
+        <div class="gl-head gainer">✈️ 저렴해진 나라 TOP 7</div>
+        ${cheaper7.map(it => fxcRow(it, 'cheap')).join('')}
+      </div>
+      <div class="gl-box">
+        <div class="gl-head loser">💸 비싸진 나라 TOP 7</div>
+        ${expensive7.map(it => fxcRow(it, 'exp')).join('')}
+      </div>
+    </div>`;
   } catch(e) {
     el.innerHTML = '<div style="color:var(--muted);font-size:.8rem">환율 데이터 로드 실패</div>';
   }
