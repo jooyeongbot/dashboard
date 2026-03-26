@@ -745,42 +745,6 @@ function hmSize(mcap) {
   return Math.max(72, Math.min(220, b));
 }
 
-async function yfBatchFast(symbols) {
-  const syms = symbols.join(',');
-  const url = `https://query2.finance.yahoo.com/v7/finance/quote?symbols=${syms}&fields=regularMarketPrice,regularMarketChangePercent,regularMarketChange,regularMarketVolume,regularMarketDayHigh,regularMarketDayLow,shortName,marketCap`;
-  // 프록시 3개 동시 경쟁 — 가장 빠른 응답 사용
-  const proxies = [
-    `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-    `https://corsproxy.io/?${encodeURIComponent(url)}`,
-    `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
-  ];
-  const result = await Promise.any(proxies.map(async p => {
-    const r = await fetch(p);
-    if (!r.ok) throw new Error('bad');
-    const d = await r.json();
-    const res = d?.quoteResponse?.result;
-    if (!res?.length) throw new Error('empty');
-    return res;
-  }));
-  return result;
-}
-
-async function hmFetch() {
-  const map = {};
-  // quoteCache에 있는 종목은 재사용 (이미 로드됨)
-  HM_ALL_SYMS.forEach(s => { if (quoteCache[s]) map[s] = quoteCache[s]; });
-  const needed = HM_ALL_SYMS.filter(s => !map[s]);
-  if (!needed.length) return map;
-  // 필요한 심볼만 50개씩 묶어서 병렬 요청 (프록시 경쟁으로 빠름)
-  const batches = [];
-  for (let i = 0; i < needed.length; i += 50)
-    batches.push(needed.slice(i, i+50));
-  const res = await Promise.allSettled(batches.map(b => yfBatchFast(b)));
-  res.forEach(r => {
-    if (r.status === 'fulfilled') r.value.forEach(q => { map[q.symbol] = q; });
-  });
-  return map;
-}
 
 function hmRender(dataMap) {
   const el = document.getElementById('heatmap-wrap');
@@ -1081,6 +1045,8 @@ const POOL_EXTRA = [
   'MRVL','ASML','ON','PLTR','SNOW','MRVL','TXN','ADI','KLAC','LRCX','AMAT',
 ];
 
+const FINNHUB_KEY = 'd71u7spr01qjeeef6720d71u7spr01qjeeef672g';
+
 let quoteCache = {};
 let currentSym = null;
 let currentInterval = '1';
@@ -1091,56 +1057,36 @@ const cls    = p => p==null?'flat':p>0?'up':p<0?'down':'flat';
 const fmtVol = v => v==null?'—':v>=1e9?(v/1e9).toFixed(2)+'B':v>=1e6?(v/1e6).toFixed(2)+'M':v>=1e3?(v/1e3).toFixed(1)+'K':v;
 const arrow  = p => p>0?'▲':p<0?'▼':'—';
 
-// Yahoo Finance — 배치 요청 (v7 quote, allorigins 서버사이드 프록시)
-async function yfBatch(symbols) {
-  const syms = symbols.join(',');
-  const url = `https://query2.finance.yahoo.com/v7/finance/quote?symbols=${syms}&fields=regularMarketPrice,regularMarketChangePercent,regularMarketChange,regularMarketVolume,regularMarketDayHigh,regularMarketDayLow,shortName,marketCap`;
-  const proxies = [
-    `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-    `https://corsproxy.io/?${encodeURIComponent(url)}`,
-    `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
-  ];
-  let r;
-  for (const proxied of proxies) {
-    try { r = await fetch(proxied); if (r.ok) break; } catch {}
-  }
-  if (!r || !r.ok) throw new Error('fetch failed');
-  const d = await r.json();
-  const result = d?.quoteResponse?.result;
-  if (result?.length) return result;
-  throw new Error('empty');
-}
-
-// 개별 요청 fallback (배치 실패 시)
-async function yfSingle(sym) {
-  const url = `https://query2.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?interval=1m&range=1d`;
-  const r = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`);
+// Finnhub — 개별 quote 조회 (CORS 직접 지원)
+async function finnhubQuote(sym) {
+  const r = await fetch(`https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(sym)}&token=${FINNHUB_KEY}`);
   if (!r.ok) throw new Error('fetch failed');
   const d = await r.json();
-  const meta = d?.chart?.result?.[0]?.meta;
-  if (!meta?.regularMarketPrice) throw new Error('no data');
-  const prev = meta.previousClose ?? meta.chartPreviousClose ?? meta.regularMarketPrice;
-  const cur  = meta.regularMarketPrice;
+  if (!d.c) throw new Error('no data');
   return {
-    symbol: sym, regularMarketPrice: cur,
-    regularMarketChange: cur - prev,
-    regularMarketChangePercent: ((cur - prev) / prev) * 100,
-    regularMarketDayHigh: meta.regularMarketDayHigh,
-    regularMarketDayLow: meta.regularMarketDayLow,
-    regularMarketVolume: meta.regularMarketVolume,
-    shortName: meta.shortName || sym,
+    symbol: sym,
+    regularMarketPrice: d.c,
+    regularMarketChange: d.d ?? 0,
+    regularMarketChangePercent: d.dp ?? 0,
+    regularMarketDayHigh: d.h,
+    regularMarketDayLow: d.l,
+    regularMarketVolume: null,
+    marketCap: null,
+    shortName: sym,
   };
 }
 
+// 30개씩 청크 처리 (Finnhub 60 req/min 준수)
 async function sFetchAll(symbols) {
-  // 배치 시도 (빠름: 요청 1번)
-  try {
-    const res = await yfBatch(symbols);
-    if (res.length > 0) return res;
-  } catch {}
-  // 개별 fallback (느리지만 확실)
-  const results = await Promise.allSettled(symbols.map(s => yfSingle(s)));
-  return results.filter(r=>r.status==='fulfilled').map(r=>r.value);
+  const CHUNK = 30;
+  const all = [];
+  for (let i = 0; i < symbols.length; i += CHUNK) {
+    const chunk = symbols.slice(i, i + CHUNK);
+    const res = await Promise.allSettled(chunk.map(s => finnhubQuote(s)));
+    all.push(...res.filter(r => r.status === 'fulfilled').map(r => r.value));
+    if (i + CHUNK < symbols.length) await new Promise(r => setTimeout(r, 1100));
+  }
+  return all;
 }
 
 function sRenderIndex(i, q) {
@@ -1190,21 +1136,16 @@ let glMode = '1d';
 const weeklyCache = {};
 
 async function yfWeekly(sym) {
-  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?range=5d&interval=1d`;
-  const proxies = [
-    `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-    `https://corsproxy.io/?${encodeURIComponent(url)}`,
-  ];
-  for (const p of proxies) {
-    try {
-      const r = await fetch(p); if (!r.ok) continue;
-      const d = await r.json();
-      const closes = d?.chart?.result?.[0]?.indicators?.quote?.[0]?.close?.filter(v=>v!=null);
-      if (closes && closes.length >= 2)
-        return ((closes[closes.length-1] - closes[0]) / closes[0]) * 100;
-    } catch {}
-  }
-  return null;
+  try {
+    const to = Math.floor(Date.now() / 1000);
+    const from = to - 7 * 24 * 3600;
+    const r = await fetch(`https://finnhub.io/api/v1/stock/candle?symbol=${encodeURIComponent(sym)}&resolution=D&from=${from}&to=${to}&token=${FINNHUB_KEY}`);
+    if (!r.ok) return null;
+    const d = await r.json();
+    if (d.s !== 'ok' || !d.c?.length || d.c.length < 2) return null;
+    const closes = d.c;
+    return ((closes[closes.length-1] - closes[0]) / closes[0]) * 100;
+  } catch { return null; }
 }
 
 async function loadWeeklyAll() {
@@ -1220,8 +1161,8 @@ async function setGLMode(mode, btn) {
   btn.classList.add('active');
   const desc = document.getElementById('gl-desc');
   if (desc) desc.textContent = mode==='1d'
-    ? '당일 시가 대비 현재가 등락률 기준 · Yahoo Finance · 60초 갱신'
-    : '최근 5거래일 종가 기준 주간 등락률 · Yahoo Finance';
+    ? '당일 시가 대비 현재가 등락률 기준 · Finnhub · 2분 갱신'
+    : '최근 5거래일 종가 기준 주간 등락률 · Finnhub';
   if (mode === '1w') {
     document.getElementById('gainers-list').innerHTML = '<div style="padding:16px;font-family:\'DM Mono\',monospace;font-size:.7rem;color:var(--muted)">1주일 데이터 수집 중...</div>';
     document.getElementById('losers-list').innerHTML  = '<div style="padding:16px;font-family:\'DM Mono\',monospace;font-size:.7rem;color:var(--muted)">1주일 데이터 수집 중...</div>';
@@ -1231,52 +1172,28 @@ async function setGLMode(mode, btn) {
 }
 
 // ═══════════════════════════════════════════
-//  거래량 상위 매수/매도 종목
+//  등락률 상위 매수/매도 종목 (quoteCache 기반)
 // ═══════════════════════════════════════════
-async function loadVolRank() {
-  const el = document.getElementById('vol-rank-list');
-  el.innerHTML = '<div style="padding:16px;font-family:\'Roboto Mono\',monospace;font-size:.7rem;color:var(--muted)">로딩 중...</div>';
-
-  const url = 'https://query2.finance.yahoo.com/v1/finance/screener/predefined/saved?scrIds=most_actives&count=10&start=0';
-  const proxies = [
-    `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-    `https://corsproxy.io/?${encodeURIComponent(url)}`,
-    `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
-  ];
-
-  let quotes = null;
-  for (const p of proxies) {
-    try {
-      const r = await fetch(p);
-      if (!r.ok) continue;
-      const d = await r.json();
-      const q = d?.finance?.result?.[0]?.quotes;
-      if (q?.length) { quotes = q; break; }
-    } catch {}
-  }
-
+function loadVolRank() {
   const buyEl  = document.getElementById('vol-buy-list');
   const sellEl = document.getElementById('vol-sell-list');
-
-  if (!quotes) {
-    const err = '<div style="padding:16px;font-size:.7rem;color:var(--muted)">데이터를 불러올 수 없습니다</div>';
-    buyEl.innerHTML = sellEl.innerHTML = err;
+  const quotes = Object.values(quoteCache).filter(q => q.regularMarketChangePercent != null);
+  if (!quotes.length) {
+    const msg = '<div style="padding:16px;font-size:.7rem;color:var(--muted)">데이터 로딩 중...</div>';
+    buyEl.innerHTML = sellEl.innerHTML = msg;
     return;
   }
-
-  const byVol = (a,b) => (b.regularMarketVolume||0) - (a.regularMarketVolume||0);
-  const sorted = [...quotes].sort(byVol); // 전체를 거래량 순으로 먼저 정렬
-  const rising  = sorted.filter(q => (q.regularMarketChangePercent??0) > 0).slice(0,5);
-  const falling = sorted.filter(q => (q.regularMarketChangePercent??0) < 0).slice(0,5);
+  const sorted  = [...quotes].sort((a,b) => b.regularMarketChangePercent - a.regularMarketChangePercent);
+  const rising  = sorted.filter(q => q.regularMarketChangePercent > 0).slice(0, 5);
+  const falling = sorted.filter(q => q.regularMarketChangePercent < 0).slice(-5).reverse();
 
   const volRow = q => `
-    <div class="gl-row" onclick="sOpenChart('${q.symbol}','${q.shortName||q.symbol}')">
+    <div class="gl-row" onclick="sOpenChart('${q.symbol}','${q.symbol}')">
       <div style="min-width:0">
         <div class="gl-sym">${q.symbol}</div>
-        <div style="font-family:'Noto Sans KR',sans-serif;font-size:.65rem;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px">${(q.shortName||'').replace(/,?\s*(Inc\.?|Corp\.?|Ltd\.?|LLC\.?)$/i,'').trim()}</div>
       </div>
       <div style="text-align:right;flex-shrink:0">
-        <div style="font-family:'Roboto Mono',monospace;font-size:.78rem;font-weight:600;color:var(--text)">${fmtVol(q.regularMarketVolume)}</div>
+        <div style="font-family:'Roboto Mono',monospace;font-size:.78rem;font-weight:600;color:var(--text)">$${fmt(q.regularMarketPrice)}</div>
         <div class="gl-pct ${cls(q.regularMarketChangePercent)}" style="margin-top:2px">${fmtPct(q.regularMarketChangePercent)}</div>
       </div>
     </div>`;
@@ -1366,6 +1283,7 @@ async function sLoadAll() {
     sRenderGainersLosers([...stockRes, ...extraRes]);
     // 히트맵은 캐시에서 바로 렌더
     hmRender(quoteCache);
+    loadVolRank();
   });
 }
 
@@ -1373,18 +1291,17 @@ async function sLoadAll() {
 //  3개월 수익률 TOP 10
 // ═══════════════════════════════════════════
 async function fetch3MonthReturn(sym) {
-  const url = `https://query2.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?interval=1wk&range=3mo`;
-  const r = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`);
+  const to = Math.floor(Date.now() / 1000);
+  const from = to - 90 * 24 * 3600;
+  const r = await fetch(`https://finnhub.io/api/v1/stock/candle?symbol=${encodeURIComponent(sym)}&resolution=W&from=${from}&to=${to}&token=${FINNHUB_KEY}`);
   if (!r.ok) throw new Error('fetch failed');
   const d = await r.json();
-  const closes = d?.chart?.result?.[0]?.indicators?.quote?.[0]?.close;
-  if (!closes || closes.length < 2) throw new Error('no data');
-  const valid = closes.filter(v => v != null);
-  if (valid.length < 2) throw new Error('no data');
-  const first = valid[0], last = valid[valid.length - 1];
+  if (d.s !== 'ok' || !d.c?.length || d.c.length < 2) throw new Error('no data');
+  const closes = d.c;
+  const first = closes[0], last = closes[closes.length - 1];
   const pct = ((last - first) / first) * 100;
-  const meta = d?.chart?.result?.[0]?.meta;
-  return { sym, name: meta?.shortName || sym, pct, price: meta?.regularMarketPrice };
+  const price = quoteCache[sym]?.regularMarketPrice ?? last;
+  return { sym, name: sym, pct, price };
 }
 
 async function loadTop3Month() {
@@ -2020,8 +1937,8 @@ async function loadFxChange() {
 // ═══════════════════════════════════════════
 wBuildGrid();
 sBuildStockGrid();
-setInterval(sLoadAll, 60000);
-setInterval(loadVolRank, 60000);
+setInterval(sLoadAll, 120000);
+setInterval(loadVolRank, 120000);
 // 주식 탭이 기본이므로 바로 로드
 showTab('stock');
 </script>
