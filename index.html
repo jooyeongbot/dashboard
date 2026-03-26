@@ -217,10 +217,10 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
   <div class="nav-inner">
     <div class="nav-logo">주영이의 웹사이트<small>날씨 & 주식 대시보드</small></div>
     <div class="nav-tabs">
-      <button class="tab-btn active" onclick="showTab('weather')" id="tab-weather">
+      <button class="tab-btn" onclick="showTab('weather')" id="tab-weather">
         <span class="tab-icon">🌤</span> 날씨
       </button>
-      <button class="tab-btn" onclick="showTab('stock')" id="tab-stock">
+      <button class="tab-btn active" onclick="showTab('stock')" id="tab-stock">
         <span class="tab-icon">📈</span> 주식
       </button>
     </div>
@@ -234,7 +234,7 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
 <!-- ══════════════════════════════════════
      WEATHER SECTION
 ══════════════════════════════════════ -->
-<div class="section active" id="section-weather">
+<div class="section" id="section-weather">
   <!-- Ticker: 세계 날씨 요약 -->
   <div class="ticker-wrap">
     <div class="ticker-track" id="w-ticker-track">
@@ -317,7 +317,7 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
 <!-- ══════════════════════════════════════
      STOCK SECTION
 ══════════════════════════════════════ -->
-<div class="section" id="section-stock">
+<div class="section active" id="section-stock">
   <!-- Ticker -->
   <div class="ticker-wrap">
     <div class="ticker-track" id="s-ticker-track">
@@ -1098,6 +1098,8 @@ function loadForexCharts() {
 wBuildGrid();
 sBuildStockGrid();
 setInterval(sLoadAll, 60000);
+// 주식 탭이 기본이므로 바로 로드
+showTab('stock');
 </script>
 </body>
 </html>
