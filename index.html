@@ -1859,6 +1859,24 @@ function setNewsCategory(key, btn) {
 }
 
 async function fetchRSS(url, fallbackSource) {
+  // 1순위: rss2json (JSON 응답, CORS 걱정 없음)
+  try {
+    const r = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}&count=30`);
+    if (r.ok) {
+      const d = await r.json();
+      if (d.status === 'ok' && d.items?.length) {
+        return d.items.map(it => ({
+          title:   it.title || '',
+          link:    it.link  || '',
+          desc:    it.description || '',
+          pubDate: it.pubDate || '',
+          source:  it.author || fallbackSource || d.feed?.title || '',
+        })).filter(it => it.title && it.link);
+      }
+    }
+  } catch {}
+
+  // 2순위: CORS 프록시로 XML 파싱
   const proxies = [
     `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
     `https://corsproxy.io/?${encodeURIComponent(url)}`,
@@ -1871,7 +1889,6 @@ async function fetchRSS(url, fallbackSource) {
   return [...xml.querySelectorAll('item')].map(n => {
     const linkEl = n.querySelector('link');
     const link   = linkEl?.textContent?.trim() || linkEl?.nextSibling?.textContent?.trim() || '';
-    // Google News RSS는 <source> 태그에 언론사명이 들어있음
     const source = n.querySelector('source')?.textContent?.trim() || fallbackSource || '';
     return {
       title:   n.querySelector('title')?.textContent       || '',
