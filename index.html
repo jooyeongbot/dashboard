@@ -1931,37 +1931,48 @@ async function loadFxChange() {
     const cheaper  = items.filter(it => it.pct < 0).slice(0, 7);
     const expensive = [...items].reverse().filter(it => it.pct > 0).slice(0, 7);
 
-    const fxcRow = it => {
+    const reason = pct => {
+      const abs = Math.abs(pct);
+      if (pct < 0) {
+        if (abs >= 5)  return '현지 통화 급락 — 여행 비용 대폭 절감';
+        if (abs >= 2)  return '현지 통화 약세 — 환율 유리';
+        return '소폭 환율 하락 — 여행 비용 소폭 절감';
+      } else {
+        if (abs >= 5)  return '원화 급락 — 여행 비용 대폭 증가';
+        if (abs >= 2)  return '원화 약세 — 환율 불리';
+        return '소폭 환율 상승 — 여행 비용 소폭 증가';
+      }
+    };
+
+    const fxcCard = it => {
+      const cheaper  = it.pct < -0.3;
+      const expensive = it.pct > 0.3;
+      const cls    = cheaper ? 'cheaper' : expensive ? 'expensive' : '';
       const pctCls = it.pct < 0 ? 'down' : 'up';
       const pctTxt = (it.pct >= 0 ? '+' : '') + it.pct.toFixed(2) + '%';
+      const badge  = cheaper
+        ? `<div class="fxc-badge good">✈️ 여행 비용 ↓ 유리</div>`
+        : `<div class="fxc-badge bad">💸 여행 비용 ↑ 불리</div>`;
       const multLabel = it.mult > 1 ? `${it.mult} ${it.sym}` : `1 ${it.sym}`;
-      return `<div class="gl-row" style="gap:10px">
-        <div style="font-size:1.3rem;flex-shrink:0">${it.flag}</div>
-        <div style="min-width:0;flex:1">
-          <div style="font-family:'Bebas Neue',cursive;font-size:1.1rem;letter-spacing:.04em;line-height:1">${it.sym}</div>
-          <div style="font-size:.62rem;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${it.name}</div>
-          <div style="font-family:'JetBrains Mono',monospace;font-size:.58rem;color:var(--muted);margin-top:2px">${multLabel} = ${Math.round(it.oldKrwPer).toLocaleString('ko-KR')}원 → ${Math.round(it.curKrwPer).toLocaleString('ko-KR')}원</div>
-        </div>
-        <div style="text-align:right;flex-shrink:0">
-          <div style="font-family:'JetBrains Mono',monospace;font-size:.82rem;font-weight:600;color:var(--text)">${Math.round(it.curKrwPer).toLocaleString('ko-KR')}원</div>
-          <div class="gl-pct ${pctCls}" style="margin-top:2px">${pctTxt}</div>
-        </div>
+      return `<div class="fxc-card ${cls}">
+        <div class="fxc-flag">${it.flag}</div>
+        <div class="fxc-name">${it.name}</div>
+        <div class="fxc-rate">${Math.round(it.curKrwPer).toLocaleString('ko-KR')} <span style="font-size:.7rem;color:var(--muted);font-family:'JetBrains Mono',monospace">원</span></div>
+        <div class="fxc-pct ${pctCls}">${pctTxt} <span style="font-size:.6rem;font-weight:400;color:var(--muted)">(1개월)</span></div>
+        <div class="fxc-sub">${multLabel} = ${Math.round(it.oldKrwPer).toLocaleString('ko-KR')}원 → ${Math.round(it.curKrwPer).toLocaleString('ko-KR')}원</div>
+        <div style="font-family:'Noto Sans KR',sans-serif;font-size:.62rem;color:var(--muted);margin-top:4px">${reason(it.pct)}</div>
+        ${badge}
       </div>`;
     };
 
-    const noData = msg => `<div style="padding:16px;font-size:.75rem;color:var(--muted)">${msg}</div>`;
-
     el.className = '';
-    el.innerHTML = `<div class="gl-grid">
-      <div class="gl-box">
-        <div class="gl-head gainer">✈️ 저렴해진 나라 (환율 하락)</div>
-        ${cheaper.length ? cheaper.map(fxcRow).join('') : noData('이번 달 저렴해진 나라 없음 — 원화 전반 약세')}
-      </div>
-      <div class="gl-box">
-        <div class="gl-head loser">💸 비싸진 나라 TOP 7 (환율 상승)</div>
-        ${expensive.length ? expensive.map(fxcRow).join('') : noData('데이터 없음')}
-      </div>
-    </div>`;
+    el.innerHTML = cheaper.length === 0
+      ? `<div style="padding:12px 0 8px;font-size:.8rem;color:var(--muted)">이번 달은 저렴해진 나라가 없어요 — 전반적 원화 약세</div>`
+      : `<div style="font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--up);letter-spacing:.1em;margin-bottom:10px">✈️ 저렴해진 나라</div>
+         <div class="fxc-grid">${cheaper.map(fxcCard).join('')}</div>`;
+
+    el.innerHTML += `<div style="font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--down);letter-spacing:.1em;margin:20px 0 10px">💸 비싸진 나라</div>
+      <div class="fxc-grid">${expensive.map(fxcCard).join('')}</div>`;
   } catch(e) {
     el.innerHTML = '<div style="color:var(--muted);font-size:.8rem">환율 데이터 로드 실패</div>';
   }
