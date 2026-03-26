@@ -573,9 +573,9 @@ function hmColor(pct) {
 }
 
 function hmSize(mcap) {
-  if (!mcap) return 62;
-  const b = Math.sqrt(mcap / 1e9) * 9;
-  return Math.max(55, Math.min(175, b));
+  if (!mcap) return 80;
+  const b = Math.sqrt(mcap / 1e9) * 12;
+  return Math.max(72, Math.min(220, b));
 }
 
 async function yfBatchFast(symbols) {
@@ -655,13 +655,12 @@ function hmRender(dataMap) {
     <div class="hm-refresh">마지막 갱신: ${now} · 60초마다 자동 갱신</div>`;
 }
 
-let hmTimer = null;
-async function loadHeatmap() {
+function loadHeatmap() {
   const el = document.getElementById('heatmap-wrap');
-  el.innerHTML = '<div style="padding:32px;font-family:\'DM Mono\',monospace;font-size:.7rem;color:var(--muted)">히트맵 데이터 수집 중... (약 5~10초)</div>';
-  const dm = await hmFetch();
-  hmRender(dm);
-  if (!hmTimer) hmTimer = setInterval(async () => { const d = await hmFetch(); hmRender(d); }, 60000);
+  el.innerHTML = '<div style="padding:32px;font-family:\'DM Mono\',monospace;font-size:.7rem;color:var(--muted)">히트맵 데이터 수집 중...</div>';
+  // 데이터는 sLoadAll 백그라운드 처리 후 hmRender(quoteCache)로 자동 렌더됨
+  // 60초마다 quoteCache 기반으로 갱신
+  setInterval(() => { if (Object.keys(quoteCache).length > 0) hmRender(quoteCache); }, 60000);
 }
 
 function showTab(tab) {
@@ -1119,10 +1118,17 @@ async function sLoadAll() {
   });
   stockRes.forEach(q => { quoteCache[q.symbol]=q; sUpdateStockCard(q); sUpdateTicker(q); });
 
-  // 급등락용 extra pool — 백그라운드에서 처리
-  sFetchAll(POOL_EXTRA).then(extraRes => {
-    extraRes.forEach(q => { quoteCache[q.symbol]=q; });
+  // extra pool + 히트맵 전용 종목 — 백그라운드 한번에 처리
+  const cachedSyms = new Set(Object.keys(quoteCache));
+  const hmOnly = HM_ALL_SYMS.filter(s => !cachedSyms.has(s));
+  const bgSyms = [...new Set([...POOL_EXTRA, ...hmOnly])];
+
+  sFetchAll(bgSyms).then(bgRes => {
+    bgRes.forEach(q => { quoteCache[q.symbol]=q; });
+    const extraRes = bgRes.filter(q => POOL_EXTRA.includes(q.symbol));
     sRenderGainersLosers([...stockRes, ...extraRes]);
+    // 히트맵은 캐시에서 바로 렌더
+    hmRender(quoteCache);
   });
 }
 
