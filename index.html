@@ -576,24 +576,40 @@ function hmSize(mcap) {
   return Math.max(55, Math.min(175, b));
 }
 
+async function yfBatchFast(symbols) {
+  const syms = symbols.join(',');
+  const url = `https://query2.finance.yahoo.com/v7/finance/quote?symbols=${syms}&fields=regularMarketPrice,regularMarketChangePercent,regularMarketChange,regularMarketVolume,regularMarketDayHigh,regularMarketDayLow,shortName,marketCap`;
+  // 프록시 3개 동시 경쟁 — 가장 빠른 응답 사용
+  const proxies = [
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+    `https://corsproxy.io/?${encodeURIComponent(url)}`,
+    `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+  ];
+  const result = await Promise.any(proxies.map(async p => {
+    const r = await fetch(p);
+    if (!r.ok) throw new Error('bad');
+    const d = await r.json();
+    const res = d?.quoteResponse?.result;
+    if (!res?.length) throw new Error('empty');
+    return res;
+  }));
+  return result;
+}
+
 async function hmFetch() {
   const map = {};
-  // 1단계: 배치로 한번에 시도 (빠름)
+  // quoteCache에 있는 종목은 재사용 (이미 로드됨)
+  HM_ALL_SYMS.forEach(s => { if (quoteCache[s]) map[s] = quoteCache[s]; });
+  const needed = HM_ALL_SYMS.filter(s => !map[s]);
+  if (!needed.length) return map;
+  // 필요한 심볼만 50개씩 묶어서 병렬 요청 (프록시 경쟁으로 빠름)
   const batches = [];
-  for (let i = 0; i < HM_ALL_SYMS.length; i += 20)
-    batches.push(HM_ALL_SYMS.slice(i, i+20));
-  const batchRes = await Promise.allSettled(batches.map(b => yfBatch(b)));
-  batchRes.forEach(r => {
+  for (let i = 0; i < needed.length; i += 50)
+    batches.push(needed.slice(i, i+50));
+  const res = await Promise.allSettled(batches.map(b => yfBatchFast(b)));
+  res.forEach(r => {
     if (r.status === 'fulfilled') r.value.forEach(q => { map[q.symbol] = q; });
   });
-  // 2단계: 배치에서 누락된 심볼은 v8 개별 fallback
-  const missing = HM_ALL_SYMS.filter(s => !map[s]);
-  if (missing.length > 0) {
-    const indivRes = await Promise.allSettled(missing.map(s => yfSingle(s)));
-    indivRes.forEach((r, i) => {
-      if (r.status === 'fulfilled') map[missing[i]] = r.value;
-    });
-  }
   return map;
 }
 
