@@ -1252,39 +1252,40 @@ function loadForexCharts() {
 //  TRAVEL
 // ═══════════════════════════════════════════
 const TRAVEL_CITIES = [
-  // 국내
-  {name:'제주',    en:'Jeju',          lat:33.4996, lon:126.5312, cat:'korea', flag:'🇰🇷'},
-  {name:'부산',    en:'Busan',         lat:35.1796, lon:129.0756, cat:'korea', flag:'🇰🇷'},
-  {name:'강릉',    en:'Gangneung',     lat:37.7519, lon:128.8761, cat:'korea', flag:'🇰🇷'},
-  {name:'경주',    en:'Gyeongju',      lat:35.8562, lon:129.2247, cat:'korea', flag:'🇰🇷'},
-  {name:'여수',    en:'Yeosu',         lat:34.7604, lon:127.6622, cat:'korea', flag:'🇰🇷'},
-  {name:'전주',    en:'Jeonju',        lat:35.8242, lon:127.1480, cat:'korea', flag:'🇰🇷'},
-  {name:'속초',    en:'Sokcho',        lat:38.2070, lon:128.5918, cat:'korea', flag:'🇰🇷'},
-  {name:'통영',    en:'Tongyeong',     lat:34.8544, lon:128.4335, cat:'korea', flag:'🇰🇷'},
-  // 아시아
-  {name:'도쿄',    en:'Tokyo',         lat:35.6762, lon:139.6503, cat:'japan', flag:'🇯🇵'},
-  {name:'오사카',  en:'Osaka',         lat:34.6937, lon:135.5023, cat:'japan', flag:'🇯🇵'},
-  {name:'후쿠오카',en:'Fukuoka',       lat:33.5904, lon:130.4017, cat:'japan', flag:'🇯🇵'},
-  {name:'삿포로',  en:'Sapporo',       lat:43.0618, lon:141.3545, cat:'japan', flag:'🇯🇵'},
-  {name:'나고야',  en:'Nagoya',        lat:35.1815, lon:136.9066, cat:'japan', flag:'🇯🇵'},
-  {name:'교토',    en:'Kyoto',         lat:35.0116, lon:135.7681, cat:'japan', flag:'🇯🇵'},
-  {name:'나하',    en:'Naha (Okinawa)',lat:26.2124, lon:127.6809, cat:'japan', flag:'🇯🇵'},
-  {name:'방콕',    en:'Bangkok',       lat:13.7563, lon:100.5018, cat:'asia',  flag:'🇹🇭'},
-  {name:'발리',    en:'Bali',          lat:-8.3405, lon:115.0920, cat:'asia',  flag:'🇮🇩'},
-  {name:'싱가포르',en:'Singapore',     lat:1.3521,  lon:103.8198, cat:'asia',  flag:'🇸🇬'},
-  {name:'홍콩',    en:'Hong Kong',     lat:22.3193, lon:114.1694, cat:'asia',  flag:'🇭🇰'},
-  {name:'다낭',    en:'Da Nang',       lat:16.0544, lon:108.2022, cat:'asia',  flag:'🇻🇳'},
-  {name:'세부',    en:'Cebu',          lat:10.3157, lon:123.8854, cat:'asia',  flag:'🇵🇭'},
-  {name:'타이페이',en:'Taipei',        lat:25.0330, lon:121.5654, cat:'asia',  flag:'🇹🇼'},
-  {name:'코타키나발루',en:'Kota Kinabalu',lat:5.9804,lon:116.0735,cat:'asia', flag:'🇲🇾'},
-  // 해외
-  {name:'시드니',  en:'Sydney',        lat:-33.8688,lon:151.2093, cat:'world', flag:'🇦🇺'},
-  {name:'파리',    en:'Paris',         lat:48.8566, lon:2.3522,   cat:'world', flag:'🇫🇷'},
-  {name:'바르셀로나',en:'Barcelona',   lat:41.3851, lon:2.1734,   cat:'world', flag:'🇪🇸'},
-  {name:'하와이',  en:'Honolulu',      lat:21.3069, lon:-157.8583,cat:'world', flag:'🇺🇸'},
-  {name:'몰디브',  en:'Maldives',      lat:4.1755,  lon:73.5093,  cat:'world', flag:'🇲🇻'},
-  {name:'두바이',  en:'Dubai',         lat:25.2048, lon:55.2708,  cat:'world', flag:'🇦🇪'},
-  {name:'로마',    en:'Rome',          lat:41.9028, lon:12.4964,  cat:'world', flag:'🇮🇹'},
+  // 국내 (dep: GMP)
+  {name:'제주',       en:'Jeju',           lat:33.4996, lon:126.5312, cat:'korea', flag:'🇰🇷', dep:'GMP', arr:'CJU'},
+  {name:'부산',       en:'Busan',          lat:35.1796, lon:129.0756, cat:'korea', flag:'🇰🇷', dep:'GMP', arr:'PUS'},
+  {name:'강릉',       en:'Gangneung',      lat:37.7519, lon:128.8761, cat:'korea', flag:'🇰🇷', dep:'GMP', arr:'YNY'},
+  {name:'경주',       en:'Gyeongju',       lat:35.8562, lon:129.2247, cat:'korea', flag:'🇰🇷', dep:'GMP', arr:'PUS'},
+  {name:'여수',       en:'Yeosu',          lat:34.7604, lon:127.6622, cat:'korea', flag:'🇰🇷', dep:'GMP', arr:'RSU'},
+  {name:'전주',       en:'Jeonju',         lat:35.8242, lon:127.1480, cat:'korea', flag:'🇰🇷', dep:'GMP', arr:'CJJ'},
+  {name:'속초',       en:'Sokcho',         lat:38.2070, lon:128.5918, cat:'korea', flag:'🇰🇷', dep:'GMP', arr:'YNY'},
+  {name:'통영',       en:'Tongyeong',      lat:34.8544, lon:128.4335, cat:'korea', flag:'🇰🇷', dep:'GMP', arr:'HIN'},
+  // 일본 (dep: ICN)
+  {name:'도쿄',       en:'Tokyo',          lat:35.6762, lon:139.6503, cat:'japan', flag:'🇯🇵', dep:'ICN', arr:'NRT'},
+  {name:'오사카',     en:'Osaka',          lat:34.6937, lon:135.5023, cat:'japan', flag:'🇯🇵', dep:'ICN', arr:'KIX'},
+  {name:'후쿠오카',   en:'Fukuoka',        lat:33.5904, lon:130.4017, cat:'japan', flag:'🇯🇵', dep:'ICN', arr:'FUK'},
+  {name:'삿포로',     en:'Sapporo',        lat:43.0618, lon:141.3545, cat:'japan', flag:'🇯🇵', dep:'ICN', arr:'CTS'},
+  {name:'나고야',     en:'Nagoya',         lat:35.1815, lon:136.9066, cat:'japan', flag:'🇯🇵', dep:'ICN', arr:'NGO'},
+  {name:'교토',       en:'Kyoto',          lat:35.0116, lon:135.7681, cat:'japan', flag:'🇯🇵', dep:'ICN', arr:'KIX'},
+  {name:'나하',       en:'Naha (Okinawa)', lat:26.2124, lon:127.6809, cat:'japan', flag:'🇯🇵', dep:'ICN', arr:'OKA'},
+  // 아시아 (dep: ICN)
+  {name:'방콕',       en:'Bangkok',        lat:13.7563, lon:100.5018, cat:'asia',  flag:'🇹🇭', dep:'ICN', arr:'BKK'},
+  {name:'발리',       en:'Bali',           lat:-8.3405, lon:115.0920, cat:'asia',  flag:'🇮🇩', dep:'ICN', arr:'DPS'},
+  {name:'싱가포르',   en:'Singapore',      lat:1.3521,  lon:103.8198, cat:'asia',  flag:'🇸🇬', dep:'ICN', arr:'SIN'},
+  {name:'홍콩',       en:'Hong Kong',      lat:22.3193, lon:114.1694, cat:'asia',  flag:'🇭🇰', dep:'ICN', arr:'HKG'},
+  {name:'다낭',       en:'Da Nang',        lat:16.0544, lon:108.2022, cat:'asia',  flag:'🇻🇳', dep:'ICN', arr:'DAD'},
+  {name:'세부',       en:'Cebu',           lat:10.3157, lon:123.8854, cat:'asia',  flag:'🇵🇭', dep:'ICN', arr:'CEB'},
+  {name:'타이페이',   en:'Taipei',         lat:25.0330, lon:121.5654, cat:'asia',  flag:'🇹🇼', dep:'ICN', arr:'TPE'},
+  {name:'코타키나발루',en:'Kota Kinabalu', lat:5.9804,  lon:116.0735, cat:'asia',  flag:'🇲🇾', dep:'ICN', arr:'BKI'},
+  // 해외 (dep: ICN)
+  {name:'시드니',     en:'Sydney',         lat:-33.8688,lon:151.2093, cat:'world', flag:'🇦🇺', dep:'ICN', arr:'SYD'},
+  {name:'파리',       en:'Paris',          lat:48.8566, lon:2.3522,   cat:'world', flag:'🇫🇷', dep:'ICN', arr:'CDG'},
+  {name:'바르셀로나', en:'Barcelona',      lat:41.3851, lon:2.1734,   cat:'world', flag:'🇪🇸', dep:'ICN', arr:'BCN'},
+  {name:'하와이',     en:'Honolulu',       lat:21.3069, lon:-157.8583,cat:'world', flag:'🇺🇸', dep:'ICN', arr:'HNL'},
+  {name:'몰디브',     en:'Maldives',       lat:4.1755,  lon:73.5093,  cat:'world', flag:'🇲🇻', dep:'ICN', arr:'MLE'},
+  {name:'두바이',     en:'Dubai',          lat:25.2048, lon:55.2708,  cat:'world', flag:'🇦🇪', dep:'ICN', arr:'DXB'},
+  {name:'로마',       en:'Rome',           lat:41.9028, lon:12.4964,  cat:'world', flag:'🇮🇹', dep:'ICN', arr:'FCO'},
 ];
 
 const WMO_ICON = wc => {
@@ -1375,8 +1376,11 @@ function tvRender() {
         <div class="tv-day-temp">${tp}</div>
       </div>`;
     }).join('');
-    const blogUrl = `https://search.naver.com/search.naver?where=blog&query=${encodeURIComponent(city.name+' 여행')}`;
-    return `<div class="tv-card${rainFree?' rain-free':''}" onclick="window.open('${blogUrl}','_blank')">
+    const blogUrl   = `https://search.naver.com/search.naver?where=blog&query=${encodeURIComponent(city.name+' 여행')}`;
+    const dateStr   = (() => { const d=new Date(); d.setDate(d.getDate()+1); return d.toISOString().slice(0,10).replace(/-/g,''); })();
+    const flightType = city.cat==='korea' ? 'domestic' : 'international';
+    const flightUrl = `https://flight.naver.com/flights/${flightType}/${city.dep}-${city.arr}-${dateStr}?adult=1`;
+    return `<div class="tv-card${rainFree?' rain-free':''}">
       <div class="tv-rank ${rankCls}">${rank}</div>
       <div class="tv-city">${city.flag} ${city.name}</div>
       <div class="tv-country">${city.en}</div>
@@ -1387,7 +1391,10 @@ function tvRender() {
         <div class="tv-clear">${city.clearDays>=4?'☀️':city.clearDays>=2?'🌤️':'🌧️'} 맑은 날 ${city.clearDays}/5일</div>
         <div class="tv-temp">${Math.round(city.avgMin)}°~${Math.round(city.avgMax)}°C</div>
       </div>
-      <div style="font-family:'JetBrains Mono',monospace;font-size:.55rem;color:var(--muted);margin-top:10px;text-align:right">📝 네이버 블로그 보기 →</div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button onclick="event.stopPropagation();window.open('${flightUrl}','_blank')" style="flex:1;font-family:'JetBrains Mono',monospace;font-size:.6rem;padding:7px 0;border-radius:8px;border:1px solid rgba(79,156,255,.4);background:rgba(79,156,255,.1);color:#7ec8ff;cursor:pointer;transition:all .2s" onmouseover="this.style.background='rgba(79,156,255,.2)'" onmouseout="this.style.background='rgba(79,156,255,.1)'">✈️ 항공권 검색</button>
+        <button onclick="event.stopPropagation();window.open('${blogUrl}','_blank')" style="flex:1;font-family:'JetBrains Mono',monospace;font-size:.6rem;padding:7px 0;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='rgba(79,156,255,.3)'" onmouseout="this.style.borderColor='var(--border)'">📝 블로그 보기</button>
+      </div>
     </div>`;
   }).join('');
 }
