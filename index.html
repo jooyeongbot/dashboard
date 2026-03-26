@@ -1364,9 +1364,11 @@ async function loadTravel(forceRefresh) {
 }
 
 function tvRender() {
-  const filtered = (tvFilter==='all' ? tvData : tvData.filter(c=>c.cat===tvFilter))
-    .filter(c => c.clearDays === 5)
-    .filter(c => !tvSearchQ || c.name.includes(tvSearchQ) || c.en.toLowerCase().includes(tvSearchQ) || c.flag.includes(tvSearchQ));
+  const base = tvFilter==='all' ? tvData : tvData.filter(c=>c.cat===tvFilter);
+  // 검색 중이면 맑은 날 조건 없이 전체에서 검색, 아니면 5일 맑은 곳만
+  const filtered = tvSearchQ
+    ? base.filter(c => c.name.includes(tvSearchQ) || c.en.toLowerCase().includes(tvSearchQ))
+    : base.filter(c => c.clearDays === 5);
   const sorted = [...filtered].sort((a,b)=>b.score-a.score);
   const maxScore = sorted[0]?.score || 100;
   const el = document.getElementById('tv-grid');
