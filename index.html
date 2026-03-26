@@ -41,7 +41,10 @@ body::before { content:''; position:fixed; inset:0; background:radial-gradient(e
 .wrap { position:relative; z-index:1; max-width:1280px; margin:0 auto; padding:0 20px 80px; }
 
 /* ── SHARED ── */
-.sec-head { display:flex; align-items:center; gap:12px; margin-bottom:16px; margin-top:36px; }
+.sec-head { display:flex; align-items:center; gap:12px; margin-bottom:16px; margin-top:36px; flex-wrap:wrap; }
+.gl-toggle { display:flex; gap:4px; margin-left:auto; }
+.gl-toggle-btn { font-family:'DM Mono',monospace; font-size:.62rem; padding:4px 12px; border-radius:6px; border:1px solid var(--border); background:var(--surface2); color:var(--muted); cursor:pointer; transition:all .2s; }
+.gl-toggle-btn.active { border-color:var(--accent); color:var(--accent2); background:rgba(79,156,255,.1); }
 .sec-title { font-family:'Inter',sans-serif; font-size:.72rem; font-weight:600; letter-spacing:.08em; color:#a0c4e8; text-transform:uppercase; white-space:nowrap; }
 .sec-line { flex:1; height:1px; background:var(--border); }
 .dots { display:inline-flex; gap:3px; }
@@ -394,7 +397,14 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
     <div id="top3m-list" style="font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--muted);padding:16px 0">분석 중...</div>
 
     <!-- 급등락 -->
-    <div class="sec-head"><div class="sec-title">// 급등락 종목</div><div class="sec-line"></div></div>
+    <div class="sec-head">
+      <div class="sec-title">// 급등락 종목</div>
+      <div class="sec-line"></div>
+      <div class="gl-toggle">
+        <button class="gl-toggle-btn active" id="glt-1d" onclick="setGLMode('1d',this)">1일</button>
+        <button class="gl-toggle-btn" id="glt-1w" onclick="setGLMode('1w',this)">1주</button>
+      </div>
+    </div>
     <div class="gl-grid">
       <div class="gl-box">
         <div class="gl-head gainer">▲ 급등 TOP 8</div>
@@ -906,11 +916,51 @@ function sUpdateTicker(q) {
   ['',2].forEach(sfx => { const el = document.getElementById(`tt-${key}${sfx}`); if(el) el.innerHTML=txt; });
 }
 
+let glMode = '1d';
+const weeklyCache = {};
+
+async function yfWeekly(sym) {
+  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?range=5d&interval=1d`;
+  const proxies = [
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+    `https://corsproxy.io/?${encodeURIComponent(url)}`,
+  ];
+  for (const p of proxies) {
+    try {
+      const r = await fetch(p); if (!r.ok) continue;
+      const d = await r.json();
+      const closes = d?.chart?.result?.[0]?.indicators?.quote?.[0]?.close?.filter(v=>v!=null);
+      if (closes && closes.length >= 2)
+        return ((closes[closes.length-1] - closes[0]) / closes[0]) * 100;
+    } catch {}
+  }
+  return null;
+}
+
+async function loadWeeklyAll() {
+  const syms = [...STOCKS.map(s=>s.sym), ...POOL_EXTRA].filter(s=>weeklyCache[s]==null);
+  if (!syms.length) return;
+  const res = await Promise.allSettled(syms.map(s=>yfWeekly(s)));
+  syms.forEach((s,i) => { if (res[i].status==='fulfilled') weeklyCache[s]=res[i].value; });
+}
+
+async function setGLMode(mode, btn) {
+  glMode = mode;
+  document.querySelectorAll('.gl-toggle-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if (mode === '1w') {
+    document.getElementById('gainers-list').innerHTML = '<div style="padding:16px;font-family:\'DM Mono\',monospace;font-size:.7rem;color:var(--muted)">1주일 데이터 수집 중...</div>';
+    document.getElementById('losers-list').innerHTML  = '<div style="padding:16px;font-family:\'DM Mono\',monospace;font-size:.7rem;color:var(--muted)">1주일 데이터 수집 중...</div>';
+    await loadWeeklyAll();
+  }
+  sRenderGainersLosers(Object.values(quoteCache));
+}
+
 function sRenderGainersLosers(quotes) {
-  const sorted = [...quotes].filter(q=>q.regularMarketChangePercent!=null)
-    .sort((a,b)=>b.regularMarketChangePercent-a.regularMarketChangePercent);
+  const getPct = q => glMode==='1w' ? (weeklyCache[q.symbol]??null) : q.regularMarketChangePercent;
+  const sorted = [...quotes].filter(q=>getPct(q)!=null).sort((a,b)=>getPct(b)-getPct(a));
   const glRow = q => {
-    const pct = q.regularMarketChangePercent;
+    const pct = getPct(q);
     return `<div class="gl-row" onclick="sOpenChart('${q.symbol}','${q.symbol}')">
       <div><div class="gl-sym">${q.symbol}</div></div>
       <div><div class="gl-price">$${fmt(q.regularMarketPrice)}</div><div class="gl-pct ${cls(pct)}">${fmtPct(pct)}</div></div>
