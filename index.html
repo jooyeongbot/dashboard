@@ -465,6 +465,22 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
     <div class="sec-head"><div><div class="sec-title">// 3개월 수익률 TOP 10</div><div class="sec-desc">3개월 전 종가 대비 현재 주가 상승률 기준 · 탭 진입 시 1회 산출</div></div><div class="sec-line"></div></div>
     <div id="top3m-list" style="font-family:'Roboto Mono',monospace;font-size:.7rem;color:var(--muted);padding:16px 0">분석 중...</div>
 
+    <!-- 거래량 상위 매수/매도 -->
+    <div class="sec-head">
+      <div><div class="sec-title">// 거래량 상위 종목</div><div class="sec-desc">미국 증시 당일 거래량 상위 25개 중 · 상승 마감 = 매수 우위 / 하락 마감 = 매도 우위 · Yahoo Finance · 60초 갱신</div></div>
+      <div class="sec-line"></div>
+    </div>
+    <div class="gl-grid">
+      <div class="gl-box">
+        <div class="gl-head gainer">▲ 매수 우위 TOP 5</div>
+        <div id="vol-buy-list"><div style="padding:16px;font-family:'Roboto Mono',monospace;font-size:.7rem;color:var(--muted)">로딩 중...</div></div>
+      </div>
+      <div class="gl-box">
+        <div class="gl-head loser">▼ 매도 우위 TOP 5</div>
+        <div id="vol-sell-list"><div style="padding:16px;font-family:'Roboto Mono',monospace;font-size:.7rem;color:var(--muted)">로딩 중...</div></div>
+      </div>
+    </div>
+
     <!-- 급등락 -->
     <div class="sec-head">
       <div><div class="sec-title">// 급등락 종목</div><div class="sec-desc" id="gl-desc">당일 시가 대비 현재가 등락률 기준 · Yahoo Finance · 60초 갱신</div></div>
@@ -736,6 +752,7 @@ function showTab(tab) {
     loadTop3Month();
     loadForex();
     loadForexCharts();
+    loadVolRank();
   }
   if (tab === 'travel' && !travelLoaded) {
     travelLoaded = true;
@@ -1112,6 +1129,62 @@ async function setGLMode(mode, btn) {
     await loadWeeklyAll();
   }
   sRenderGainersLosers(Object.values(quoteCache));
+}
+
+// ═══════════════════════════════════════════
+//  거래량 상위 매수/매도 종목
+// ═══════════════════════════════════════════
+async function loadVolRank() {
+  const buyEl  = document.getElementById('vol-buy-list');
+  const sellEl = document.getElementById('vol-sell-list');
+  const loading = '<div style="padding:16px;font-family:\'Roboto Mono\',monospace;font-size:.7rem;color:var(--muted)">로딩 중...</div>';
+  buyEl.innerHTML = sellEl.innerHTML = loading;
+
+  const url = 'https://query2.finance.yahoo.com/v1/finance/screener/predefined/saved?scrIds=most_actives&count=25&start=0';
+  const proxies = [
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+    `https://corsproxy.io/?${encodeURIComponent(url)}`,
+    `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+  ];
+
+  let quotes = null;
+  for (const p of proxies) {
+    try {
+      const r = await fetch(p);
+      if (!r.ok) continue;
+      const d = await r.json();
+      const q = d?.finance?.result?.[0]?.quotes;
+      if (q?.length) { quotes = q; break; }
+    } catch {}
+  }
+
+  if (!quotes) {
+    const err = '<div style="padding:16px;font-family:\'Roboto Mono\',monospace;font-size:.7rem;color:var(--muted)">데이터를 불러올 수 없습니다</div>';
+    buyEl.innerHTML = sellEl.innerHTML = err;
+    return;
+  }
+
+  const volRow = q => `
+    <div class="gl-row" onclick="sOpenChart('${q.symbol}','${q.shortName||q.symbol}')">
+      <div style="min-width:0">
+        <div class="gl-sym">${q.symbol}</div>
+        <div style="font-family:'Noto Sans KR',sans-serif;font-size:.65rem;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px">${(q.shortName||'').replace(/,?\s*(Inc\.?|Corp\.?|Ltd\.?|LLC\.?)$/i,'').trim()}</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div class="gl-pct ${cls(q.regularMarketChangePercent)}">${fmtPct(q.regularMarketChangePercent)}</div>
+        <div style="font-family:'Roboto Mono',monospace;font-size:.6rem;color:var(--muted);margin-top:2px">VOL ${fmtVol(q.regularMarketVolume)}</div>
+      </div>
+    </div>`;
+
+  const buyers  = quotes.filter(q => (q.regularMarketChangePercent ?? 0) > 0)
+                        .sort((a,b) => (b.regularMarketVolume||0) - (a.regularMarketVolume||0))
+                        .slice(0, 5);
+  const sellers = quotes.filter(q => (q.regularMarketChangePercent ?? 0) < 0)
+                        .sort((a,b) => (b.regularMarketVolume||0) - (a.regularMarketVolume||0))
+                        .slice(0, 5);
+
+  buyEl.innerHTML  = buyers.length  ? buyers.map(volRow).join('')  : '<div style="padding:16px;font-size:.7rem;color:var(--muted)">데이터 없음</div>';
+  sellEl.innerHTML = sellers.length ? sellers.map(volRow).join('') : '<div style="padding:16px;font-size:.7rem;color:var(--muted)">데이터 없음</div>';
 }
 
 function sRenderGainersLosers(quotes) {
@@ -1726,6 +1799,7 @@ async function loadFxChange() {
 wBuildGrid();
 sBuildStockGrid();
 setInterval(sLoadAll, 60000);
+setInterval(loadVolRank, 60000);
 // 주식 탭이 기본이므로 바로 로드
 showTab('stock');
 </script>
