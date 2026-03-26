@@ -126,8 +126,9 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
 @media(max-width:500px) { .mini-grid { grid-template-columns:1fr; } }
 .mini-item { border-radius:12px; overflow:hidden; border:1px solid var(--border); height:200px; background:var(--surface); }
 .heatmap-wrap { border-radius:12px; border:1px solid var(--border); padding:16px; background:var(--surface); }
-.hm-sector { margin-bottom:18px; }
-.hm-sector-label { font-family:'DM Mono',monospace; font-size:.6rem; letter-spacing:.15em; color:var(--muted); margin-bottom:7px; text-transform:uppercase; }
+.hm-sector-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:10px; }
+.hm-sector { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:12px; }
+.hm-sector-label { font-family:'DM Mono',monospace; font-size:.6rem; letter-spacing:.15em; color:var(--accent2); margin-bottom:8px; text-transform:uppercase; border-bottom:1px solid var(--border); padding-bottom:6px; }
 .hm-cells { display:flex; flex-wrap:wrap; gap:3px; }
 .hm-cell { border-radius:6px; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; transition:filter .15s, transform .1s; padding:3px 4px; box-sizing:border-box; text-align:center; }
 .hm-cell:hover { filter:brightness(1.25); transform:scale(1.04); z-index:2; }
@@ -644,7 +645,7 @@ function hmRender(dataMap) {
     </div>`;
   }).join('');
 
-  el.innerHTML = html +
+  el.innerHTML = `<div class="hm-sector-grid">${html}</div>` +
     `<div class="hm-legend">
       <span>-7%</span>
       <div class="hm-legend-bar"></div>
