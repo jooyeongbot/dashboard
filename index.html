@@ -198,6 +198,23 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
 .fx-mini-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:12px; }
 .fx-mini-item { background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; height:160px; }
 
+/* ── FX CHANGE ── */
+.fxc-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:12px; }
+.fxc-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:18px 20px; transition:all .2s; }
+.fxc-card.cheaper { border-color:rgba(38,217,139,.35); background:rgba(38,217,139,.04); }
+.fxc-card.expensive { border-color:rgba(255,79,79,.25); background:rgba(255,79,79,.03); }
+.fxc-flag { font-size:1.6rem; line-height:1; margin-bottom:6px; }
+.fxc-name { font-family:'Noto Sans KR',sans-serif; font-size:.82rem; font-weight:600; color:var(--text); margin-bottom:2px; }
+.fxc-sym { font-family:'Roboto Mono',monospace; font-size:.62rem; color:var(--muted); margin-bottom:10px; }
+.fxc-rate { font-family:'Roboto Mono',monospace; font-size:1.1rem; font-weight:500; color:var(--text); }
+.fxc-pct { font-family:'Roboto Mono',monospace; font-size:.78rem; margin-top:4px; font-weight:500; }
+.fxc-pct.down { color:var(--up); }
+.fxc-pct.up { color:var(--down); }
+.fxc-sub { font-family:'Roboto Mono',monospace; font-size:.6rem; color:var(--muted); margin-top:6px; }
+.fxc-badge { display:inline-block; font-family:'Noto Sans KR',sans-serif; font-size:.6rem; padding:2px 8px; border-radius:10px; margin-top:8px; }
+.fxc-badge.good { background:rgba(38,217,139,.15); color:var(--up); border:1px solid rgba(38,217,139,.3); }
+.fxc-badge.bad  { background:rgba(255,79,79,.1);  color:var(--down); border:1px solid rgba(255,79,79,.2); }
+
 /* ── TRAVEL ── */
 .tv-filter { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px; }
 .tv-filter-btn { font-family:'Roboto Mono',monospace; font-size:.62rem; padding:6px 14px; border-radius:20px; border:1px solid var(--border); background:var(--surface2); color:var(--muted); cursor:pointer; transition:all .2s; }
@@ -508,9 +525,17 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
         onfocus="this.style.borderColor='rgba(79,156,255,.5)'" onblur="this.style.borderColor='var(--border)'">
     </div>
     <div id="tv-search-grid" class="tv-grid" style="display:none"></div>
+
+    <!-- 환율 변동 -->
+    <div class="sec-head" style="margin-top:44px">
+      <div class="sec-title">// 한 달 전 대비 저렴해진 나라 (KRW 기준)</div>
+      <div class="sec-line"></div>
+    </div>
+    <div id="fx-change-grid" style="font-family:'Noto Sans KR',sans-serif;font-size:.8rem;color:var(--muted);padding:16px 0">환율 변동 분석 중...</div>
+
     <footer>
       <div class="ft">PULSE DASHBOARD · 여행 날씨 추천</div>
-      <div class="ft">DATA BY <span>OPEN-METEO.COM</span> · 강수량 기준 맑은 날 순위</div>
+      <div class="ft">DATA BY <span>OPEN-METEO.COM</span> · <span>FRANKFURTER.APP</span> · 강수량 기준 맑은 날 순위</div>
     </footer>
   </div>
 </div>
@@ -693,6 +718,7 @@ function showTab(tab) {
   if (tab === 'travel' && !travelLoaded) {
     travelLoaded = true;
     loadTravel(false);
+    loadFxChange();
   }
 }
 
@@ -1425,6 +1451,75 @@ function tvRender() {
   const el = document.getElementById('tv-grid');
   if (!sorted.length) { el.innerHTML='<div class="tv-loading">☁️ 현재 5일 내내 맑은 여행지가 없습니다.</div>'; return; }
   el.innerHTML = sorted.map((city, idx) => tvCardHtml(city, idx+1, maxScore)).join('');
+}
+
+// ═══════════════════════════════════════════
+//  FX CHANGE (한 달 전 대비 환율 변동)
+// ═══════════════════════════════════════════
+const FX_CHANGE_LIST = [
+  {sym:'USD', name:'미국 달러',       flag:'🇺🇸', mult:1},
+  {sym:'EUR', name:'유로',            flag:'🇪🇺', mult:1},
+  {sym:'JPY', name:'일본 엔 (100엔)', flag:'🇯🇵', mult:100},
+  {sym:'GBP', name:'영국 파운드',     flag:'🇬🇧', mult:1},
+  {sym:'CNY', name:'중국 위안',       flag:'🇨🇳', mult:1},
+  {sym:'AUD', name:'호주 달러',       flag:'🇦🇺', mult:1},
+  {sym:'CAD', name:'캐나다 달러',     flag:'🇨🇦', mult:1},
+  {sym:'THB', name:'태국 바트',       flag:'🇹🇭', mult:1},
+  {sym:'SGD', name:'싱가포르 달러',   flag:'🇸🇬', mult:1},
+  {sym:'HKD', name:'홍콩 달러',       flag:'🇭🇰', mult:1},
+  {sym:'PHP', name:'필리핀 페소',     flag:'🇵🇭', mult:1},
+  {sym:'VND', name:'베트남 동 (100동)',flag:'🇻🇳', mult:100},
+];
+
+async function loadFxChange() {
+  const el = document.getElementById('fx-change-grid');
+  try {
+    const toSyms = FX_CHANGE_LIST.map(f=>f.sym).join(',');
+    // 현재 + 1달 전
+    const pastDate = new Date(); pastDate.setMonth(pastDate.getMonth()-1);
+    const pastStr = pastDate.toISOString().slice(0,10);
+    const [curR, oldR] = await Promise.all([
+      fetch(`https://api.frankfurter.app/latest?from=USD&to=KRW,${toSyms}`).then(r=>r.json()),
+      fetch(`https://api.frankfurter.app/${pastStr}?from=USD&to=KRW,${toSyms}`).then(r=>r.json()),
+    ]);
+    const curKRW = curR.rates.KRW;
+    const oldKRW = oldR.rates.KRW;
+    const items = FX_CHANGE_LIST.map(f => {
+      const curRate = curR.rates[f.sym];
+      const oldRate = oldR.rates[f.sym];
+      if (!curRate || !oldRate) return null;
+      const curKrwPer = (curKRW / curRate) * f.mult;
+      const oldKrwPer = (oldKRW / oldRate) * f.mult;
+      const pct = ((curKrwPer - oldKrwPer) / oldKrwPer) * 100;
+      return { ...f, curKrwPer, oldKrwPer, pct };
+    }).filter(Boolean).sort((a,b) => a.pct - b.pct); // 가장 싸진 순
+
+    el.className = 'fxc-grid';
+    el.innerHTML = items.map(it => {
+      const cheaper = it.pct < -0.3;
+      const expensive = it.pct > 0.3;
+      const cls = cheaper?'cheaper':expensive?'expensive':'';
+      const pctCls = it.pct < 0 ? 'down' : 'up';
+      const pctTxt = (it.pct>=0?'+':'')+it.pct.toFixed(2)+'%';
+      const badge = cheaper
+        ? `<div class="fxc-badge good">✈️ 여행 비용 ↓ 유리</div>`
+        : expensive
+        ? `<div class="fxc-badge bad">💸 여행 비용 ↑ 불리</div>`
+        : `<div class="fxc-badge" style="color:var(--muted);border:1px solid var(--border)">— 변동 없음</div>`;
+      const multLabel = it.mult > 1 ? `${it.mult} ${it.sym}` : `1 ${it.sym}`;
+      return `<div class="fxc-card ${cls}">
+        <div class="fxc-flag">${it.flag}</div>
+        <div class="fxc-name">${it.name}</div>
+        <div class="fxc-sym">${it.sym}</div>
+        <div class="fxc-rate">${Math.round(it.curKrwPer).toLocaleString('ko-KR')} <span style="font-size:.62rem;color:var(--muted)">원</span></div>
+        <div class="fxc-pct ${pctCls}">${pctTxt} <span style="font-size:.6rem;font-weight:400;color:var(--muted)">(1개월)</span></div>
+        <div class="fxc-sub">${multLabel} = ${Math.round(it.oldKrwPer).toLocaleString('ko-KR')}원 → ${Math.round(it.curKrwPer).toLocaleString('ko-KR')}원</div>
+        ${badge}
+      </div>`;
+    }).join('');
+  } catch(e) {
+    el.innerHTML = '<div style="color:var(--muted);font-size:.8rem">환율 데이터 로드 실패</div>';
+  }
 }
 
 // ═══════════════════════════════════════════
