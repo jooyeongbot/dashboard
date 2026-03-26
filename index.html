@@ -488,6 +488,7 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
     <div class="tv-filter">
       <button class="tv-filter-btn active" onclick="tvSetFilter('all',this)">전체</button>
       <button class="tv-filter-btn" onclick="tvSetFilter('korea',this)">🇰🇷 국내</button>
+      <button class="tv-filter-btn" onclick="tvSetFilter('japan',this)">🇯🇵 일본</button>
       <button class="tv-filter-btn" onclick="tvSetFilter('asia',this)">🌏 아시아</button>
       <button class="tv-filter-btn" onclick="tvSetFilter('world',this)">🌍 해외</button>
     </div>
@@ -1255,9 +1256,13 @@ const TRAVEL_CITIES = [
   {name:'속초',    en:'Sokcho',        lat:38.2070, lon:128.5918, cat:'korea', flag:'🇰🇷'},
   {name:'통영',    en:'Tongyeong',     lat:34.8544, lon:128.4335, cat:'korea', flag:'🇰🇷'},
   // 아시아
-  {name:'도쿄',    en:'Tokyo',         lat:35.6762, lon:139.6503, cat:'asia',  flag:'🇯🇵'},
-  {name:'오사카',  en:'Osaka',         lat:34.6937, lon:135.5023, cat:'asia',  flag:'🇯🇵'},
-  {name:'후쿠오카',en:'Fukuoka',       lat:33.5904, lon:130.4017, cat:'asia',  flag:'🇯🇵'},
+  {name:'도쿄',    en:'Tokyo',         lat:35.6762, lon:139.6503, cat:'japan', flag:'🇯🇵'},
+  {name:'오사카',  en:'Osaka',         lat:34.6937, lon:135.5023, cat:'japan', flag:'🇯🇵'},
+  {name:'후쿠오카',en:'Fukuoka',       lat:33.5904, lon:130.4017, cat:'japan', flag:'🇯🇵'},
+  {name:'삿포로',  en:'Sapporo',       lat:43.0618, lon:141.3545, cat:'japan', flag:'🇯🇵'},
+  {name:'나고야',  en:'Nagoya',        lat:35.1815, lon:136.9066, cat:'japan', flag:'🇯🇵'},
+  {name:'교토',    en:'Kyoto',         lat:35.0116, lon:135.7681, cat:'japan', flag:'🇯🇵'},
+  {name:'나하',    en:'Naha (Okinawa)',lat:26.2124, lon:127.6809, cat:'japan', flag:'🇯🇵'},
   {name:'방콕',    en:'Bangkok',       lat:13.7563, lon:100.5018, cat:'asia',  flag:'🇹🇭'},
   {name:'발리',    en:'Bali',          lat:-8.3405, lon:115.0920, cat:'asia',  flag:'🇮🇩'},
   {name:'싱가포르',en:'Singapore',     lat:1.3521,  lon:103.8198, cat:'asia',  flag:'🇸🇬'},
@@ -1347,7 +1352,7 @@ function tvRender() {
   el.innerHTML = sorted.map((city, idx) => {
     const rank = idx+1;
     const rankCls = rank===1?'gold':rank===2?'silver':rank===3?'bronze':'';
-    const catLabel = city.cat==='korea'?'국내':city.cat==='asia'?'아시아':'해외';
+    const catLabel = city.cat==='korea'?'국내':city.cat==='japan'?'일본':city.cat==='asia'?'아시아':'해외';
     const pct = Math.round((city.score/maxScore)*100);
     const rainFree = city.clearDays >= 4;
     const dayHtml = city.days.map(d=>{
