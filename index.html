@@ -200,8 +200,8 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
 .fx-mini-item { background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; height:160px; }
 
 /* ── WIKI RANK ── */
-.wiki-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:10px; }
-.wiki-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:16px 18px; display:flex; flex-direction:column; gap:6px; transition:all .2s; cursor:pointer; }
+.wiki-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(170px,1fr)); gap:10px; }
+.wiki-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:16px 18px; display:flex; flex-direction:column; gap:6px; transition:all .2s; }
 .wiki-card:hover { border-color:rgba(79,156,255,.4); transform:translateY(-2px); }
 .wiki-rank-num { font-family:'Noto Sans KR',sans-serif; font-size:1.5rem; font-weight:700; line-height:1; }
 .wiki-rank-num.gold   { color:#ffd700; }
@@ -212,6 +212,12 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
 .wiki-views { font-family:'Roboto Mono',monospace; font-size:.68rem; color:var(--muted); }
 .wiki-bar-wrap { height:3px; background:var(--border); border-radius:2px; overflow:hidden; }
 .wiki-bar { height:100%; border-radius:2px; background:linear-gradient(90deg,var(--accent),var(--accent2)); transition:width .6s ease; }
+.wiki-links { display:flex; gap:5px; margin-top:4px; }
+.wiki-link { flex:1; text-align:center; font-family:'JetBrains Mono',monospace; font-size:.6rem; padding:4px 0; border-radius:5px; text-decoration:none; transition:all .18s; }
+.wiki-link.flight { background:rgba(79,156,255,.1); border:1px solid rgba(79,156,255,.25); color:var(--accent2); }
+.wiki-link.flight:hover { background:rgba(79,156,255,.22); }
+.wiki-link.blog { background:rgba(38,217,139,.08); border:1px solid rgba(38,217,139,.22); color:var(--up); }
+.wiki-link.blog:hover { background:rgba(38,217,139,.18); }
 
 /* ── FX CHANGE ── */
 .fxc-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:12px; }
@@ -1667,13 +1673,21 @@ async function loadNaverDataLab() {
     const rankCls = i => i===0?'gold':i===1?'silver':i===2?'bronze':'normal';
 
     el.className = 'wiki-grid';
-    el.innerHTML = cityScores.map((c, i) => `
-      <div class="wiki-card">
+    el.innerHTML = cityScores.map((c, i) => {
+      const q = encodeURIComponent(c.name);
+      const flightUrl = `https://search.naver.com/search.naver?query=${q}+항공권`;
+      const blogUrl   = `https://search.naver.com/search.naver?where=blog&query=${q}+여행`;
+      return `<div class="wiki-card">
         <div class="wiki-rank-num ${rankCls(i)}">${i + 1}</div>
         <div class="wiki-city">${c.flag} ${c.name}</div>
         <div class="wiki-bar-wrap"><div class="wiki-bar" style="width:${Math.round(c.score / maxS * 100)}%"></div></div>
         <div class="wiki-views">검색 지수 ${c.score.toFixed(1)}</div>
-      </div>`).join('');
+        <div class="wiki-links">
+          <a class="wiki-link flight" href="${flightUrl}" target="_blank">✈ 항공권</a>
+          <a class="wiki-link blog"   href="${blogUrl}"   target="_blank">📝 블로그</a>
+        </div>
+      </div>`;
+    }).join('');
 
   } catch(e) {
     console.warn('Naver DataLab failed, falling back to Wikipedia:', e);
@@ -1730,13 +1744,21 @@ async function loadWikiRank() {
   const rankCls = i => i===0?'gold':i===1?'silver':i===2?'bronze':'normal';
 
   el.className = 'wiki-grid';
-  el.innerHTML = data.map((c,i) => `
-    <div class="wiki-card" onclick="window.open('https://ko.wikipedia.org/wiki/${encodeURIComponent(c.article)}','_blank')">
+  el.innerHTML = data.map((c,i) => {
+    const q = encodeURIComponent(c.name);
+    const flightUrl = `https://search.naver.com/search.naver?query=${q}+항공권`;
+    const blogUrl   = `https://search.naver.com/search.naver?where=blog&query=${q}+여행`;
+    return `<div class="wiki-card">
       <div class="wiki-rank-num ${rankCls(i)}">${i+1}</div>
       <div class="wiki-city">${c.flag} ${c.name}</div>
       <div class="wiki-bar-wrap"><div class="wiki-bar" style="width:${Math.round(c.views/maxV*100)}%"></div></div>
       <div class="wiki-views">위키 조회 ${fmtV(c.views)}회/월</div>
-    </div>`).join('');
+      <div class="wiki-links">
+        <a class="wiki-link flight" href="${flightUrl}" target="_blank">✈ 항공권</a>
+        <a class="wiki-link blog"   href="${blogUrl}"   target="_blank">📝 블로그</a>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 // ═══════════════════════════════════════════
