@@ -683,6 +683,44 @@ const HM_SECTORS = [
 ];
 const HM_ALL_SYMS = HM_SECTORS.flatMap(s => s.syms);
 
+const HM_KO = {
+  // 기술
+  AAPL:'애플', MSFT:'마이크로소프트', NVDA:'엔비디아', AVGO:'브로드컴', ORCL:'오라클',
+  AMD:'AMD', CSCO:'시스코', QCOM:'퀄컴', TXN:'텍사스인스트루먼트', MU:'마이크론',
+  ADI:'아날로그디바이시스', NOW:'서비스나우', ADBE:'어도비', CRM:'세일즈포스',
+  INTU:'인튜이트', INTC:'인텔', KLAC:'KLA', LRCX:'램리서치', AMAT:'어플라이드머티리얼',
+  // 통신
+  GOOGL:'구글', META:'메타', NFLX:'넷플릭스', DIS:'디즈니', T:'AT&T',
+  VZ:'버라이즌', CMCSA:'컴캐스트', TMUS:'T-모바일',
+  // 소비재
+  AMZN:'아마존', TSLA:'테슬라', HD:'홈디포', MCD:'맥도날드', NKE:'나이키',
+  SBUX:'스타벅스', TJX:'TJX', LOW:'로우스', BKNG:'부킹홀딩스', CMG:'치폴레',
+  ABNB:'에어비앤비', UBER:'우버',
+  // 필수소비재
+  WMT:'월마트', PG:'P&G', KO:'코카콜라', PEP:'펩시', COST:'코스트코',
+  PM:'필립모리스', MO:'알트리아', CL:'콜게이트',
+  // 헬스케어
+  LLY:'일라이릴리', UNH:'유나이티드헬스', JNJ:'존슨앤존슨', ABBV:'애브비',
+  MRK:'머크', TMO:'써모피셔', ABT:'애보트', DHR:'다나허', BMY:'브리스톨마이어스',
+  AMGN:'암젠', ISRG:'인튜이티브서지컬', MDT:'메드트로닉',
+  // 금융
+  'BRK-B':'버크셔해서웨이', JPM:'JP모건', V:'비자', MA:'마스터카드',
+  BAC:'뱅크오브아메리카', WFC:'웰스파고', GS:'골드만삭스', MS:'모건스탠리',
+  C:'씨티그룹', AXP:'아메리칸익스프레스', BLK:'블랙록', SCHW:'찰스슈왑',
+  // 에너지
+  XOM:'엑슨모빌', CVX:'셰브런', COP:'코노코필립스', EOG:'EOG리소시스',
+  SLB:'슐럼버거', MPC:'마라톤페트롤리엄', PSX:'필립스66', OXY:'옥시덴탈',
+  // 산업재
+  CAT:'캐터필러', HON:'허니웰', UNP:'유니온퍼시픽', GE:'GE에어로스페이스',
+  BA:'보잉', RTX:'RTX', DE:'디어앤컴퍼니', LMT:'록히드마틴', ETN:'이튼', UPS:'UPS',
+  // 소재
+  LIN:'린데', APD:'에어프로덕츠', SHW:'셔윈윌리엄스', FCX:'프리포트맥모란', NEM:'뉴몬트',
+  // 부동산
+  PLD:'프롤로지스', AMT:'아메리칸타워', CCI:'크라운캐슬', EQIX:'에퀴닉스', PSA:'퍼블릭스토리지',
+  // 유틸리티
+  NEE:'넥스트에라에너지', DUK:'듀크에너지', SO:'서던컴퍼니', D:'도미니언에너지', AEP:'아메리칸일렉트릭',
+};
+
 function hmColor(pct) {
   const v = Math.max(-7, Math.min(7, pct || 0));
   if (v < 0) {
@@ -756,9 +794,12 @@ function hmRender(dataMap) {
       const priceTxt = price == null ? '' : price>=1000 ? '$'+Math.round(price).toLocaleString() : '$'+price.toFixed(2);
       const symFs  = sz > 100 ? '.82rem' : sz > 70 ? '.7rem' : '.6rem';
       const pctFs  = sz > 100 ? '.72rem' : sz > 70 ? '.62rem' : '.55rem';
+      const koFs   = sz > 120 ? '.62rem' : '.52rem';
       const pctCl  = (pct||0) >= 0 ? 'color:#7effa0' : 'color:#ff9090';
+      const koName = HM_KO[sym] || '';
       return `<div class="hm-cell" style="background:${bg};width:${sz}px;height:${sz}px" onclick="sOpenChart('${sym}','${sym}')">
         <div class="hm-sym" style="font-size:${symFs}">${sym}</div>
+        ${koName && sz > 78 ? `<div style="font-family:'Noto Sans KR',sans-serif;font-size:${koFs};color:rgba(255,255,255,.7);line-height:1.2;margin-top:1px;max-width:${sz-8}px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${koName}</div>` : ''}
         <div class="hm-pct" style="font-size:${pctFs};${pctCl}">${pctTxt}</div>
         ${sz > 80 ? `<div class="hm-price-sm" style="font-size:${pctFs}">${priceTxt}</div>` : ''}
       </div>`;
