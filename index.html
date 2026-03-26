@@ -183,24 +183,6 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
 .fx-mini-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:12px; }
 .fx-mini-item { background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; height:160px; }
 
-/* ── CRYPTO ── */
-.crypto-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:12px; }
-.crypto-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:18px 20px; transition:all .2s; cursor:pointer; }
-.crypto-card:hover { border-color:rgba(79,156,255,.4); transform:translateY(-2px); }
-.crypto-top { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
-.crypto-img { width:32px; height:32px; border-radius:50%; }
-.crypto-sym { font-family:'Bebas Neue',cursive; font-size:1.3rem; letter-spacing:.04em; line-height:1; }
-.crypto-name { font-family:'DM Mono',monospace; font-size:.58rem; color:var(--muted); margin-top:1px; }
-.crypto-price { font-size:1.2rem; font-weight:500; }
-.crypto-chg { font-family:'DM Mono',monospace; font-size:.68rem; margin-top:5px; }
-.crypto-mcap { font-family:'DM Mono',monospace; font-size:.58rem; color:var(--muted); margin-top:4px; }
-.fg-box { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:24px 28px; display:flex; align-items:center; gap:28px; flex-wrap:wrap; }
-.fg-val { font-family:'Bebas Neue',cursive; font-size:4rem; line-height:1; }
-.fg-val.fear { color:var(--down); }
-.fg-val.neutral { color:var(--warn); }
-.fg-val.greed { color:var(--up); }
-.fg-label { font-family:'DM Mono',monospace; font-size:.75rem; letter-spacing:.1em; color:var(--muted); margin-top:4px; }
-.fg-desc { font-family:'DM Mono',monospace; font-size:.7rem; color:var(--muted); max-width:320px; line-height:1.6; }
 .gl-box { background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
 .gl-head { padding:12px 16px; font-family:'DM Mono',monospace; font-size:.65rem; letter-spacing:.15em; border-bottom:1px solid var(--border); }
 .gl-head.gainer { color:var(--up); }
@@ -229,12 +211,6 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
       </button>
       <button class="tab-btn" onclick="showTab('stock')" id="tab-stock">
         <span class="tab-icon">📈</span> 주식
-      </button>
-      <button class="tab-btn" onclick="showTab('forex')" id="tab-forex">
-        <span class="tab-icon">💱</span> 환율
-      </button>
-      <button class="tab-btn" onclick="showTab('crypto')" id="tab-crypto">
-        <span class="tab-icon">₿</span> 코인
       </button>
     </div>
     <div class="nav-right">
@@ -419,23 +395,11 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
       </div>
     </div>
 
-    <footer>
-      <div class="ft">PULSE DASHBOARD · 미국 주식 실시간</div>
-      <div class="ft">DATA BY <span>YAHOO FINANCE</span> · CHART BY <span>TRADINGVIEW</span></div>
-    </footer>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════
-     FOREX SECTION
-══════════════════════════════════════ -->
-<div class="section" id="section-forex">
-  <div class="wrap">
-    <!-- 환율 카드 -->
-    <div class="sec-head" style="margin-top:24px"><div class="sec-title">// 주요 환율 (USD 기준)</div><div class="sec-line"></div></div>
+    <!-- 환율 -->
+    <div class="sec-head"><div class="sec-title">// 주요 환율 (KRW 기준)</div><div class="sec-line"></div></div>
     <div class="fx-grid" id="fx-grid"><div style="font-family:'DM Mono',monospace;font-size:.7rem;color:var(--muted);padding:16px 0">로딩 중...</div></div>
 
-    <!-- 환율 미니차트 -->
+    <!-- 환율 차트 -->
     <div class="sec-head"><div class="sec-title">// 환율 차트</div><div class="sec-line"></div></div>
     <div class="fx-mini-grid">
       <div class="fx-mini-item" id="fxmc-0"></div>
@@ -447,45 +411,8 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
     </div>
 
     <footer>
-      <div class="ft">PULSE DASHBOARD · 실시간 환율</div>
-      <div class="ft">DATA BY <span>OPEN.ER-API.COM</span> · CHART BY <span>TRADINGVIEW</span></div>
-    </footer>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════
-     CRYPTO SECTION
-══════════════════════════════════════ -->
-<div class="section" id="section-crypto">
-  <div class="wrap">
-    <!-- 공포탐욕지수 -->
-    <div class="sec-head" style="margin-top:24px"><div class="sec-title">// 공포 & 탐욕 지수</div><div class="sec-line"></div></div>
-    <div class="fg-box" id="fg-box">
-      <div>
-        <div class="fg-val" id="fg-val">—</div>
-        <div class="fg-label" id="fg-label">LOADING</div>
-      </div>
-      <div class="fg-desc" id="fg-desc">암호화폐 시장의 현재 감정 지표입니다. 0 = 극도의 공포, 100 = 극도의 탐욕.</div>
-    </div>
-
-    <!-- 코인 카드 -->
-    <div class="sec-head"><div class="sec-title">// 시총 TOP 20</div><div class="sec-line"></div></div>
-    <div class="crypto-grid" id="crypto-grid"><div style="font-family:'DM Mono',monospace;font-size:.7rem;color:var(--muted);padding:16px 0">로딩 중...</div></div>
-
-    <!-- 코인 미니차트 -->
-    <div class="sec-head"><div class="sec-title">// 주요 코인 차트</div><div class="sec-line"></div></div>
-    <div class="fx-mini-grid">
-      <div class="fx-mini-item" id="cmc-0"></div>
-      <div class="fx-mini-item" id="cmc-1"></div>
-      <div class="fx-mini-item" id="cmc-2"></div>
-      <div class="fx-mini-item" id="cmc-3"></div>
-      <div class="fx-mini-item" id="cmc-4"></div>
-      <div class="fx-mini-item" id="cmc-5"></div>
-    </div>
-
-    <footer>
-      <div class="ft">PULSE DASHBOARD · 암호화폐</div>
-      <div class="ft">DATA BY <span>COINGECKO</span> · CHART BY <span>TRADINGVIEW</span></div>
+      <div class="ft">PULSE DASHBOARD · 미국 주식 · 실시간 환율</div>
+      <div class="ft">DATA BY <span>YAHOO FINANCE</span> · <span>OPEN.ER-API.COM</span> · CHART BY <span>TRADINGVIEW</span></div>
     </footer>
   </div>
 </div>
@@ -494,7 +421,7 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
 // ═══════════════════════════════════════════
 //  TAB NAVIGATION
 // ═══════════════════════════════════════════
-let stockLoaded = false, forexLoaded = false, cryptoLoaded = false;
+let stockLoaded = false;
 
 const MINI_CHARTS = [
   {id:'mc-0', symbol:'NASDAQ:QQQ'},
@@ -562,17 +489,8 @@ function showTab(tab) {
     loadHeatmap();
     sLoadAll();
     loadTop3Month();
-  }
-  if (tab === 'forex' && !forexLoaded) {
-    forexLoaded = true;
     loadForex();
     loadForexCharts();
-  }
-  if (tab === 'crypto' && !cryptoLoaded) {
-    cryptoLoaded = true;
-    loadFearGreed();
-    loadCrypto();
-    loadCryptoCharts();
   }
 }
 
@@ -1021,27 +939,27 @@ async function loadTop3Month() {
 }
 
 // ═══════════════════════════════════════════
-//  FOREX
+//  FOREX (KRW 기준)
 // ═══════════════════════════════════════════
 const FX_PAIRS = [
-  {pair:'USD/KRW', key:'KRW', name:'미국 달러 / 한국 원', flag:'🇺🇸🇰🇷'},
-  {pair:'USD/JPY', key:'JPY', name:'미국 달러 / 일본 엔', flag:'🇺🇸🇯🇵'},
-  {pair:'USD/EUR', key:'EUR', name:'미국 달러 / 유로',    flag:'🇺🇸🇪🇺'},
-  {pair:'USD/GBP', key:'GBP', name:'미국 달러 / 영국 파운드', flag:'🇺🇸🇬🇧'},
-  {pair:'USD/CNY', key:'CNY', name:'미국 달러 / 중국 위안', flag:'🇺🇸🇨🇳'},
-  {pair:'USD/AUD', key:'AUD', name:'미국 달러 / 호주 달러', flag:'🇺🇸🇦🇺'},
-  {pair:'USD/CAD', key:'CAD', name:'미국 달러 / 캐나다 달러', flag:'🇺🇸🇨🇦'},
-  {pair:'USD/CHF', key:'CHF', name:'미국 달러 / 스위스 프랑', flag:'🇺🇸🇨🇭'},
-  {pair:'USD/SGD', key:'SGD', name:'미국 달러 / 싱가포르 달러', flag:'🇺🇸🇸🇬'},
-  {pair:'USD/HKD', key:'HKD', name:'미국 달러 / 홍콩 달러', flag:'🇺🇸🇭🇰'},
+  {sym:'USD', name:'미국 달러',       flag:'🇺🇸', mult:1},
+  {sym:'EUR', name:'유로',            flag:'🇪🇺', mult:1},
+  {sym:'JPY', name:'일본 엔 (100엔)', flag:'🇯🇵', mult:100},
+  {sym:'GBP', name:'영국 파운드',     flag:'🇬🇧', mult:1},
+  {sym:'CNY', name:'중국 위안',       flag:'🇨🇳', mult:1},
+  {sym:'AUD', name:'호주 달러',       flag:'🇦🇺', mult:1},
+  {sym:'CAD', name:'캐나다 달러',     flag:'🇨🇦', mult:1},
+  {sym:'CHF', name:'스위스 프랑',     flag:'🇨🇭', mult:1},
+  {sym:'SGD', name:'싱가포르 달러',   flag:'🇸🇬', mult:1},
+  {sym:'HKD', name:'홍콩 달러',       flag:'🇭🇰', mult:1},
 ];
 const FX_MINI_CHARTS = [
   {id:'fxmc-0', symbol:'FX_IDC:USDKRW'},
-  {id:'fxmc-1', symbol:'FX_IDC:USDJPY'},
-  {id:'fxmc-2', symbol:'FX:EURUSD'},
-  {id:'fxmc-3', symbol:'FX:GBPUSD'},
-  {id:'fxmc-4', symbol:'FX_IDC:USDCNY'},
-  {id:'fxmc-5', symbol:'FX_IDC:USDAUD'},
+  {id:'fxmc-1', symbol:'FX_IDC:JPYKRW'},
+  {id:'fxmc-2', symbol:'FX_IDC:EURKRW'},
+  {id:'fxmc-3', symbol:'FX_IDC:GBPKRW'},
+  {id:'fxmc-4', symbol:'FX_IDC:CNYKRW'},
+  {id:'fxmc-5', symbol:'FX_IDC:AUDKRW'},
 ];
 
 async function loadForex() {
@@ -1051,15 +969,17 @@ async function loadForex() {
     const d = await r.json();
     if (d.result !== 'success') throw new Error('api error');
     const rates = d.rates;
+    const krwPerUsd = rates['KRW'];
     el.innerHTML = FX_PAIRS.map(p => {
-      const rate = rates[p.key];
-      if (!rate) return '';
-      const display = rate >= 100 ? rate.toFixed(2) : rate >= 1 ? rate.toFixed(4) : rate.toFixed(6);
+      const usdRate = rates[p.sym];
+      if (!usdRate) return '';
+      const krw = (krwPerUsd / usdRate) * p.mult;
+      const display = Math.round(krw).toLocaleString('ko-KR');
       return `<div class="fx-card">
-        <div class="fx-pair">${p.flag} ${p.pair}</div>
+        <div class="fx-pair">${p.flag} ${p.sym}</div>
         <div class="fx-name">${p.name}</div>
-        <div class="fx-rate">${display}</div>
-        <div class="fx-sub">1 USD = ${display} ${p.key}</div>
+        <div class="fx-rate">${display} <span style="font-size:.7rem;color:var(--muted);font-family:'DM Mono',monospace">원</span></div>
+        <div class="fx-sub">${p.mult > 1 ? p.mult+'  '+p.sym : '1 '+p.sym} = ${display} KRW</div>
       </div>`;
     }).join('');
   } catch(e) {
@@ -1069,79 +989,6 @@ async function loadForex() {
 
 function loadForexCharts() {
   FX_MINI_CHARTS.forEach(({id, symbol}) => {
-    const el = document.getElementById(id);
-    if (!el || el.dataset.loaded) return;
-    el.dataset.loaded = '1';
-    const s = document.createElement('script');
-    s.type = 'text/javascript';
-    s.src = 'https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js';
-    s.async = true;
-    s.textContent = JSON.stringify({
-      symbol, width:'100%', height:'160', locale:'ko',
-      dateRange:'3M', colorTheme:'dark', isTransparent:true, autosize:true,
-      largeChartUrl:''
-    });
-    el.appendChild(s);
-  });
-}
-
-// ═══════════════════════════════════════════
-//  CRYPTO
-// ═══════════════════════════════════════════
-const CRYPTO_MINI_CHARTS = [
-  {id:'cmc-0', symbol:'BINANCE:BTCUSDT'},
-  {id:'cmc-1', symbol:'BINANCE:ETHUSDT'},
-  {id:'cmc-2', symbol:'BINANCE:BNBUSDT'},
-  {id:'cmc-3', symbol:'BINANCE:SOLUSDT'},
-  {id:'cmc-4', symbol:'BINANCE:XRPUSDT'},
-  {id:'cmc-5', symbol:'BINANCE:DOGEUSDT'},
-];
-const fmtMcap = v => v>=1e12?(v/1e12).toFixed(2)+'T':v>=1e9?(v/1e9).toFixed(2)+'B':v>=1e6?(v/1e6).toFixed(2)+'M':'—';
-const fmtCryptoPrice = v => v>=1000?'$'+v.toLocaleString('en',{maximumFractionDigits:0}):v>=1?'$'+v.toFixed(2):v>=0.01?'$'+v.toFixed(4):'$'+v.toFixed(6);
-
-async function loadFearGreed() {
-  try {
-    const r = await fetch('https://api.alternative.me/fng/?limit=1');
-    const d = await r.json();
-    const val = parseInt(d.data[0].value);
-    const classification = d.data[0].value_classification;
-    const el = document.getElementById('fg-val');
-    const lbl = document.getElementById('fg-label');
-    el.textContent = val;
-    lbl.textContent = classification.toUpperCase();
-    el.className = 'fg-val ' + (val<=30?'fear':val<=60?'neutral':'greed');
-  } catch(e) {}
-}
-
-async function loadCrypto() {
-  const el = document.getElementById('crypto-grid');
-  try {
-    const r = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=20&page=1&sparkline=false&price_change_percentage=24h');
-    const coins = await r.json();
-    el.innerHTML = `<div class="crypto-grid">${coins.map(c => {
-      const chg = c.price_change_percentage_24h;
-      const chgCls = chg>0?'up':chg<0?'down':'flat';
-      const chgTxt = chg==null?'—':(chg>=0?'+':'')+chg.toFixed(2)+'%';
-      return `<div class="crypto-card" onclick="window.open('https://www.coingecko.com/en/coins/${c.id}','_blank')">
-        <div class="crypto-top">
-          <img class="crypto-img" src="${c.image}" alt="${c.symbol}" loading="lazy">
-          <div>
-            <div class="crypto-sym">${c.symbol.toUpperCase()}</div>
-            <div class="crypto-name">${c.name}</div>
-          </div>
-        </div>
-        <div class="crypto-price">${fmtCryptoPrice(c.current_price)}</div>
-        <div class="crypto-chg ${chgCls}">${arrow(chg)} ${chgTxt}</div>
-        <div class="crypto-mcap">시총 ${fmtMcap(c.market_cap)}</div>
-      </div>`;
-    }).join('')}</div>`;
-  } catch(e) {
-    el.innerHTML = `<div style="font-family:'DM Mono',monospace;font-size:.7rem;color:var(--muted)">데이터 로드 실패 (CoinGecko 요청 한도 초과 시 잠시 후 재시도)</div>`;
-  }
-}
-
-function loadCryptoCharts() {
-  CRYPTO_MINI_CHARTS.forEach(({id, symbol}) => {
     const el = document.getElementById(id);
     if (!el || el.dataset.loaded) return;
     el.dataset.loaded = '1';
