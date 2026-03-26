@@ -1078,6 +1078,7 @@ const POOL_EXTRA = [
   'SOFI','MARA','COIN','SMCI','TSM','PYPL','SQ','UBER','SNAP',
   'SPOT','RBLX','HOOD','RIVN','INTC','QCOM','MU','AVGO','SHOP',
   'ABNB','JPM','BAC','GS','WMT','NKE','DIS','BABA','ARM',
+  'MRVL','ASML','ON','PLTR','SNOW','MRVL','TXN','ADI','KLAC','LRCX','AMAT',
 ];
 
 let quoteCache = {};
@@ -1856,13 +1857,17 @@ function setNewsCategory(key, btn) {
 }
 
 async function fetchRSS(url, sourceName) {
-  const proxied = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
-  const r = await fetch(proxied);
-  if (!r.ok) throw new Error('fail');
+  // 두 프록시 동시 요청 — 더 빠른 쪽 사용
+  const proxies = [
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+    `https://corsproxy.io/?${encodeURIComponent(url)}`,
+  ];
+  const r = await Promise.any(proxies.map(p =>
+    fetch(p).then(r => { if (!r.ok) throw new Error(); return r; })
+  ));
   const text = await r.text();
   const xml  = new DOMParser().parseFromString(text, 'text/xml');
   return [...xml.querySelectorAll('item')].map(n => {
-    // <link> 는 텍스트노드로만 있는 경우가 많아 nextSibling으로도 시도
     const linkEl = n.querySelector('link');
     const link   = linkEl?.textContent?.trim() || linkEl?.nextSibling?.textContent?.trim() || '';
     return {
@@ -1878,24 +1883,28 @@ async function fetchRSS(url, sourceName) {
 async function loadNaverNews(catKey) {
   const el = document.getElementById('news-grid');
   if (newsCache[catKey]) { renderNewsItems(newsCache[catKey]); return; }
-  el.innerHTML = '<div class="tv-loading">📰 여러 언론사 뉴스 불러오는 중...</div>';
+  el.innerHTML = '<div class="tv-loading">📰 뉴스 불러오는 중...</div>';
 
-  const results = await Promise.allSettled(
-    NEWS_SOURCES.map(src => fetchRSS(src.feeds[catKey] || src.feeds.all, src.name))
-  );
+  let accumulated = [];
 
-  const allItems = results
-    .filter(r => r.status === 'fulfilled')
-    .flatMap(r => r.value)
-    .sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate))
-    .slice(0, 50);
+  // 각 소스 완료되는 즉시 렌더링 (전체 기다리지 않음)
+  const promises = NEWS_SOURCES.map(async src => {
+    try {
+      const items = await fetchRSS(src.feeds[catKey] || src.feeds.all, src.name);
+      accumulated = [...accumulated, ...items]
+        .sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate))
+        .slice(0, 50);
+      renderNewsItems(accumulated);
+    } catch {}
+  });
 
-  if (!allItems.length) {
+  await Promise.allSettled(promises);
+
+  if (!accumulated.length) {
     el.innerHTML = '<div style="color:var(--muted);padding:24px;font-size:.8rem">뉴스를 불러올 수 없습니다</div>';
     return;
   }
-  newsCache[catKey] = allItems;
-  renderNewsItems(allItems);
+  newsCache[catKey] = accumulated;
 }
 
 function renderNewsItems(items) {
