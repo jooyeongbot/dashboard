@@ -1906,10 +1906,10 @@ async function loadFxChange() {
       return { ...f, curKrwPer, oldKrwPer, pct };
     }).filter(Boolean).sort((a,b) => a.pct - b.pct);
 
-    const cheaper7  = items.slice(0, 7);          // 가장 저렴해진 7개
-    const expensive7 = items.slice(-7).reverse(); // 가장 비싸진 7개
+    const cheaper  = items.filter(it => it.pct < 0).slice(0, 7);
+    const expensive = [...items].reverse().filter(it => it.pct > 0).slice(0, 7);
 
-    const fxcRow = (it, type) => {
+    const fxcRow = it => {
       const pctCls = it.pct < 0 ? 'down' : 'up';
       const pctTxt = (it.pct >= 0 ? '+' : '') + it.pct.toFixed(2) + '%';
       const multLabel = it.mult > 1 ? `${it.mult} ${it.sym}` : `1 ${it.sym}`;
@@ -1927,15 +1927,17 @@ async function loadFxChange() {
       </div>`;
     };
 
+    const noData = msg => `<div style="padding:16px;font-size:.75rem;color:var(--muted)">${msg}</div>`;
+
     el.className = '';
     el.innerHTML = `<div class="gl-grid">
       <div class="gl-box">
-        <div class="gl-head gainer">✈️ 저렴해진 나라 TOP 7</div>
-        ${cheaper7.map(it => fxcRow(it, 'cheap')).join('')}
+        <div class="gl-head gainer">✈️ 저렴해진 나라 (환율 하락)</div>
+        ${cheaper.length ? cheaper.map(fxcRow).join('') : noData('이번 달 저렴해진 나라 없음 — 원화 전반 약세')}
       </div>
       <div class="gl-box">
-        <div class="gl-head loser">💸 비싸진 나라 TOP 7</div>
-        ${expensive7.map(it => fxcRow(it, 'exp')).join('')}
+        <div class="gl-head loser">💸 비싸진 나라 TOP 7 (환율 상승)</div>
+        ${expensive.length ? expensive.map(fxcRow).join('') : noData('데이터 없음')}
       </div>
     </div>`;
   } catch(e) {
