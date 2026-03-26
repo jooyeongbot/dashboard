@@ -582,7 +582,7 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
 
     <!-- 환율 변동 -->
     <div class="sec-head" style="margin-top:44px">
-      <div><div class="sec-title">// 한 달 전 대비 저렴해진 나라 (KRW 기준)</div><div class="sec-desc">1개월 전 환율 대비 현재 변동률 · 음수(↓)일수록 해당국 여행 비용 저렴 · frankfurter.app</div></div>
+      <div><div class="sec-title">// 한 달 전 대비 저렴해진 나라 (KRW 기준)</div><div class="sec-desc">1개월 전 환율 대비 현재 변동률 · 음수(↓)일수록 해당국 여행 비용 저렴 · fawazahmed0 currency-api</div></div>
       <div class="sec-line"></div>
     </div>
     <div id="fx-change-grid" style="font-family:'Noto Sans KR',sans-serif;font-size:.8rem;color:var(--muted);padding:16px 0">환율 변동 분석 중...</div>
@@ -1872,34 +1872,29 @@ const FX_CHANGE_LIST = [
 async function loadFxChange() {
   const el = document.getElementById('fx-change-grid');
   try {
-    const toSyms = FX_CHANGE_LIST.map(f=>f.sym).join(',');
-    // 현재 + 1달 전
+    // jsDelivr CDN 기반 환율 API — 전 통화 지원, CORS 완벽 지원
     const pastDate = new Date(); pastDate.setMonth(pastDate.getMonth()-1);
     const pastStr = pastDate.toISOString().slice(0,10);
-    const fxFetch = async (path) => {
-      const url = `https://api.frankfurter.app/${path}`;
-      const tries = [
-        url,
-        `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-        `https://corsproxy.io/?${encodeURIComponent(url)}`,
-      ];
-      for (const t of tries) {
-        try { const r = await fetch(t); if (r.ok) return r.json(); } catch {}
-      }
-      throw new Error('fetch failed');
+    const fxFetch = async (dateStr) => {
+      const url = `https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@${dateStr}/v1/currencies/krw.json`;
+      const r = await fetch(url);
+      if (!r.ok) throw new Error('fetch failed');
+      return r.json();
     };
     const [curR, oldR] = await Promise.all([
-      fxFetch(`latest?from=USD&to=KRW,${toSyms}`),
-      fxFetch(`${pastStr}?from=USD&to=KRW,${toSyms}`),
+      fxFetch('latest'),
+      fxFetch(pastStr),
     ]);
-    const curKRW = curR.rates.KRW;
-    const oldKRW = oldR.rates.KRW;
+    // 응답 형식: { krw: { usd: 0.000693, ... } } → KRW per 1 foreign = 1 / krw[sym.toLowerCase()]
+    const curRates = curR.krw;
+    const oldRates = oldR.krw;
     const items = FX_CHANGE_LIST.map(f => {
-      const curRate = curR.rates[f.sym];
-      const oldRate = oldR.rates[f.sym];
+      // krw[sym] = 1원당 해당 통화 → 역수 = 1 해당 통화당 KRW
+      const curRate = curRates[f.sym.toLowerCase()];
+      const oldRate = oldRates[f.sym.toLowerCase()];
       if (!curRate || !oldRate) return null;
-      const curKrwPer = (curKRW / curRate) * f.mult;
-      const oldKrwPer = (oldKRW / oldRate) * f.mult;
+      const curKrwPer = (1 / curRate) * f.mult;
+      const oldKrwPer = (1 / oldRate) * f.mult;
       const pct = ((curKrwPer - oldKrwPer) / oldKrwPer) * 100;
       return { ...f, curKrwPer, oldKrwPer, pct };
     }).filter(Boolean).sort((a,b) => a.pct - b.pct); // 가장 싸진 순
