@@ -196,8 +196,8 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
 .fx-rate { font-size:1.4rem; font-weight:500; }
 .fx-sub  { font-family:'Roboto Mono',monospace; font-size:.62rem; color:var(--muted); margin-top:4px; }
 .fx-chg  { font-family:'Roboto Mono',monospace; font-size:.68rem; margin-top:8px; }
-.fx-mini-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:12px; }
-.fx-mini-item { background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; height:160px; }
+.fx-mini-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px; }
+.fx-mini-item { background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; padding:14px 16px; }
 
 /* ── WIKI RANK ── */
 .wiki-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(170px,1fr)); gap:10px; }
@@ -1313,7 +1313,15 @@ async function fetch3MonthReturn(sym) {
 async function loadTop3Month() {
   const el = document.getElementById('top3m-list');
   const allSyms = [...STOCKS.map(s=>s.sym), ...POOL_EXTRA];
-  const results = await Promise.allSettled(allSyms.map(s => fetch3MonthReturn(s)));
+  // Finnhub rate limit 준수 — 20개씩 청크, 1.2초 간격
+  const all = [];
+  for (let i = 0; i < allSyms.length; i += 20) {
+    const chunk = allSyms.slice(i, i + 20);
+    const res = await Promise.allSettled(chunk.map(s => fetch3MonthReturn(s)));
+    all.push(...res);
+    if (i + 20 < allSyms.length) await new Promise(r => setTimeout(r, 1200));
+  }
+  const results = all;
   const ok = results
     .filter(r => r.status === 'fulfilled' && isFinite(r.value.pct))
     .map(r => r.value)
@@ -1357,12 +1365,12 @@ const FX_PAIRS = [
   {sym:'HKD', name:'홍콩 달러',       flag:'🇭🇰', mult:1},
 ];
 const FX_MINI_CHARTS = [
-  {id:'fxmc-0', symbol:'FX_IDC:USDKRW'},
-  {id:'fxmc-1', symbol:'FX_IDC:JPYKRW'},
-  {id:'fxmc-2', symbol:'FX_IDC:EURKRW'},
-  {id:'fxmc-3', symbol:'FX_IDC:GBPKRW'},
-  {id:'fxmc-4', symbol:'FX_IDC:CNYKRW'},
-  {id:'fxmc-5', symbol:'FX_IDC:AUDKRW'},
+  {id:'fxmc-0', sym:'USD', name:'미국 달러',       mult:1},
+  {id:'fxmc-1', sym:'JPY', name:'일본 엔 (100엔)', mult:100},
+  {id:'fxmc-2', sym:'EUR', name:'유로',            mult:1},
+  {id:'fxmc-3', sym:'GBP', name:'영국 파운드',     mult:1},
+  {id:'fxmc-4', sym:'CNY', name:'중국 위안',       mult:1},
+  {id:'fxmc-5', sym:'AUD', name:'호주 달러',       mult:1},
 ];
 
 async function loadForex() {
@@ -1390,21 +1398,56 @@ async function loadForex() {
   }
 }
 
-function loadForexCharts() {
-  FX_MINI_CHARTS.forEach(({id, symbol}) => {
+async function loadForexCharts() {
+  const dates = [];
+  const today = new Date();
+  for (let w = 12; w >= 0; w -= 2) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - w * 7);
+    dates.push(d.toISOString().slice(0, 10));
+  }
+  const snapshots = await Promise.allSettled(
+    dates.map(date =>
+      fetch('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@' + date + '/v1/currencies/krw.json')
+        .then(r => r.json()).then(d => ({ date, rates: d.krw }))
+    )
+  );
+  const history = snapshots.filter(r => r.status === 'fulfilled').map(r => r.value);
+  if (!history.length) return;
+
+  FX_MINI_CHARTS.forEach(({ id, sym, name, mult }) => {
     const el = document.getElementById(id);
-    if (!el || el.dataset.loaded) return;
-    el.dataset.loaded = '1';
-    const s = document.createElement('script');
-    s.type = 'text/javascript';
-    s.src = 'https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js';
-    s.async = true;
-    s.textContent = JSON.stringify({
-      symbol, width:'100%', height:'160', locale:'ko',
-      dateRange:'3M', colorTheme:'dark', isTransparent:true, autosize:true,
-      largeChartUrl:''
-    });
-    el.appendChild(s);
+    if (!el) return;
+    const pts = history.map(h => {
+      const r = h.rates[sym.toLowerCase()];
+      return r ? (1 / r) * mult : null;
+    }).filter(Boolean);
+    if (pts.length < 2) { el.innerHTML = '<div style="padding:14px;color:var(--muted);font-size:.7rem">데이터 없음</div>'; return; }
+
+    const min = Math.min(...pts), max = Math.max(...pts);
+    const W = 300, H = 60;
+    const pct = ((pts[pts.length - 1] - pts[0]) / pts[0]) * 100;
+    const color = pct <= 0 ? 'var(--up)' : 'var(--down)';
+    const polyPts = pts.map((v, i) => {
+      const x = (i / (pts.length - 1)) * W;
+      const y = H - ((v - min) / (max - min || 1)) * H * 0.85 - H * 0.075;
+      return x.toFixed(1) + ',' + y.toFixed(1);
+    }).join(' ');
+
+    el.innerHTML =
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">' +
+        '<div>' +
+          '<div style="font-family:Bebas Neue,cursive;font-size:1.25rem;letter-spacing:.05em;line-height:1">' + sym + '/KRW</div>' +
+          '<div style="font-family:JetBrains Mono,monospace;font-size:.58rem;color:var(--muted);margin-top:2px">' + name + '</div>' +
+        '</div>' +
+        '<div style="text-align:right">' +
+          '<div style="font-family:JetBrains Mono,monospace;font-size:.9rem;font-weight:600;color:var(--text)">' + Math.round(pts[pts.length-1]).toLocaleString('ko-KR') + '원</div>' +
+          '<div style="font-family:JetBrains Mono,monospace;font-size:.68rem;color:' + color + ';margin-top:2px">' + (pct>=0?'+':'') + pct.toFixed(2) + '% <span style="font-size:.58rem;color:var(--muted)">(3개월)</span></div>' +
+        '</div>' +
+      '</div>' +
+      '<svg width="100%" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none">' +
+        '<polyline points="' + polyPts + '" fill="none" stroke="' + color + '" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>' +
+      '</svg>';
   });
 }
 
