@@ -480,6 +480,7 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
 ══════════════════════════════════════ -->
 <div class="section" id="section-travel">
   <div class="wrap">
+    <!-- 맑은 여행지 -->
     <div class="sec-head" style="margin-top:24px">
       <div class="sec-title">// 향후 5일 비 없는 여행지</div>
       <div class="sec-line"></div>
@@ -491,13 +492,22 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
       <button class="tv-filter-btn" onclick="tvSetFilter('japan',this)">🇯🇵 일본</button>
       <button class="tv-filter-btn" onclick="tvSetFilter('asia',this)">🌏 아시아</button>
       <button class="tv-filter-btn" onclick="tvSetFilter('world',this)">🌍 해외</button>
-      <input id="tv-search" type="text" placeholder="🔍 도시 / 나라 검색..." oninput="tvSearch(this.value)"
-        style="font-family:'Noto Sans KR','Inter',sans-serif;font-size:.75rem;padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);color:var(--text);outline:none;width:200px;margin-left:4px;transition:border-color .2s"
-        onfocus="this.style.borderColor='rgba(79,156,255,.5)'" onblur="this.style.borderColor='var(--border)'">
     </div>
     <div id="tv-grid" class="tv-grid">
       <div class="tv-loading">🌍 여행지 날씨 분석 중...</div>
     </div>
+
+    <!-- 도시 검색 -->
+    <div class="sec-head" style="margin-top:44px">
+      <div class="sec-title">// 도시 검색 — 실시간 날씨 조회</div>
+      <div class="sec-line"></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-bottom:16px;align-items:center">
+      <input id="tv-search" type="text" placeholder="도시명 입력 (Seoul, Tokyo, Paris, 서울...)" oninput="tvSearch(this.value)"
+        style="flex:1;font-family:'Noto Sans KR','Inter',sans-serif;font-size:.85rem;padding:10px 18px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--text);outline:none;transition:border-color .2s"
+        onfocus="this.style.borderColor='rgba(79,156,255,.5)'" onblur="this.style.borderColor='var(--border)'">
+    </div>
+    <div id="tv-search-grid" class="tv-grid" style="display:none"></div>
     <footer>
       <div class="ft">PULSE DASHBOARD · 여행 날씨 추천</div>
       <div class="ft">DATA BY <span>OPEN-METEO.COM</span> · 강수량 기준 맑은 날 순위</div>
@@ -1321,7 +1331,15 @@ function tvSetFilter(f, btn) {
 
 function tvSearch(q) {
   tvSearchQ = q.trim().toLowerCase();
-  tvRender();
+  const sg = document.getElementById('tv-search-grid');
+  if (!tvSearchQ) { sg.style.display='none'; sg.innerHTML=''; return; }
+  const results = tvData.filter(c =>
+    c.name.includes(tvSearchQ) || c.en.toLowerCase().includes(tvSearchQ)
+  ).sort((a,b) => b.clearDays - a.clearDays);
+  sg.style.display = 'grid';
+  if (!results.length) { sg.innerHTML='<div class="tv-loading">검색 결과 없음</div>'; return; }
+  const maxScore = Math.max(...results.map(r=>r.score)) || 100;
+  sg.innerHTML = results.map((city, idx) => tvCardHtml(city, idx+1, maxScore)).join('');
 }
 
 async function fetchCityWeather(city) {
@@ -1363,54 +1381,50 @@ async function loadTravel(forceRefresh) {
   tvRender();
 }
 
-function tvRender() {
-  const base = tvFilter==='all' ? tvData : tvData.filter(c=>c.cat===tvFilter);
-  // 검색 중이면 맑은 날 조건 없이 전체에서 검색, 아니면 5일 맑은 곳만
-  const filtered = tvSearchQ
-    ? base.filter(c => c.name.includes(tvSearchQ) || c.en.toLowerCase().includes(tvSearchQ))
-    : base.filter(c => c.clearDays === 5);
-  const sorted = [...filtered].sort((a,b)=>b.score-a.score);
-  const maxScore = sorted[0]?.score || 100;
-  const el = document.getElementById('tv-grid');
-  if (!sorted.length) { el.innerHTML='<div class="tv-loading">☁️ 현재 5일 내내 맑은 여행지가 없습니다. 잠시 후 다시 확인해보세요.</div>'; return; }
-  el.innerHTML = sorted.map((city, idx) => {
-    const rank = idx+1;
-    const rankCls = rank===1?'gold':rank===2?'silver':rank===3?'bronze':'';
-    const catLabel = city.cat==='korea'?'국내':city.cat==='japan'?'일본':city.cat==='asia'?'아시아':'해외';
-    const pct = Math.round((city.score/maxScore)*100);
-    const rainFree = city.clearDays >= 4;
-    const dayHtml = city.days.map(d=>{
-      const name = DAY_NAMES[d.date.getDay()];
-      const icon = WMO_ICON(d.wc);
-      const type = WMO_TYPE(d.wc);
-      const tp = `${Math.round(d.tmax)}°`;
-      return `<div class="tv-day ${type}">
-        <div class="tv-day-name">${name}</div>
-        <div class="tv-day-icon">${icon}</div>
-        <div class="tv-day-temp">${tp}</div>
-      </div>`;
-    }).join('');
-    const blogUrl   = `https://search.naver.com/search.naver?where=blog&query=${encodeURIComponent(city.name+' 여행')}`;
-    const dateStr   = (() => { const d=new Date(); d.setDate(d.getDate()+1); return d.toISOString().slice(0,10).replace(/-/g,''); })();
-    const flightType = city.cat==='korea' ? 'domestic' : 'international';
-    const flightUrl = `https://flight.naver.com/flights/${flightType}/${city.dep}-${city.arr}-${dateStr}?adult=1`;
-    return `<div class="tv-card${rainFree?' rain-free':''}">
-      <div class="tv-rank ${rankCls}">${rank}</div>
-      <div class="tv-city">${city.flag} ${city.name}</div>
-      <div class="tv-country">${city.en}</div>
-      <div class="tv-tag">${catLabel}</div>
-      <div class="tv-score-bar"><div class="tv-score-fill" style="width:${pct}%"></div></div>
-      <div class="tv-days">${dayHtml}</div>
-      <div class="tv-meta">
-        <div class="tv-clear">${city.clearDays>=4?'☀️':city.clearDays>=2?'🌤️':'🌧️'} 맑은 날 ${city.clearDays}/5일</div>
-        <div class="tv-temp">${Math.round(city.avgMin)}°~${Math.round(city.avgMax)}°C</div>
-      </div>
-      <div style="display:flex;gap:8px;margin-top:12px">
-        <button onclick="event.stopPropagation();window.open('${flightUrl}','_blank')" style="flex:1;font-family:'Roboto Mono',monospace;font-size:.6rem;padding:7px 0;border-radius:8px;border:1px solid rgba(79,156,255,.4);background:rgba(79,156,255,.1);color:#7ec8ff;cursor:pointer;transition:all .2s" onmouseover="this.style.background='rgba(79,156,255,.2)'" onmouseout="this.style.background='rgba(79,156,255,.1)'">✈️ 항공권 검색</button>
-        <button onclick="event.stopPropagation();window.open('${blogUrl}','_blank')" style="flex:1;font-family:'Roboto Mono',monospace;font-size:.6rem;padding:7px 0;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='rgba(79,156,255,.3)'" onmouseout="this.style.borderColor='var(--border)'">📝 블로그 보기</button>
-      </div>
+function tvCardHtml(city, rank, maxScore) {
+  const rankCls = rank===1?'gold':rank===2?'silver':rank===3?'bronze':'';
+  const catLabel = city.cat==='korea'?'국내':city.cat==='japan'?'일본':city.cat==='asia'?'아시아':'해외';
+  const pct = Math.round((city.score/maxScore)*100);
+  const rainFree = city.clearDays >= 4;
+  const dayHtml = city.days.map(d=>{
+    const name = DAY_NAMES[d.date.getDay()];
+    const icon = WMO_ICON(d.wc);
+    const type = WMO_TYPE(d.wc);
+    return `<div class="tv-day ${type}">
+      <div class="tv-day-name">${name}</div>
+      <div class="tv-day-icon">${icon}</div>
+      <div class="tv-day-temp">${Math.round(d.tmax)}°</div>
     </div>`;
   }).join('');
+  const blogUrl   = `https://search.naver.com/search.naver?where=blog&query=${encodeURIComponent(city.name+' 여행')}`;
+  const dateStr   = (() => { const d=new Date(); d.setDate(d.getDate()+1); return d.toISOString().slice(0,10).replace(/-/g,''); })();
+  const flightType = city.cat==='korea' ? 'domestic' : 'international';
+  const flightUrl = `https://flight.naver.com/flights/${flightType}/${city.dep}-${city.arr}-${dateStr}?adult=1`;
+  return `<div class="tv-card${rainFree?' rain-free':''}">
+    <div class="tv-rank ${rankCls}">${rank}</div>
+    <div class="tv-city">${city.flag} ${city.name}</div>
+    <div class="tv-country">${city.en}</div>
+    <div class="tv-tag">${catLabel}</div>
+    <div class="tv-score-bar"><div class="tv-score-fill" style="width:${pct}%"></div></div>
+    <div class="tv-days">${dayHtml}</div>
+    <div class="tv-meta">
+      <div class="tv-clear">${city.clearDays>=4?'☀️':city.clearDays>=2?'🌤️':'🌧️'} 맑은 날 ${city.clearDays}/5일</div>
+      <div class="tv-temp">${Math.round(city.avgMin)}°~${Math.round(city.avgMax)}°C</div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button onclick="event.stopPropagation();window.open('${flightUrl}','_blank')" style="flex:1;font-family:'Noto Sans KR',sans-serif;font-size:.7rem;padding:7px 0;border-radius:8px;border:1px solid rgba(79,156,255,.4);background:rgba(79,156,255,.1);color:#7ec8ff;cursor:pointer;transition:all .2s" onmouseover="this.style.background='rgba(79,156,255,.2)'" onmouseout="this.style.background='rgba(79,156,255,.1)'">✈️ 항공권 검색</button>
+      <button onclick="event.stopPropagation();window.open('${blogUrl}','_blank')" style="flex:1;font-family:'Noto Sans KR',sans-serif;font-size:.7rem;padding:7px 0;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='rgba(79,156,255,.3)'" onmouseout="this.style.borderColor='var(--border)'">📝 블로그 보기</button>
+    </div>
+  </div>`;
+}
+
+function tvRender() {
+  const base = tvFilter==='all' ? tvData : tvData.filter(c=>c.cat===tvFilter);
+  const sorted = [...base.filter(c=>c.clearDays===5)].sort((a,b)=>b.score-a.score);
+  const maxScore = sorted[0]?.score || 100;
+  const el = document.getElementById('tv-grid');
+  if (!sorted.length) { el.innerHTML='<div class="tv-loading">☁️ 현재 5일 내내 맑은 여행지가 없습니다.</div>'; return; }
+  el.innerHTML = sorted.map((city, idx) => tvCardHtml(city, idx+1, maxScore)).join('');
 }
 
 // ═══════════════════════════════════════════
