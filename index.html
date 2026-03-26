@@ -199,6 +199,20 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
 .fx-mini-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:12px; }
 .fx-mini-item { background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; height:160px; }
 
+/* ── WIKI RANK ── */
+.wiki-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:10px; }
+.wiki-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:16px 18px; display:flex; flex-direction:column; gap:6px; transition:all .2s; cursor:pointer; }
+.wiki-card:hover { border-color:rgba(79,156,255,.4); transform:translateY(-2px); }
+.wiki-rank-num { font-family:'Noto Sans KR',sans-serif; font-size:1.5rem; font-weight:700; line-height:1; }
+.wiki-rank-num.gold   { color:#ffd700; }
+.wiki-rank-num.silver { color:#c0c0c0; }
+.wiki-rank-num.bronze { color:#cd7f32; }
+.wiki-rank-num.normal { color:var(--muted); }
+.wiki-city { font-family:'Noto Sans KR',sans-serif; font-size:.95rem; font-weight:600; color:var(--text); }
+.wiki-views { font-family:'Roboto Mono',monospace; font-size:.68rem; color:var(--muted); }
+.wiki-bar-wrap { height:3px; background:var(--border); border-radius:2px; overflow:hidden; }
+.wiki-bar { height:100%; border-radius:2px; background:linear-gradient(90deg,var(--accent),var(--accent2)); transition:width .6s ease; }
+
 /* ── FX CHANGE ── */
 .fxc-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:12px; }
 .fxc-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:18px 20px; transition:all .2s; }
@@ -498,8 +512,15 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
 ══════════════════════════════════════ -->
 <div class="section" id="section-travel">
   <div class="wrap">
-    <!-- 맑은 여행지 -->
+    <!-- 위키 인기 여행지 -->
     <div class="sec-head" style="margin-top:24px">
+      <div><div class="sec-title">// 인기 여행지 검색 순위</div><div class="sec-desc">한국어 위키백과 월간 조회수 기준 · 지난달 데이터</div></div>
+      <div class="sec-line"></div>
+    </div>
+    <div id="wiki-rank-grid" style="font-family:'Noto Sans KR',sans-serif;font-size:.8rem;color:var(--muted);padding:12px 0">조회수 분석 중...</div>
+
+    <!-- 맑은 여행지 -->
+    <div class="sec-head" style="margin-top:44px">
       <div class="sec-title">// 향후 5일 비 없는 여행지</div>
       <div class="sec-line"></div>
       <button class="tv-refresh" onclick="loadTravel(true)">↻ 새로고침</button>
@@ -718,6 +739,7 @@ function showTab(tab) {
   }
   if (tab === 'travel' && !travelLoaded) {
     travelLoaded = true;
+    loadWikiRank();
     loadTravel(false);
     loadFxChange();
   }
@@ -1456,6 +1478,66 @@ function tvRender() {
   const el = document.getElementById('tv-grid');
   if (!sorted.length) { el.innerHTML='<div class="tv-loading">☁️ 현재 5일 내내 맑은 여행지가 없습니다.</div>'; return; }
   el.innerHTML = sorted.map((city, idx) => tvCardHtml(city, idx+1, maxScore)).join('');
+}
+
+// ═══════════════════════════════════════════
+//  WIKI RANK (위키백과 조회수 기반 인기 여행지)
+// ═══════════════════════════════════════════
+const WIKI_CITIES = [
+  {name:'도쿄',      flag:'🇯🇵', article:'도쿄'},
+  {name:'오사카',    flag:'🇯🇵', article:'오사카'},
+  {name:'파리',      flag:'🇫🇷', article:'파리'},
+  {name:'방콕',      flag:'🇹🇭', article:'방콕'},
+  {name:'발리',      flag:'🇮🇩', article:'발리섬'},
+  {name:'싱가포르',  flag:'🇸🇬', article:'싱가포르'},
+  {name:'홍콩',      flag:'🇭🇰', article:'홍콩'},
+  {name:'바르셀로나',flag:'🇪🇸', article:'바르셀로나'},
+  {name:'로마',      flag:'🇮🇹', article:'로마'},
+  {name:'두바이',    flag:'🇦🇪', article:'두바이'},
+  {name:'하와이',    flag:'🇺🇸', article:'하와이'},
+  {name:'뉴욕',      flag:'🇺🇸', article:'뉴욕'},
+  {name:'런던',      flag:'🇬🇧', article:'런던'},
+  {name:'제주',      flag:'🇰🇷', article:'제주특별자치도'},
+  {name:'부산',      flag:'🇰🇷', article:'부산광역시'},
+  {name:'다낭',      flag:'🇻🇳', article:'다낭'},
+  {name:'세부',      flag:'🇵🇭', article:'세부'},
+  {name:'타이페이',  flag:'🇹🇼', article:'타이베이'},
+  {name:'후쿠오카',  flag:'🇯🇵', article:'후쿠오카시'},
+  {name:'몰디브',    flag:'🇲🇻', article:'몰디브'},
+];
+
+async function fetchWikiViews(article) {
+  const now = new Date();
+  const ym = new Date(now.getFullYear(), now.getMonth()-1, 1);
+  const start = `${ym.getFullYear()}${String(ym.getMonth()+1).padStart(2,'0')}01`;
+  const lastDay = new Date(ym.getFullYear(), ym.getMonth()+1, 0).getDate();
+  const end   = `${ym.getFullYear()}${String(ym.getMonth()+1).padStart(2,'0')}${lastDay}`;
+  const url = `https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/ko.wikipedia/all-access/all-agents/${encodeURIComponent(article)}/monthly/${start}/${end}`;
+  const r = await fetch(url);
+  const d = await r.json();
+  return d?.items?.[0]?.views ?? 0;
+}
+
+async function loadWikiRank() {
+  const el = document.getElementById('wiki-rank-grid');
+  const results = await Promise.allSettled(WIKI_CITIES.map(c => fetchWikiViews(c.article)));
+  const data = WIKI_CITIES.map((c,i) => ({
+    ...c, views: results[i].status==='fulfilled' ? results[i].value : 0
+  })).filter(c=>c.views>0).sort((a,b)=>b.views-a.views);
+
+  if (!data.length) { el.innerHTML='<div>데이터 없음</div>'; return; }
+  const maxV = data[0].views;
+  const fmtV = v => v>=1e6?(v/1e6).toFixed(1)+'M':v>=1000?(v/1000).toFixed(0)+'K':v;
+  const rankCls = i => i===0?'gold':i===1?'silver':i===2?'bronze':'normal';
+
+  el.className = 'wiki-grid';
+  el.innerHTML = data.map((c,i) => `
+    <div class="wiki-card" onclick="window.open('https://ko.wikipedia.org/wiki/${encodeURIComponent(c.article)}','_blank')">
+      <div class="wiki-rank-num ${rankCls(i)}">${i+1}</div>
+      <div class="wiki-city">${c.flag} ${c.name}</div>
+      <div class="wiki-bar-wrap"><div class="wiki-bar" style="width:${Math.round(c.views/maxV*100)}%"></div></div>
+      <div class="wiki-views">조회 ${fmtV(c.views)}회 / 월</div>
+    </div>`).join('');
 }
 
 // ═══════════════════════════════════════════
