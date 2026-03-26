@@ -600,32 +600,28 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
 <div class="section" id="section-news">
   <div class="wrap">
 
-    <!-- Hacker News 인기 뉴스 -->
+    <!-- 네이버 뉴스 -->
     <div class="sec-head" style="margin-top:24px">
-      <div><div class="sec-title">// 기술·세계 인기 뉴스</div><div class="sec-desc">Hacker News 커뮤니티 업보트 수 기준 · IT·스타트업·세계 이슈 · 탭 진입 시 로드</div></div>
+      <div><div class="sec-title">// 최신 한국 뉴스</div><div class="sec-desc">네이버 뉴스 검색 API · 최신순 · 카테고리 선택 가능</div></div>
       <div class="sec-line"></div>
-      <div class="gl-toggle">
-        <button class="gl-toggle-btn active" id="hnt-top"  onclick="setHNFilter('top',this)">🔥 인기</button>
-        <button class="gl-toggle-btn"        id="hnt-best" onclick="setHNFilter('best',this)">⭐ 베스트</button>
-        <button class="gl-toggle-btn"        id="hnt-new"  onclick="setHNFilter('new',this)">🆕 최신</button>
-      </div>
     </div>
-    <div id="hn-grid" class="news-grid">
+    <div class="tv-filter" id="news-cat-filter">
+      <button class="tv-filter-btn active" onclick="setNewsCategory('all',this)">📰 전체</button>
+      <button class="tv-filter-btn" onclick="setNewsCategory('pol',this)">🏛 정치</button>
+      <button class="tv-filter-btn" onclick="setNewsCategory('eco',this)">💰 경제</button>
+      <button class="tv-filter-btn" onclick="setNewsCategory('soc',this)">🏙 사회</button>
+      <button class="tv-filter-btn" onclick="setNewsCategory('int',this)">🌐 국제</button>
+      <button class="tv-filter-btn" onclick="setNewsCategory('it',this)">💻 IT·과학</button>
+      <button class="tv-filter-btn" onclick="setNewsCategory('ent',this)">🎬 연예</button>
+      <button class="tv-filter-btn" onclick="setNewsCategory('spt',this)">⚽ 스포츠</button>
+    </div>
+    <div id="news-grid" class="news-grid">
       <div class="tv-loading">📰 뉴스 불러오는 중...</div>
     </div>
 
-    <!-- Reddit 세계 뉴스 -->
-    <div class="sec-head" style="margin-top:44px">
-      <div><div class="sec-title">// 세계 뉴스 (Reddit)</div><div class="sec-desc">r/worldnews 당일 인기 게시물 · 업보트 수 기준 · Reddit 커뮤니티 추천순</div></div>
-      <div class="sec-line"></div>
-    </div>
-    <div id="reddit-grid" class="news-grid">
-      <div class="tv-loading">🌍 세계 뉴스 불러오는 중...</div>
-    </div>
-
     <footer>
-      <div class="ft">PULSE DASHBOARD · 인기 뉴스</div>
-      <div class="ft">DATA BY <span>HACKER NEWS</span> · <span>REDDIT r/worldnews</span></div>
+      <div class="ft">PULSE DASHBOARD · 한국 뉴스</div>
+      <div class="ft">DATA BY <span>NAVER 뉴스 검색 API</span></div>
     </footer>
   </div>
 </div>
@@ -635,7 +631,6 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
 //  TAB NAVIGATION
 // ═══════════════════════════════════════════
 let stockLoaded = false, travelLoaded = false, newsLoaded = false;
-let hnFilter = 'top';
 
 const MINI_CHARTS = [
   {id:'mc-0', symbol:'NASDAQ:QQQ'},
@@ -815,8 +810,7 @@ function showTab(tab) {
   }
   if (tab === 'news' && !newsLoaded) {
     newsLoaded = true;
-    loadHNNews();
-    loadRedditNews();
+    loadNaverNews('all');
   }
 }
 
@@ -1796,71 +1790,69 @@ function getDomain(url) {
   try { return new URL(url).hostname.replace(/^www\./,''); } catch { return ''; }
 }
 
-async function setHNFilter(type, btn) {
-  hnFilter = type;
-  document.querySelectorAll('#hnt-top,#hnt-best,#hnt-new').forEach(b => b.classList.remove('active'));
+const NEWS_CATEGORIES = {
+  all: '속보',
+  pol: '정치 뉴스',
+  eco: '경제 뉴스',
+  soc: '사회 뉴스',
+  int: '국제 뉴스',
+  it:  'IT 기술 과학',
+  ent: '연예',
+  spt: '스포츠',
+};
+let currentNewsCat = 'all';
+const newsCache = {};
+
+function setNewsCategory(key, btn) {
+  currentNewsCat = key;
+  document.querySelectorAll('#news-cat-filter .tv-filter-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  await loadHNNews();
+  loadNaverNews(key);
 }
 
-async function loadHNNews() {
-  const el = document.getElementById('hn-grid');
-  el.innerHTML = '<div class="tv-loading">📰 불러오는 중...</div>';
+async function loadNaverNews(catKey) {
+  const el = document.getElementById('news-grid');
+  if (newsCache[catKey]) { renderNaverNews(newsCache[catKey]); return; }
+  el.innerHTML = '<div class="tv-loading">📰 뉴스 불러오는 중...</div>';
+  const query   = NEWS_CATEGORIES[catKey] || '뉴스';
+  const target  = `https://openapi.naver.com/v1/search/news.json?query=${encodeURIComponent(query)}&display=30&sort=date`;
+  const proxied = `https://corsproxy.io/?url=${encodeURIComponent(target)}`;
   try {
-    const r    = await fetch(`https://hacker-news.firebaseio.com/v0/${hnFilter}stories.json`);
-    const ids  = await r.json();
-    const top  = ids.slice(0, 30);
-    const raw  = await Promise.allSettled(
-      top.map(id => fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`).then(r=>r.json()))
-    );
-    const items = raw
-      .filter(s => s.status==='fulfilled' && s.value?.type==='story' && s.value?.title)
-      .map(s => s.value)
-      .sort((a,b) => b.score - a.score);
-    if (!items.length) throw new Error('empty');
-    el.innerHTML = items.map(it => {
-      const url    = it.url || `https://news.ycombinator.com/item?id=${it.id}`;
-      const domain = it.url ? getDomain(it.url) : 'news.ycombinator.com';
-      return `<div class="news-card" onclick="window.open(${JSON.stringify(url)},'_blank')">
-        <div class="news-score">🔥 ${it.score.toLocaleString()} 업보트</div>
-        <div class="news-title">${it.title}</div>
-        <div class="news-meta">
-          ${domain ? `<span class="news-domain">${domain}</span>` : ''}
-          <span class="news-time">${timeAgo(it.time)}</span>
-          <span class="news-cmts">💬 ${(it.descendants||0).toLocaleString()}</span>
-        </div>
-      </div>`;
-    }).join('');
+    const r = await fetch(proxied, {
+      headers: {
+        'X-Naver-Client-Id':     NAVER_CLIENT_ID,
+        'X-Naver-Client-Secret': NAVER_CLIENT_SECRET,
+      }
+    });
+    if (!r.ok) throw new Error('status ' + r.status);
+    const d = await r.json();
+    if (!d?.items?.length) throw new Error('empty');
+    newsCache[catKey] = d.items;
+    renderNaverNews(d.items);
   } catch(e) {
-    el.innerHTML = '<div style="color:var(--muted);padding:24px;font-size:.8rem">뉴스를 불러올 수 없습니다</div>';
+    el.innerHTML = '<div style="color:var(--muted);padding:24px;font-size:.8rem">뉴스를 불러올 수 없습니다 (' + e.message + ')</div>';
   }
 }
 
-async function loadRedditNews() {
-  const el = document.getElementById('reddit-grid');
-  try {
-    const url     = 'https://www.reddit.com/r/worldnews/top.json?t=day&limit=20&raw_json=1';
-    const proxied = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
-    const r = await fetch(proxied);
-    if (!r.ok) throw new Error('fetch failed');
-    const d     = await r.json();
-    const posts = (d?.data?.children || []).map(c=>c.data).filter(p=>!p.stickied && p.title);
-    if (!posts.length) throw new Error('empty');
-    el.innerHTML = posts.map(p => {
-      const link = p.url?.startsWith('http') ? p.url : `https://reddit.com${p.permalink}`;
-      return `<div class="news-card" onclick="window.open(${JSON.stringify(link)},'_blank')">
-        <div class="news-score reddit">⬆ ${p.score.toLocaleString()} 업보트</div>
-        <div class="news-title">${p.title}</div>
-        <div class="news-meta">
-          ${p.domain ? `<span class="news-domain">${p.domain}</span>` : ''}
-          <span class="news-time">${timeAgo(p.created_utc)}</span>
-          <span class="news-cmts">💬 ${(p.num_comments||0).toLocaleString()}</span>
-        </div>
-      </div>`;
-    }).join('');
-  } catch(e) {
-    el.innerHTML = '<div style="color:var(--muted);padding:24px;font-size:.8rem">세계 뉴스를 불러올 수 없습니다</div>';
-  }
+function renderNaverNews(items) {
+  const el = document.getElementById('news-grid');
+  const strip = s => s.replace(/<[^>]+>/g,'').replace(/&quot;/g,'"').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&#0*39;/g,"'");
+  el.innerHTML = items.map(it => {
+    const title  = strip(it.title);
+    const desc   = strip(it.description).slice(0, 90);
+    const source = getDomain(it.originallink || it.link);
+    const pub    = new Date(it.pubDate);
+    const ago    = timeAgo(Math.floor(pub.getTime()/1000));
+    const link   = it.originallink || it.link;
+    return `<div class="news-card" onclick="window.open(${JSON.stringify(link)},'_blank')">
+      <div class="news-title">${title}</div>
+      ${desc ? `<div style="font-size:.74rem;color:var(--muted);line-height:1.55;margin-top:-4px">${desc}…</div>` : ''}
+      <div class="news-meta">
+        <span class="news-domain">${source}</span>
+        <span class="news-time">${ago}</span>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 // ═══════════════════════════════════════════
