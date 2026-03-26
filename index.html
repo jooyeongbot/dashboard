@@ -669,8 +669,9 @@ function loadMiniCharts() {
 //  CUSTOM HEATMAP (Yahoo Finance 기반)
 // ═══════════════════════════════════════════
 const HM_SECTORS = [
-  { name:'기술 Technology',       syms:['AAPL','MSFT','NVDA','AVGO','ORCL','AMD','CSCO','QCOM','TXN','MU','ADI','NOW','ADBE','CRM','INTU','INTC','KLAC','LRCX','AMAT'] },
-  { name:'통신 Communication',    syms:['GOOGL','META','NFLX','DIS','T','VZ','CMCSA','TMUS'] },
+  { name:'반도체 Semiconductors',  syms:['NVDA','AMD','AVGO','QCOM','TXN','MU','ADI','INTC','KLAC','LRCX','AMAT','ARM','MRVL','ASML','ON'] },
+  { name:'기술 Technology',        syms:['AAPL','MSFT','ORCL','CSCO','NOW','ADBE','CRM','INTU','PLTR','SNOW','UBER','SHOP'] },
+  { name:'통신 Communication',     syms:['GOOGL','META','NFLX','DIS','T','VZ','CMCSA','TMUS'] },
   { name:'소비재 Cons.Disc',       syms:['AMZN','TSLA','HD','MCD','NKE','SBUX','TJX','LOW','BKNG','CMG','ABNB','UBER'] },
   { name:'필수소비재 Cons.Staples', syms:['WMT','PG','KO','PEP','COST','PM','MO','CL'] },
   { name:'헬스케어 Healthcare',    syms:['LLY','UNH','JNJ','ABBV','MRK','TMO','ABT','DHR','BMY','AMGN','ISRG','MDT'] },
@@ -684,11 +685,15 @@ const HM_SECTORS = [
 const HM_ALL_SYMS = HM_SECTORS.flatMap(s => s.syms);
 
 const HM_KO = {
+  // 반도체
+  NVDA:'엔비디아', AMD:'AMD', AVGO:'브로드컴', QCOM:'퀄컴', TXN:'텍사스인스트루먼트',
+  MU:'마이크론', ADI:'아날로그디바이시스', INTC:'인텔', KLAC:'KLA코퍼레이션',
+  LRCX:'램리서치', AMAT:'어플라이드머티리얼', ARM:'ARM홀딩스', MRVL:'마벨테크놀로지',
+  ASML:'ASML', ON:'온세미컨덕터',
   // 기술
-  AAPL:'애플', MSFT:'마이크로소프트', NVDA:'엔비디아', AVGO:'브로드컴', ORCL:'오라클',
-  AMD:'AMD', CSCO:'시스코', QCOM:'퀄컴', TXN:'텍사스인스트루먼트', MU:'마이크론',
-  ADI:'아날로그디바이시스', NOW:'서비스나우', ADBE:'어도비', CRM:'세일즈포스',
-  INTU:'인튜이트', INTC:'인텔', KLAC:'KLA', LRCX:'램리서치', AMAT:'어플라이드머티리얼',
+  AAPL:'애플', MSFT:'마이크로소프트', ORCL:'오라클', CSCO:'시스코',
+  NOW:'서비스나우', ADBE:'어도비', CRM:'세일즈포스', INTU:'인튜이트',
+  PLTR:'팔란티어', SNOW:'스노우플레이크', UBER:'우버', SHOP:'쇼피파이',
   // 통신
   GOOGL:'구글', META:'메타', NFLX:'넷플릭스', DIS:'디즈니', T:'AT&T',
   VZ:'버라이즌', CMCSA:'컴캐스트', TMUS:'T-모바일',
