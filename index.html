@@ -1320,13 +1320,15 @@ async function fetchCityWeather(city) {
     tmax: daily.temperature_2m_max[i],
     tmin: daily.temperature_2m_min[i],
   }));
-  const clearDays = days.filter(d=>d.rain < 1).length;
+  // 맑은 날 = 비 없고 + 날씨코드가 흐림/눈/뇌우 아닐 것 (wc < 45)
+  const isClear = d => d.rain < 1 && d.wc < 45;
+  const clearDays = days.filter(isClear).length;
   const avgMax = days.reduce((s,d)=>s+d.tmax,0)/days.length;
   const avgMin = days.reduce((s,d)=>s+d.tmin,0)/days.length;
   // 점수: 맑은 날 * 20 + 기온 쾌적도 보너스
   let score = clearDays * 20;
   days.forEach(d=>{
-    if (d.rain < 1) {
+    if (isClear(d)) {
       const mid = (d.tmax+d.tmin)/2;
       if (mid>=18 && mid<=28) score += 8;
       else if (mid>=12 && mid<=32) score += 4;
@@ -1375,7 +1377,7 @@ function tvRender() {
       <div class="tv-score-bar"><div class="tv-score-fill" style="width:${pct}%"></div></div>
       <div class="tv-days">${dayHtml}</div>
       <div class="tv-meta">
-        <div class="tv-clear">☀️ 맑은 날 ${city.clearDays}/5일</div>
+        <div class="tv-clear">${city.clearDays>=4?'☀️':city.clearDays>=2?'🌤️':'🌧️'} 맑은 날 ${city.clearDays}/5일</div>
         <div class="tv-temp">${Math.round(city.avgMin)}°~${Math.round(city.avgMax)}°C</div>
       </div>
       <div style="font-family:'JetBrains Mono',monospace;font-size:.55rem;color:var(--muted);margin-top:10px;text-align:right">📝 네이버 블로그 보기 →</div>
