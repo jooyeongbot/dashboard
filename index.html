@@ -10,8 +10,8 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
   --bg: #05080f; --surface: #0c1220; --surface2: #111927;
-  --border: rgba(100,160,255,0.15); --accent: #4f9cff; --accent2: #7ec8ff;
-  --text: #eef4ff; --muted: #7fa8cc;
+  --border: rgba(100,160,255,0.18); --accent: #4f9cff; --accent2: #7ec8ff;
+  --text: #f0f6ff; --muted: #9bbcd8;
   --up: #26d98b; --down: #ff4f4f; --warn: #ffb347;
   --cold: #7ec8ff; --hot: #ff6b47;
 }
@@ -21,15 +21,15 @@ body::before { content:''; position:fixed; inset:0; background:radial-gradient(e
 /* ── NAV ── */
 .nav { position:sticky; top:0; z-index:100; background:rgba(5,8,15,.92); backdrop-filter:blur(12px); border-bottom:1px solid var(--border); }
 .nav-inner { max-width:1280px; margin:0 auto; padding:0 20px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
-.nav-logo { font-family:'Inter',sans-serif; font-size:1.3rem; font-weight:700; letter-spacing:-.02em; color:#fff; padding:14px 0; line-height:1; }
-.nav-logo small { font-family:'Inter',sans-serif; font-size:.68rem; font-weight:400; color:var(--muted); letter-spacing:.02em; display:block; margin-top:3px; }
+.nav-logo { font-family:'Noto Sans KR','Inter',sans-serif; font-size:1.4rem; font-weight:700; letter-spacing:-.02em; color:#fff; padding:14px 0; line-height:1; }
+.nav-logo small { font-family:'Noto Sans KR','Inter',sans-serif; font-size:.72rem; font-weight:400; color:var(--muted); letter-spacing:.01em; display:block; margin-top:3px; }
 .nav-tabs { display:flex; gap:4px; }
-.tab-btn { font-family:'Roboto Mono',monospace; font-size:.72rem; letter-spacing:.12em; padding:8px 20px; border-radius:8px; border:1px solid transparent; background:transparent; color:var(--muted); cursor:pointer; transition:all .2s; display:flex; align-items:center; gap:7px; }
+.tab-btn { font-family:'Noto Sans KR','Inter',sans-serif; font-size:.82rem; font-weight:500; letter-spacing:.01em; padding:8px 20px; border-radius:8px; border:1px solid transparent; background:transparent; color:var(--muted); cursor:pointer; transition:all .2s; display:flex; align-items:center; gap:7px; }
 .tab-btn:hover { color:var(--text); background:var(--surface2); }
 .tab-btn.active { background:rgba(79,156,255,.12); border-color:rgba(79,156,255,.3); color:var(--accent2); }
 .tab-btn .tab-icon { font-size:1rem; }
 .nav-right { display:flex; align-items:center; gap:12px; padding:10px 0; }
-#clock { font-family:'Roboto Mono',monospace; font-size:.88rem; color:var(--text); }
+#clock { font-family:'Roboto Mono',monospace; font-size:.9rem; color:var(--text); }
 .market-badge { font-family:'Roboto Mono',monospace; font-size:.6rem; padding:3px 9px; border-radius:20px; letter-spacing:.1em; }
 .market-badge.open  { background:rgba(38,217,139,.12); border:1px solid rgba(38,217,139,.3); color:var(--up); }
 .market-badge.close { background:rgba(255,79,79,.1);   border:1px solid rgba(255,79,79,.25); color:var(--down); }
@@ -45,7 +45,7 @@ body::before { content:''; position:fixed; inset:0; background:radial-gradient(e
 .gl-toggle { display:flex; gap:4px; margin-left:auto; }
 .gl-toggle-btn { font-family:'Roboto Mono',monospace; font-size:.62rem; padding:4px 12px; border-radius:6px; border:1px solid var(--border); background:var(--surface2); color:var(--muted); cursor:pointer; transition:all .2s; }
 .gl-toggle-btn.active { border-color:var(--accent); color:var(--accent2); background:rgba(79,156,255,.1); }
-.sec-title { font-family:'Inter',sans-serif; font-size:.72rem; font-weight:600; letter-spacing:.08em; color:#a0c4e8; text-transform:uppercase; white-space:nowrap; }
+.sec-title { font-family:'Noto Sans KR','Inter',sans-serif; font-size:.88rem; font-weight:700; letter-spacing:.02em; color:#c8e0ff; white-space:nowrap; }
 .sec-line { flex:1; height:1px; background:var(--border); }
 .dots { display:inline-flex; gap:3px; }
 .dots span { width:4px; height:4px; border-radius:50%; background:var(--muted); animation:pulse 1.2s ease-in-out infinite; }
@@ -59,7 +59,7 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
 /* ══════════════════════════════════════
    WEATHER STYLES
 ══════════════════════════════════════ */
-.w-search-label { font-family:'Roboto Mono',monospace; font-size:.66rem; letter-spacing:.2em; color:var(--muted); text-transform:uppercase; margin-bottom:10px; }
+.w-search-label { font-family:'Noto Sans KR','Inter',sans-serif; font-size:.8rem; font-weight:600; letter-spacing:.04em; color:#c8e0ff; margin-bottom:10px; }
 .w-search-row { display:flex; gap:10px; }
 .w-search-input { flex:1; max-width:440px; background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:13px 18px; font-size:.95rem; color:var(--text); font-family:'Inter',sans-serif; outline:none; transition:border-color .2s, box-shadow .2s; }
 .w-search-input::placeholder { color:var(--muted); }
