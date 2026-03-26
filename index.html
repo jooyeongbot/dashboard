@@ -1928,8 +1928,8 @@ async function loadFxChange() {
       return { ...f, curKrwPer, oldKrwPer, pct };
     }).filter(Boolean).sort((a,b) => a.pct - b.pct);
 
-    const cheaper  = items.filter(it => it.pct < 0).slice(0, 7);
-    const expensive = [...items].reverse().filter(it => it.pct > 0).slice(0, 7);
+    const cheaper   = items.slice(0, 7);           // 가장 덜 오른 (또는 내린) 7개
+    const expensive = [...items].reverse().slice(0, 7); // 가장 많이 오른 7개
 
     const reason = pct => {
       const abs = Math.abs(pct);
@@ -1965,13 +1965,14 @@ async function loadFxChange() {
       </div>`;
     };
 
-    el.className = '';
-    el.innerHTML = cheaper.length === 0
-      ? `<div style="padding:12px 0 8px;font-size:.8rem;color:var(--muted)">이번 달은 저렴해진 나라가 없어요 — 전반적 원화 약세</div>`
-      : `<div style="font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--up);letter-spacing:.1em;margin-bottom:10px">✈️ 저렴해진 나라</div>
-         <div class="fxc-grid">${cheaper.map(fxcCard).join('')}</div>`;
+    const cheapLabel = cheaper.every(it => it.pct >= 0)
+      ? '✈️ 상대적으로 덜 오른 나라 TOP 7'
+      : '✈️ 저렴해진 나라 TOP 7';
 
-    el.innerHTML += `<div style="font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--down);letter-spacing:.1em;margin:20px 0 10px">💸 비싸진 나라</div>
+    el.className = '';
+    el.innerHTML = `<div style="font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--up);letter-spacing:.1em;margin-bottom:10px">${cheapLabel}</div>
+      <div class="fxc-grid">${cheaper.map(fxcCard).join('')}</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--down);letter-spacing:.1em;margin:20px 0 10px">💸 많이 오른 나라 TOP 7</div>
       <div class="fxc-grid">${expensive.map(fxcCard).join('')}</div>`;
   } catch(e) {
     el.innerHTML = '<div style="color:var(--muted);font-size:.8rem">환율 데이터 로드 실패</div>';
