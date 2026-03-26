@@ -447,7 +447,7 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
     </div>
 
     <!-- S&P500 히트맵 -->
-    <div class="sec-head"><div><div class="sec-title">// 히트맵</div><div class="sec-desc">S&P500 주요 종목 · 섹터별 분류 · 박스 크기 = 시가총액 비례 · 색상 = 등락률 · 60초 자동 갱신</div></div><div class="sec-line"></div></div>
+    <div class="sec-head"><div><div class="sec-title">// 히트맵</div><div class="sec-desc">S&P500 주요 종목 · 섹터별 분류 · 색상 = 등락률 · Finnhub · 2분 자동 갱신</div></div><div class="sec-line"></div></div>
     <div class="heatmap-wrap" id="heatmap-wrap"></div>
 
     <!-- 차트 -->
@@ -474,7 +474,7 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
     </div>
 
     <!-- 빅테크 -->
-    <div class="sec-head"><div><div class="sec-title">// 빅테크 & 주요 종목</div><div class="sec-desc">Yahoo Finance 기준 · 당일 종가 등락률 · 60초 자동 갱신</div></div><div class="sec-line"></div></div>
+    <div class="sec-head"><div><div class="sec-title">// 빅테크 & 주요 종목</div><div class="sec-desc">Finnhub 기준 · 당일 종가 등락률 · 2분 자동 갱신</div></div><div class="sec-line"></div></div>
     <div class="stock-grid" id="stock-grid"></div>
 
     <!-- 3개월 수익률 -->
@@ -483,7 +483,7 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
 
     <!-- 거래량 상위 -->
     <div class="sec-head">
-      <div><div class="sec-title">// 거래량 상위 종목</div><div class="sec-desc">당일 미국 증시 거래량 많은 순 · 상승/하락 각 5개 · Yahoo Finance · 60초 갱신</div></div>
+      <div><div class="sec-title">// 등락률 상위 종목</div><div class="sec-desc">당일 등락률 상위 종목 · 상승/하락 각 5개 · Finnhub · 2분 갱신</div></div>
       <div class="sec-line"></div>
     </div>
     <div class="gl-grid">
@@ -499,7 +499,7 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
 
     <!-- 급등락 -->
     <div class="sec-head">
-      <div><div class="sec-title">// 급등락 종목</div><div class="sec-desc" id="gl-desc">당일 시가 대비 현재가 등락률 기준 · Yahoo Finance · 60초 갱신</div></div>
+      <div><div class="sec-title">// 급등락 종목</div><div class="sec-desc" id="gl-desc">당일 시가 대비 현재가 등락률 기준 · Finnhub · 2분 갱신</div></div>
       <div class="sec-line"></div>
       <div class="gl-toggle">
         <button class="gl-toggle-btn active" id="glt-1d" onclick="setGLMode('1d',this)">1일</button>
@@ -666,7 +666,7 @@ function loadMiniCharts() {
 }
 
 // ═══════════════════════════════════════════
-//  CUSTOM HEATMAP (Yahoo Finance 기반)
+//  CUSTOM HEATMAP (Finnhub 기반)
 // ═══════════════════════════════════════════
 const HM_SECTORS = [
   { name:'반도체 Semiconductors',  syms:['NVDA','AMD','AVGO','QCOM','TXN','MU','ADI','INTC','KLAC','LRCX','AMAT','ARM','MRVL','ASML','ON'] },
@@ -786,7 +786,7 @@ function hmRender(dataMap) {
       <div class="hm-legend-bar"></div>
       <span>+7%</span>
     </div>
-    <div class="hm-refresh">마지막 갱신: ${now} · 60초마다 자동 갱신</div>`;
+    <div class="hm-refresh">마지막 갱신: ${now} · 2분마다 자동 갱신</div>`;
 }
 
 function loadHeatmap() {
@@ -1023,7 +1023,7 @@ function wSearchByName(name) { document.getElementById('w-inp').value = name; wD
 document.getElementById('w-inp').addEventListener('keydown', e => { if(e.key==='Enter') wDoSearch(); });
 
 // ═══════════════════════════════════════════
-//  STOCK — Yahoo Finance v8 (No API Key)
+//  STOCK — Finnhub API
 // ═══════════════════════════════════════════
 const INDICES = [
   {sym:'^GSPC', name:'S&P 500',      label:'S&P 500',      tvSym:'SP:SPX'},
