@@ -1361,7 +1361,8 @@ function tvRender() {
         <div class="tv-day-temp">${tp}</div>
       </div>`;
     }).join('');
-    return `<div class="tv-card${rainFree?' rain-free':''}">
+    const blogUrl = `https://search.naver.com/search.naver?where=blog&query=${encodeURIComponent(city.name+' 여행')}`;
+    return `<div class="tv-card${rainFree?' rain-free':''}" onclick="window.open('${blogUrl}','_blank')">
       <div class="tv-rank ${rankCls}">${rank}</div>
       <div class="tv-city">${city.flag} ${city.name}</div>
       <div class="tv-country">${city.en}</div>
@@ -1372,6 +1373,7 @@ function tvRender() {
         <div class="tv-clear">☀️ 맑은 날 ${city.clearDays}/5일</div>
         <div class="tv-temp">${Math.round(city.avgMin)}°~${Math.round(city.avgMax)}°C</div>
       </div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.55rem;color:var(--muted);margin-top:10px;text-align:right">📝 네이버 블로그 보기 →</div>
     </div>`;
   }).join('');
 }
