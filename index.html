@@ -46,6 +46,7 @@ body::before { content:''; position:fixed; inset:0; background:radial-gradient(e
 .gl-toggle-btn { font-family:'Roboto Mono',monospace; font-size:.62rem; padding:4px 12px; border-radius:6px; border:1px solid var(--border); background:var(--surface2); color:var(--muted); cursor:pointer; transition:all .2s; }
 .gl-toggle-btn.active { border-color:var(--accent); color:var(--accent2); background:rgba(79,156,255,.1); }
 .sec-title { font-family:'Noto Sans KR','Inter',sans-serif; font-size:.88rem; font-weight:700; letter-spacing:.02em; color:#c8e0ff; white-space:nowrap; }
+.sec-desc { font-family:'Noto Sans KR',sans-serif; font-size:.7rem; color:var(--muted); margin-top:4px; }
 .sec-line { flex:1; height:1px; background:var(--border); }
 .dots { display:inline-flex; gap:3px; }
 .dots span { width:4px; height:4px; border-radius:50%; background:var(--muted); animation:pulse 1.2s ease-in-out infinite; }
@@ -403,7 +404,7 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
 
   <div class="wrap">
     <!-- 글로벌 마켓 미니 차트 -->
-    <div class="sec-head" style="margin-top:24px"><div class="sec-title">// 글로벌 마켓</div><div class="sec-line"></div></div>
+    <div class="sec-head" style="margin-top:24px"><div><div class="sec-title">// 글로벌 마켓</div><div class="sec-desc">주요 지수·원자재·암호화폐 실시간 미니차트 (TradingView)</div></div><div class="sec-line"></div></div>
     <div class="mini-grid">
       <div class="mini-item" id="mc-0"></div>
       <div class="mini-item" id="mc-1"></div>
@@ -416,7 +417,7 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
     </div>
 
     <!-- S&P500 히트맵 -->
-    <div class="sec-head"><div class="sec-title">// 히트맵</div><div class="sec-line"></div></div>
+    <div class="sec-head"><div><div class="sec-title">// 히트맵</div><div class="sec-desc">S&P500 주요 종목 · 섹터별 분류 · 박스 크기 = 시가총액 비례 · 색상 = 등락률 · 60초 자동 갱신</div></div><div class="sec-line"></div></div>
     <div class="heatmap-wrap" id="heatmap-wrap"></div>
 
     <!-- 차트 -->
@@ -443,16 +444,16 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
     </div>
 
     <!-- 빅테크 -->
-    <div class="sec-head"><div class="sec-title">// 빅테크 & 주요 종목</div><div class="sec-line"></div></div>
+    <div class="sec-head"><div><div class="sec-title">// 빅테크 & 주요 종목</div><div class="sec-desc">Yahoo Finance 기준 · 당일 종가 등락률 · 60초 자동 갱신</div></div><div class="sec-line"></div></div>
     <div class="stock-grid" id="stock-grid"></div>
 
     <!-- 3개월 수익률 -->
-    <div class="sec-head"><div class="sec-title">// 3개월 수익률 TOP 10</div><div class="sec-line"></div></div>
+    <div class="sec-head"><div><div class="sec-title">// 3개월 수익률 TOP 10</div><div class="sec-desc">3개월 전 종가 대비 현재 주가 상승률 기준 · 탭 진입 시 1회 산출</div></div><div class="sec-line"></div></div>
     <div id="top3m-list" style="font-family:'Roboto Mono',monospace;font-size:.7rem;color:var(--muted);padding:16px 0">분석 중...</div>
 
     <!-- 급등락 -->
     <div class="sec-head">
-      <div class="sec-title">// 급등락 종목</div>
+      <div><div class="sec-title">// 급등락 종목</div><div class="sec-desc" id="gl-desc">당일 시가 대비 현재가 등락률 기준 · Yahoo Finance · 60초 갱신</div></div>
       <div class="sec-line"></div>
       <div class="gl-toggle">
         <button class="gl-toggle-btn active" id="glt-1d" onclick="setGLMode('1d',this)">1일</button>
@@ -471,7 +472,7 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
     </div>
 
     <!-- 환율 -->
-    <div class="sec-head"><div class="sec-title">// 주요 환율 (KRW 기준)</div><div class="sec-line"></div></div>
+    <div class="sec-head"><div><div class="sec-title">// 주요 환율 (KRW 기준)</div><div class="sec-desc">1단위 외화 = N원 기준 (단, 엔화는 100엔 기준) · open.er-api.com</div></div><div class="sec-line"></div></div>
     <div class="fx-grid" id="fx-grid"><div style="font-family:'Roboto Mono',monospace;font-size:.7rem;color:var(--muted);padding:16px 0">로딩 중...</div></div>
 
     <!-- 환율 차트 -->
@@ -528,7 +529,7 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
 
     <!-- 환율 변동 -->
     <div class="sec-head" style="margin-top:44px">
-      <div class="sec-title">// 한 달 전 대비 저렴해진 나라 (KRW 기준)</div>
+      <div><div class="sec-title">// 한 달 전 대비 저렴해진 나라 (KRW 기준)</div><div class="sec-desc">1개월 전 환율 대비 현재 변동률 · 음수(↓)일수록 해당국 여행 비용 저렴 · frankfurter.app</div></div>
       <div class="sec-line"></div>
     </div>
     <div id="fx-change-grid" style="font-family:'Noto Sans KR',sans-serif;font-size:.8rem;color:var(--muted);padding:16px 0">환율 변동 분석 중...</div>
@@ -1079,6 +1080,10 @@ async function setGLMode(mode, btn) {
   glMode = mode;
   document.querySelectorAll('.gl-toggle-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
+  const desc = document.getElementById('gl-desc');
+  if (desc) desc.textContent = mode==='1d'
+    ? '당일 시가 대비 현재가 등락률 기준 · Yahoo Finance · 60초 갱신'
+    : '최근 5거래일 종가 기준 주간 등락률 · Yahoo Finance';
   if (mode === '1w') {
     document.getElementById('gainers-list').innerHTML = '<div style="padding:16px;font-family:\'DM Mono\',monospace;font-size:.7rem;color:var(--muted)">1주일 데이터 수집 중...</div>';
     document.getElementById('losers-list').innerHTML  = '<div style="padding:16px;font-family:\'DM Mono\',monospace;font-size:.7rem;color:var(--muted)">1주일 데이터 수집 중...</div>';
