@@ -438,6 +438,71 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
 .mj-link.kakao:hover { background:rgba(255,204,0,.2); }
 .mj-link.google { background:rgba(66,133,244,.08); border-color:rgba(66,133,244,.2); color:#4285f4; }
 .mj-link.google:hover { background:rgba(66,133,244,.2); }
+
+/* ── 콘텐츠 탭 ── */
+.ent-plat-bar { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px; }
+.ent-plat-btn { font-family:'Noto Sans KR',sans-serif; font-size:.73rem; font-weight:600; padding:6px 15px; border-radius:20px; border:1px solid var(--border); background:var(--surface2); color:var(--muted); cursor:pointer; transition:all .18s; white-space:nowrap; }
+.ent-plat-btn:hover { color:var(--text); }
+.ent-plat-btn.netflix.active { background:rgba(229,9,20,.15); border-color:rgba(229,9,20,.4); color:#e50914; }
+.ent-plat-btn.disney.active  { background:rgba(17,60,207,.15); border-color:rgba(17,60,207,.4); color:#4facfe; }
+.ent-plat-btn.wavve.active   { background:rgba(0,175,255,.15); border-color:rgba(0,175,255,.4); color:#00afff; }
+.ent-plat-btn.tving.active   { background:rgba(255,0,66,.15);  border-color:rgba(255,0,66,.4);  color:#ff0042; }
+.ent-plat-btn.watcha.active  { background:rgba(255,60,120,.15);border-color:rgba(255,60,120,.4);color:#ff3c78; }
+.ent-plat-btn.all.active     { background:rgba(79,156,255,.12);border-color:rgba(79,156,255,.3);color:var(--accent2); }
+.ent-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:14px; margin-bottom:40px; }
+.ent-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; overflow:hidden; transition:all .2s; cursor:pointer; }
+.ent-card:hover { transform:translateY(-3px); box-shadow:0 8px 28px rgba(0,0,0,.35); border-color:rgba(255,255,255,.15); }
+.ent-poster { width:100%; aspect-ratio:2/3; display:flex; align-items:center; justify-content:center; font-size:3rem; position:relative; overflow:hidden; }
+.ent-poster img { width:100%; height:100%; object-fit:cover; position:absolute; top:0; left:0; }
+.ent-poster-emoji { position:relative; z-index:1; }
+.ent-plat-dot { position:absolute; top:8px; right:8px; font-size:.6rem; font-weight:700; padding:3px 7px; border-radius:6px; z-index:2; letter-spacing:.03em; }
+.ent-plat-dot.netflix { background:#e50914; color:#fff; }
+.ent-plat-dot.disney  { background:#0a3fa8; color:#fff; }
+.ent-plat-dot.wavve   { background:#0077cc; color:#fff; }
+.ent-plat-dot.tving   { background:#ff0042; color:#fff; }
+.ent-plat-dot.watcha  { background:#ff3c78; color:#fff; }
+.ent-plat-dot.kbs     { background:#1b5e8c; color:#fff; }
+.ent-plat-dot.mbc     { background:#2e8b57; color:#fff; }
+.ent-plat-dot.sbs     { background:#8b2be2; color:#fff; }
+.ent-info { padding:12px 14px; }
+.ent-title { font-family:'Noto Sans KR',sans-serif; font-size:.9rem; font-weight:700; color:var(--text); line-height:1.25; margin-bottom:4px; }
+.ent-meta { font-family:'Roboto Mono',monospace; font-size:.6rem; color:var(--muted); margin-bottom:7px; }
+.ent-desc { font-family:'Noto Sans KR',sans-serif; font-size:.67rem; color:var(--muted); line-height:1.55; margin-bottom:8px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.ent-tags { display:flex; gap:4px; flex-wrap:wrap; }
+.ent-tag { font-family:'Noto Sans KR',sans-serif; font-size:.6rem; padding:2px 7px; border-radius:8px; background:var(--surface2); border:1px solid var(--border); color:var(--muted); }
+.ent-rating { font-family:'Roboto Mono',monospace; font-size:.72rem; color:#ffb347; font-weight:700; }
+/* 영화 섹션 */
+.movie-type-bar { display:flex; gap:8px; margin-bottom:18px; }
+.movie-type-btn { font-family:'Noto Sans KR',sans-serif; font-size:.75rem; font-weight:600; padding:7px 20px; border-radius:10px; border:1px solid var(--border); background:var(--surface2); color:var(--muted); cursor:pointer; transition:all .18s; }
+.movie-type-btn.active { background:rgba(255,180,60,.12); border-color:rgba(255,180,60,.4); color:#ffb347; }
+.movie-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(155px,1fr)); gap:14px; margin-bottom:40px; }
+.movie-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; transition:all .2s; cursor:pointer; }
+.movie-card:hover { transform:translateY(-3px); box-shadow:0 8px 24px rgba(0,0,0,.35); border-color:rgba(255,180,60,.3); }
+.movie-poster { width:100%; aspect-ratio:2/3; display:flex; align-items:center; justify-content:center; font-size:2.5rem; position:relative; overflow:hidden; }
+.movie-poster img { width:100%; height:100%; object-fit:cover; position:absolute; }
+.movie-poster-emoji { position:relative; z-index:1; }
+.movie-rank-badge { position:absolute; top:6px; left:6px; font-family:'Roboto Mono',monospace; font-size:.65rem; font-weight:700; background:rgba(0,0,0,.75); color:#ffb347; padding:3px 8px; border-radius:6px; z-index:2; }
+.movie-info { padding:10px 12px; }
+.movie-title { font-family:'Noto Sans KR',sans-serif; font-size:.78rem; font-weight:700; color:var(--text); line-height:1.3; margin-bottom:4px; }
+.movie-sub { font-family:'Roboto Mono',monospace; font-size:.58rem; color:var(--muted); margin-bottom:5px; }
+.movie-rating-row { display:flex; align-items:center; gap:6px; }
+.movie-star { color:#ffb347; font-size:.65rem; }
+.movie-score { font-family:'Roboto Mono',monospace; font-size:.68rem; color:var(--text); font-weight:600; }
+/* TV 편성 */
+.tv-sched-bar { display:flex; gap:6px; margin-bottom:16px; }
+.tv-sched-btn { font-family:'Noto Sans KR',sans-serif; font-size:.73rem; font-weight:600; padding:6px 16px; border-radius:20px; border:1px solid var(--border); background:var(--surface2); color:var(--muted); cursor:pointer; transition:all .18s; }
+.tv-sched-btn.kbs.active { background:rgba(27,94,140,.15); border-color:rgba(27,94,140,.4); color:#4facfe; }
+.tv-sched-btn.mbc.active { background:rgba(46,139,87,.15);  border-color:rgba(46,139,87,.4);  color:#26d98b; }
+.tv-sched-btn.sbs.active { background:rgba(139,43,226,.15); border-color:rgba(139,43,226,.4); color:#b47aff; }
+.tv-sched-btn.all.active { background:rgba(79,156,255,.12); border-color:rgba(79,156,255,.3); color:var(--accent2); }
+.tv-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:12px; margin-bottom:40px; }
+.tv-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px 16px; transition:all .18s; }
+.tv-card:hover { border-color:rgba(255,255,255,.15); transform:translateY(-2px); }
+.tv-show-name { font-family:'Noto Sans KR',sans-serif; font-size:.88rem; font-weight:700; color:var(--text); margin-bottom:4px; }
+.tv-show-meta { font-family:'Roboto Mono',monospace; font-size:.6rem; color:var(--muted); margin-bottom:6px; }
+.tv-show-desc { font-family:'Noto Sans KR',sans-serif; font-size:.68rem; color:var(--muted); line-height:1.55; }
+.tv-tmdb-note { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:12px 16px; margin-bottom:16px; font-family:'Noto Sans KR',sans-serif; font-size:.72rem; color:var(--muted); }
+.tv-tmdb-note a { color:var(--accent2); }
 </style>
 </head>
 <body>
@@ -461,6 +526,9 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
       </button>
       <button class="tab-btn" onclick="showTab('food')" id="tab-food">
         <span class="tab-icon">🍽</span> 맛집
+      </button>
+      <button class="tab-btn" onclick="showTab('ent')" id="tab-ent">
+        <span class="tab-icon">🎬</span> 콘텐츠
       </button>
       <button class="tab-btn" onclick="showTab('news')" id="tab-news">
         <span class="tab-icon">📰</span> 뉴스
@@ -871,6 +939,69 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
 </div>
 
 <!-- ══════════════════════════════════════
+     CONTENTS (ENT) SECTION
+══════════════════════════════════════ -->
+<div class="section" id="section-ent">
+  <div class="wrap">
+    <div class="sec-head" style="margin-top:24px">
+      <div>
+        <div class="sec-title">// OTT · 방송 · 영화</div>
+        <div class="sec-desc">스트리밍 인기 콘텐츠 · 공중파 예능 편성 · 현재 상영 영화</div>
+      </div>
+      <div class="sec-line"></div>
+    </div>
+
+    <!-- TMDB 키 안내 -->
+    <div class="tv-tmdb-note" id="ent-tmdb-note" style="display:none">
+      🎬 <b>실시간 영화 포스터/평점</b>을 보려면 무료 TMDB API 키가 필요합니다.
+      <a href="https://www.themoviedb.org/settings/api" target="_blank">여기서 무료 등록</a> 후
+      소스 상단 <code>TMDB_KEY</code> 변수에 입력하세요.
+    </div>
+
+    <!-- ① OTT 인기 콘텐츠 -->
+    <div class="sec-head" style="margin-top:0;margin-bottom:14px">
+      <div><div class="sec-title" style="font-size:.8rem">📺 OTT 인기 콘텐츠</div></div>
+    </div>
+    <div class="ent-plat-bar" id="ent-plat-bar">
+      <button class="ent-plat-btn all active"     onclick="entFilter('all',this)">전체</button>
+      <button class="ent-plat-btn netflix"         onclick="entFilter('netflix',this)">🔴 Netflix</button>
+      <button class="ent-plat-btn disney"          onclick="entFilter('disney',this)">🔵 Disney+</button>
+      <button class="ent-plat-btn wavve"           onclick="entFilter('wavve',this)">🌊 Wavve</button>
+      <button class="ent-plat-btn tving"           onclick="entFilter('tving',this)">📡 Tving</button>
+      <button class="ent-plat-btn watcha"          onclick="entFilter('watcha',this)">💜 Watcha</button>
+    </div>
+    <div class="ent-grid" id="ent-grid"></div>
+
+    <!-- ② 공중파 예능 편성 -->
+    <div class="sec-head" style="margin-top:0;margin-bottom:14px">
+      <div><div class="sec-title" style="font-size:.8rem">📡 공중파 인기 예능</div></div>
+    </div>
+    <div class="tv-sched-bar">
+      <button class="tv-sched-btn all active" onclick="tvFilter('all',this)">전체</button>
+      <button class="tv-sched-btn kbs"        onclick="tvFilter('kbs',this)">KBS</button>
+      <button class="tv-sched-btn mbc"        onclick="tvFilter('mbc',this)">MBC</button>
+      <button class="tv-sched-btn sbs"        onclick="tvFilter('sbs',this)">SBS</button>
+    </div>
+    <div class="tv-grid" id="tv-grid"></div>
+
+    <!-- ③ 현재 상영 영화 -->
+    <div class="sec-head" style="margin-top:0;margin-bottom:14px">
+      <div><div class="sec-title" style="font-size:.8rem">🎞 현재 상영 영화</div></div>
+    </div>
+    <div class="movie-type-bar">
+      <button class="movie-type-btn active" id="mv-btn-kr" onclick="movieFilter('kr',this)">🇰🇷 국내 박스오피스</button>
+      <button class="movie-type-btn"        id="mv-btn-intl" onclick="movieFilter('intl',this)">🌍 해외 추천작</button>
+    </div>
+    <div class="movie-grid" id="movie-grid"></div>
+
+    <footer style="margin-top:40px">
+      <div class="ft">PULSE DASHBOARD · OTT · 방송 · 영화</div>
+      <div class="ft">영화 DATA: <span>TMDB</span> · 콘텐츠 큐레이션: <span>EDITOR'S PICK</span></div>
+    </footer>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
      MATJIP SECTION
 ══════════════════════════════════════ -->
 <div class="section" id="section-food">
@@ -914,7 +1045,7 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
 // ═══════════════════════════════════════════
 //  TAB NAVIGATION
 // ═══════════════════════════════════════════
-let stockLoaded = false, travelLoaded = false, newsLoaded = false, koreaLoaded = false, foodLoaded = false;
+let stockLoaded = false, travelLoaded = false, newsLoaded = false, koreaLoaded = false, foodLoaded = false, entLoaded = false;
 
 const MINI_CHARTS = [
   {id:'mc-0', symbol:'NASDAQ:QQQ'},
@@ -1117,6 +1248,10 @@ function showTab(tab) {
   if (tab === 'food' && !foodLoaded) {
     foodLoaded = true;
     mjInit();
+  }
+  if (tab === 'ent' && !entLoaded) {
+    entLoaded = true;
+    entInit();
   }
 }
 
@@ -3051,6 +3186,244 @@ function mjInit() {
   mjCurCity = KR_DEST[0].id;
   mjRender();
 }
+
+// ═══════════════════════════════════════════
+//  콘텐츠 탭 (OTT · 방송 · 영화)
+// ═══════════════════════════════════════════
+
+// ── TMDB 설정 (선택사항 - 무료 키: https://www.themoviedb.org/settings/api)
+const TMDB_KEY = '';  // ← 여기에 무료 API 키 입력 시 실시간 영화 포스터/평점 표시
+const TMDB_IMG = 'https://image.tmdb.org/t/p/w342';
+const TMDB_BASE = 'https://api.themoviedb.org/3';
+
+// ── OTT 큐레이션 데이터
+const OTT_DATA = [
+  // Netflix
+  {title:'오징어게임 시즌2',titleEn:'Squid Game S2',plat:'netflix',type:'드라마',genres:['스릴러','서바이벌'],rating:8.2,year:2024,ep:7,emoji:'🦑',bg:'#141414',desc:'기훈의 귀환. 더 잔인하고 더 거대해진 서바이벌 게임이 다시 시작된다.',link:'https://www.netflix.com/search?q=오징어게임'},
+  {title:'흑백요리사',titleEn:'Culinary Class Wars',plat:'netflix',type:'예능',genres:['요리','서바이벌'],rating:9.1,year:2024,ep:12,emoji:'👨‍🍳',bg:'#1a0a00',desc:'흑수저 vs 백수저, 100인의 요리사가 맞붙는 역대급 요리 서바이벌.', link:'https://www.netflix.com/search?q=흑백요리사'},
+  {title:'더 글로리',titleEn:'The Glory',plat:'netflix',type:'드라마',genres:['복수극','스릴러'],rating:8.7,year:2023,ep:16,emoji:'🔥',bg:'#0d0a1a',desc:'학교폭력 피해자의 치밀한 복수. 송혜교 주연 글로벌 히트작.',link:'https://www.netflix.com/search?q=더글로리'},
+  {title:'피지컬:100 시즌2',titleEn:'Physical: 100 S2',plat:'netflix',type:'예능',genres:['서바이벌','스포츠'],rating:8.1,year:2024,ep:10,emoji:'💪',bg:'#0a0a0a',desc:'완벽한 신체를 가진 100인의 생존 경쟁. 최강의 몸을 가진 자가 살아남는다.',link:'https://www.netflix.com/search?q=피지컬100'},
+  {title:'돌풍',titleEn:'Whirlwind',plat:'netflix',type:'드라마',genres:['정치','스릴러'],rating:8.3,year:2024,ep:12,emoji:'🌀',bg:'#050510',desc:'대통령을 향한 검사의 돌풍. 한국 정치 스릴러의 새로운 기준.',link:'https://www.netflix.com/search?q=돌풍'},
+  {title:'정년이',titleEn:'Jeong Nyeon',plat:'netflix',type:'드라마',genres:['시대극','성장'],rating:8.4,year:2024,ep:12,emoji:'🎭',bg:'#1a0d00',desc:'1950년대 여성 국극단을 배경으로 한 찬란한 성장 드라마.',link:'https://www.netflix.com/search?q=정년이'},
+  {title:'살인자ㅇ난감',titleEn:'A Killer Paradox',plat:'netflix',type:'드라마',genres:['스릴러','블랙코미디'],rating:8.0,year:2024,ep:8,emoji:'🔪',bg:'#0a0000',desc:'우연히 살인을 저지른 평범한 편의점 알바생. 도망치지 못하는 이유.',link:'https://www.netflix.com/search?q=살인자ㅇ난감'},
+  {title:'나는 솔로',titleEn:'I Am Solo',plat:'netflix',type:'예능',genres:['연애','리얼리티'],rating:7.9,year:2025,ep:null,emoji:'💘',bg:'#1a0010',desc:'나이, 학력, 직업 불문 평범한 솔로들의 찐 연애 관찰 예능. 매 시즌 화제.',link:'https://www.netflix.com/search?q=나는솔로'},
+  // Disney+
+  {title:'무빙',titleEn:'Moving',plat:'disney',type:'드라마',genres:['액션','SF','가족'],rating:9.0,year:2023,ep:20,emoji:'⚡',bg:'#000d1a',desc:'초능력을 숨긴 부모와 그 아이들. 한국 슈퍼히어로물의 역대급 완성작.',link:'https://www.disneyplus.com/ko-kr/search?q=무빙'},
+  {title:'쇼군',titleEn:'Shōgun',plat:'disney',type:'드라마',genres:['시대극','역사'],rating:8.6,year:2024,ep:10,emoji:'⚔️',bg:'#0a0500',desc:'16세기 봉건 일본에 표류한 영국 선원. 에미상 18관왕 글로벌 대작.',link:'https://www.disneyplus.com/ko-kr/search?q=쇼군'},
+  {title:'비질란테',titleEn:'Vigilante',plat:'disney',type:'드라마',genres:['액션','범죄'],rating:8.1,year:2023,ep:8,emoji:'🦸',bg:'#05050a',desc:'낮에는 경찰대 학생, 밤에는 악인을 처단하는 자경단원. 남주혁 주연.',link:'https://www.disneyplus.com/ko-kr/search?q=비질란테'},
+  {title:'만달로리안 시즌4',titleEn:'The Mandalorian S4',plat:'disney',type:'드라마',genres:['SF','어드벤처'],rating:8.3,year:2025,ep:8,emoji:'🚀',bg:'#000008',desc:'스타워즈 유니버스. 은하계를 떠도는 만달로리안 전사와 그로구의 여정.',link:'https://www.disneyplus.com/ko-kr/search?q=만달로리안'},
+  {title:'데드풀 & 울버린',titleEn:'Deadpool & Wolverine',plat:'disney',type:'영화',genres:['액션','코미디'],rating:7.8,year:2024,ep:null,emoji:'🩸',bg:'#1a0000',desc:'마블 최초 R등급 영화. 두 안티히어로의 충격적인 만남.',link:'https://www.disneyplus.com/ko-kr/search?q=데드풀'},
+  // Wavve
+  {title:'이상한 변호사 우영우',titleEn:'Extraordinary Attorney Woo',plat:'wavve',type:'드라마',genres:['법정','힐링'],rating:8.4,year:2022,ep:16,emoji:'🐋',bg:'#00101a',desc:'자폐스펙트럼 천재 변호사의 성장 이야기. 전 세계 넷플릭스 1위 달성.',link:'https://www.wavve.com/'},
+  {title:'연인',titleEn:'My Dearest',plat:'wavve',type:'드라마',genres:['시대극','로맨스'],rating:8.5,year:2023,ep:20,emoji:'🌸',bg:'#1a0a0a',desc:'병자호란을 배경으로 한 가슴 아픈 사랑 이야기. 안은진·남궁민 주연.',link:'https://www.wavve.com/'},
+  {title:'마스크걸',titleEn:'Mask Girl',plat:'wavve',type:'드라마',genres:['스릴러','드라마'],rating:7.9,year:2023,ep:7,emoji:'🎭',bg:'#0a0a00',desc:'외모 콤플렉스를 가진 여성이 인터넷 방송으로 스타가 되며 벌어지는 사건.',link:'https://www.wavve.com/'},
+  {title:'나의 해방일지',titleEn:'My Liberation Notes',plat:'wavve',type:'드라마',genres:['드라마','힐링'],rating:8.6,year:2022,ep:16,emoji:'✍️',bg:'#050a05',desc:'답답한 일상에서 해방을 꿈꾸는 삼남매의 조용하고 깊은 이야기.',link:'https://www.wavve.com/'},
+  // Tving
+  {title:'환승연애3',titleEn:'Transit Love 3',plat:'tving',type:'예능',genres:['연애','리얼리티'],rating:8.2,year:2023,ep:12,emoji:'💔',bg:'#1a0005',desc:'전 연인들과 새로운 인연들이 한 공간에서 펼치는 혼돈의 연애 리얼리티.',link:'https://www.tving.com/'},
+  {title:'술꾼도시여자들 시즌2',titleEn:'Drinking Solo Women S2',plat:'tving',type:'드라마',genres:['코미디','우정'],rating:8.1,year:2023,ep:10,emoji:'🍻',bg:'#0a0510',desc:'세 친구의 술과 함께하는 웃고 우는 도시 여성 이야기 시즌2.',link:'https://www.tving.com/'},
+  {title:'서울의 봄',titleEn:'12.12: The Day',plat:'tving',type:'영화',genres:['역사','드라마'],rating:8.8,year:2023,ep:null,emoji:'🪖',bg:'#050505',desc:'1979년 12·12 군사반란. 황정민·정우성 주연 천만 영화.',link:'https://www.tving.com/'},
+  {title:'피식대학 BEST',titleEn:'Psick Univ Best',plat:'tving',type:'예능',genres:['코미디','버라이어티'],rating:9.2,year:2024,ep:null,emoji:'😂',bg:'#0a0a00',desc:'1인 개인기부터 스케치 코미디까지. 2030 최고 코미디 채널.',link:'https://www.tving.com/'},
+  // Watcha
+  {title:'러브캐처 in 서울',titleEn:'Love Catcher in Seoul',plat:'watcha',type:'예능',genres:['연애','추리'],rating:7.9,year:2023,ep:10,emoji:'💜',bg:'#10001a',desc:'사랑꾼과 금전꾼이 섞인 연애 추리 예능. 진짜 마음을 찾아라.',link:'https://watcha.com/'},
+  {title:'브레이킹 배드',titleEn:'Breaking Bad',plat:'watcha',type:'드라마',genres:['범죄','스릴러'],rating:9.5,year:2013,ep:62,emoji:'⚗️',bg:'#050a00',desc:'암 선고를 받은 화학 교사의 마약 제조 이야기. 역사상 최고의 드라마.',link:'https://watcha.com/'},
+  {title:'체르노빌',titleEn:'Chernobyl',plat:'watcha',type:'드라마',genres:['역사','스릴러'],rating:9.4,year:2019,ep:5,emoji:'☢️',bg:'#0a0500',desc:'1986년 체르노빌 원전 사고의 실화. IMDb 역사상 최고 평점 미니시리즈.',link:'https://watcha.com/'},
+];
+
+// ── 공중파 예능 편성표
+const TV_SCHED = [
+  // KBS
+  {ch:'kbs',name:'1박 2일 시즌4',time:'일 18:15',channel:'KBS2',genres:['여행','버라이어티'],emoji:'🏕',desc:'국내 여행지를 돌아다니며 미션을 수행하는 국민 여행 예능. 시즌4 현재 진행 중.'},
+  {ch:'kbs',name:'슈퍼맨이 돌아왔다',time:'일 16:40',channel:'KBS2',genres:['육아','가족'],emoji:'👶',desc:'아빠와 아이들의 48시간. 유명인 가족의 리얼 육아 관찰 예능.'},
+  {ch:'kbs',name:'개는 훌륭하다',time:'월 21:30',channel:'KBS2',genres:['동물','정보'],emoji:'🐕',desc:'강형욱의 반려견 훈련 프로그램. 문제 행동견 교정 및 반려 문화 캠페인.'},
+  {ch:'kbs',name:'불후의 명곡',time:'토 21:10',channel:'KBS2',genres:['음악','경연'],emoji:'🎤',desc:'전설적인 가수의 명곡을 현역 가수들이 재해석. 30년 전통의 음악 경연.'},
+  // MBC
+  {ch:'mbc',name:'나 혼자 산다',time:'금 22:05',channel:'MBC',genres:['리얼리티','라이프'],emoji:'🛋',desc:'1인 가구 유명인들의 솔직한 일상 공개. 무지개 회원들의 사랑받는 토크 코너 포함.'},
+  {ch:'mbc',name:'놀면 뭐하니?',time:'토 18:10',channel:'MBC',genres:['버라이어티','도전'],emoji:'🎉',desc:'유재석의 새로운 프로젝트 도전기. 음악·요리·스포츠 등 다양한 부캐 활동.'},
+  {ch:'mbc',name:'라디오스타',time:'수 23:10',channel:'MBC',genres:['토크','예능'],emoji:'🎙',desc:'독설 MC들의 신랄한 토크쇼. 20년 전통의 게스트 저격 프로그램.'},
+  {ch:'mbc',name:'전지적 참견 시점',time:'토 21:20',channel:'MBC',genres:['리얼리티','관찰'],emoji:'👀',desc:'연예인과 매니저의 24시간 동행. 연예계 뒷이야기와 우정을 담은 관찰 예능.'},
+  // SBS
+  {ch:'sbs',name:'런닝맨',time:'일 17:00',channel:'SBS',genres:['버라이어티','게임'],emoji:'🏃',desc:'대한민국 대표 예능. 14년 째 이어지는 국민 게임 버라이어티 프로그램.'},
+  {ch:'sbs',name:'미운 우리 새끼',time:'일 22:25',channel:'SBS',genres:['관찰','가족'],emoji:'👩‍👦',desc:'유명인 자녀들의 일상을 어머니들이 지켜보며 토크. 장수 관찰 예능.'},
+  {ch:'sbs',name:'골 때리는 그녀들',time:'수 22:35',channel:'SBS',genres:['스포츠','예능'],emoji:'⚽',desc:'여성 연예인들의 진짜 축구 경쟁. 승부욕과 우정이 넘치는 스포츠 예능.'},
+  {ch:'sbs',name:'집사부일체',time:'일 21:00',channel:'SBS',genres:['예능','교양'],emoji:'🏠',desc:'각 분야 최고의 사부를 찾아가 배우는 예능. 이승기·이상윤 등 출연.'},
+];
+
+// ── 영화 큐레이션 (TMDB 없을 때 fallback)
+const MOVIE_DATA = {
+  kr: [
+    {rank:1,title:'소방관',genre:'드라마',rating:8.1,year:2024,emoji:'🚒',bg:'#1a0500',desc:'2001년 홍제동 화재 실화. 소방관들의 헌신과 희생을 그린 감동 실화.'},
+    {rank:2,title:'베테랑2',genre:'액션/범죄',rating:7.8,year:2024,emoji:'🕵️',bg:'#050a1a',desc:'류승완 감독·황정민 주연. 강력반 형사의 귀환, 더 강해진 적과 맞붙다.'},
+    {rank:3,title:'청설',genre:'로맨스',rating:7.5,year:2024,emoji:'❄️',bg:'#00050a',desc:'농아인과 비장애인의 순수한 사랑. 홍콩 영화 원작 한국 리메이크.'},
+    {rank:4,title:'하얼빈',genre:'역사/액션',rating:8.2,year:2024,emoji:'🏮',bg:'#0a0500',desc:'안중근 의사의 이토 히로부미 저격을 다룬 대형 역사 액션 블록버스터.'},
+    {rank:5,title:'노량: 죽음의 바다',genre:'역사/액션',rating:8.0,year:2023,emoji:'⚓',bg:'#000510',desc:'한산·명량에 이은 이순신 3부작 완결편. 노량해전의 처절한 마지막 전투.'},
+    {rank:6,title:'서울의 봄',genre:'역사/드라마',rating:8.8,year:2023,emoji:'🪖',bg:'#050505',desc:'12·12 군사반란 실화. 황정민·정우성 주연 천만 돌파 역사 스릴러.'},
+    {rank:7,title:'파묘',genre:'공포/미스터리',rating:7.9,year:2024,emoji:'⚰️',bg:'#050000',desc:'무덤을 이장하며 시작되는 공포. 최민식·유해진·김고은 주연 오컬트 스릴러.'},
+    {rank:8,title:'범죄도시4',genre:'액션/범죄',rating:7.7,year:2024,emoji:'👊',bg:'#0a0000',desc:'마동석 주연 괴물형사 시리즈 4편. 필리핀까지 뻗어간 신종 마약 조직 소탕.'},
+  ],
+  intl: [
+    {rank:1,title:'인사이드 아웃 2',titleEn:'Inside Out 2',genre:'애니/가족',rating:7.9,year:2024,emoji:'🧠',bg:'#0a0010',desc:'라일리의 뇌 속 감정들이 다시 모험을 떠난다. 픽사 최고 흥행작.'},
+    {rank:2,title:'듄: 파트2',titleEn:'Dune: Part Two',genre:'SF/서사',rating:8.5,year:2024,emoji:'🏜',bg:'#1a0a00',desc:'사막 행성 아라키스의 운명. 티모테 샬라메 주연 SF 서사시의 완성.'},
+    {rank:3,title:'위키드',titleEn:'Wicked',genre:'뮤지컬',rating:7.7,year:2024,emoji:'🧙‍♀️',bg:'#050a00',desc:'오즈의 마법사 프리퀄. 아리아나 그란데·신시아 에리보 주연 화제작.'},
+    {rank:4,title:'글래디에이터2',titleEn:'Gladiator II',genre:'액션/역사',rating:7.1,year:2024,emoji:'🛡',bg:'#0a0500',desc:'20년 만의 속편. 폴 메스칼 주연, 리들리 스콧 감독의 로마 서사시.'},
+    {rank:5,title:'알리카나',titleEn:'Alien: Romulus',genre:'SF/공포',rating:7.3,year:2024,emoji:'👾',bg:'#000000',desc:'에이리언 시리즈의 공포가 돌아왔다. 청년들의 생존 서바이벌 SF 호러.'},
+    {rank:6,title:'퍼펙트 데이즈',titleEn:'Perfect Days',genre:'드라마',rating:8.1,year:2023,emoji:'🚽',bg:'#050a05',desc:'도쿄 공중화장실 청소부의 소박하고 아름다운 일상. 칸 남우주연상.'},
+    {rank:7,title:'오펜하이머',titleEn:'Oppenheimer',genre:'드라마/역사',rating:8.4,year:2023,emoji:'💥',bg:'#050500',desc:'원자폭탄의 아버지. 크리스토퍼 놀란 감독 아카데미 7관왕 대작.'},
+    {rank:8,title:'파스트 라이브즈',titleEn:'Past Lives',genre:'로맨스',rating:7.9,year:2023,emoji:'🌿',bg:'#000a05',desc:'어린 시절 첫사랑과 20년 후의 재회. 아카데미 작품상 후보 감성 로맨스.'},
+  ],
+};
+
+// ── 콘텐츠 탭 상태
+let entCurPlat = 'all', entCurTV = 'all', entCurMovie = 'kr';
+
+// 포스터 배경색 (플랫폼별)
+const PLAT_COLORS = {netflix:'#141414',disney:'#040f26',wavve:'#001428',tving:'#1a0008',watcha:'#12001a'};
+const PLAT_LABEL = {netflix:'NETFLIX',disney:'DISNEY+',wavve:'WAVVE',tving:'TVING',watcha:'WATCHA'};
+
+function entStars(r) {
+  const f = Math.floor(r/2); const h = (r/2 - f) >= 0.3 ? 1 : 0;
+  return '★'.repeat(f) + (h?'½':'') + '☆'.repeat(5-f-h);
+}
+
+function entCardHtml(d) {
+  const bg = PLAT_COLORS[d.plat] || '#111';
+  const epTxt = d.ep ? `${d.ep}화` : '영화';
+  return `<div class="ent-card" onclick="window.open('${d.link}','_blank')">
+    <div class="ent-poster" style="background:${bg}">
+      <span class="ent-poster-emoji">${d.emoji}</span>
+      <span class="ent-plat-dot ${d.plat}">${PLAT_LABEL[d.plat]}</span>
+    </div>
+    <div class="ent-info">
+      <div class="ent-title">${d.title}</div>
+      <div class="ent-meta">${d.year} · ${d.type} · ${epTxt}</div>
+      <div class="ent-desc">${d.desc}</div>
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div class="ent-tags">${d.genres.map(g=>`<span class="ent-tag">${g}</span>`).join('')}</div>
+        <span class="ent-rating">⭐${d.rating}</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+function entFilter(plat, btn) {
+  entCurPlat = plat;
+  document.querySelectorAll('.ent-plat-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const list = plat === 'all' ? OTT_DATA : OTT_DATA.filter(d => d.plat === plat);
+  document.getElementById('ent-grid').innerHTML = list.map(entCardHtml).join('');
+}
+
+function tvCardHtml(d) {
+  const chColor = {kbs:'#4facfe',mbc:'#26d98b',sbs:'#b47aff'};
+  const dotCls = d.ch;
+  return `<div class="tv-card">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+      <span style="font-size:1.3rem">${d.emoji}</span>
+      <div>
+        <div class="tv-show-name">${d.name}</div>
+        <div class="tv-show-meta"><span class="ent-plat-dot ${dotCls}" style="position:static;display:inline-block;margin-right:4px">${d.channel}</span>${d.time} · ${d.genres.join('/')}</div>
+      </div>
+    </div>
+    <div class="tv-show-desc">${d.desc}</div>
+  </div>`;
+}
+
+function tvFilter(ch, btn) {
+  entCurTV = ch;
+  document.querySelectorAll('.tv-sched-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const list = ch === 'all' ? TV_SCHED : TV_SCHED.filter(d => d.ch === ch);
+  document.getElementById('tv-grid').innerHTML = list.map(tvCardHtml).join('');
+}
+
+function movieCardHtml(d, showRank) {
+  const bg = d.bg || '#111';
+  return `<div class="movie-card" onclick="window.open('https://search.naver.com/search.naver?query=${encodeURIComponent(d.title+' 영화')}','_blank')">
+    <div class="movie-poster" style="background:${bg}">
+      <span class="movie-poster-emoji">${d.emoji}</span>
+      ${showRank ? `<span class="movie-rank-badge">${d.rank}위</span>` : ''}
+    </div>
+    <div class="movie-info">
+      <div class="movie-title">${d.title}</div>
+      <div class="movie-sub">${d.year} · ${d.genre}</div>
+      <div class="movie-rating-row">
+        <span class="movie-star">★</span>
+        <span class="movie-score">${d.rating}</span>
+        <span style="font-family:'Roboto Mono',monospace;font-size:.58rem;color:var(--muted);margin-left:4px">${entStars(d.rating*2)}</span>
+      </div>
+      <div style="font-family:'Noto Sans KR',sans-serif;font-size:.63rem;color:var(--muted);margin-top:5px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${d.desc}</div>
+    </div>
+  </div>`;
+}
+
+async function loadTMDBMovies(type) {
+  if (!TMDB_KEY) return null;
+  try {
+    const url = type === 'kr'
+      ? `${TMDB_BASE}/movie/now_playing?api_key=${TMDB_KEY}&language=ko-KR&region=KR&page=1`
+      : `${TMDB_BASE}/movie/popular?api_key=${TMDB_KEY}&language=ko-KR&page=1`;
+    const r = await fetch(url);
+    if (!r.ok) return null;
+    const data = await r.json();
+    return data.results?.slice(0,8).map((m,i) => ({
+      rank: i+1,
+      title: m.title,
+      genre: '',
+      rating: Math.round(m.vote_average * 10) / 10,
+      year: m.release_date?.slice(0,4) || '',
+      emoji: '🎬',
+      bg: '#0a0a0a',
+      desc: m.overview?.slice(0,80) || '',
+      poster: m.poster_path ? TMDB_IMG + m.poster_path : null,
+    }));
+  } catch { return null; }
+}
+
+async function movieFilter(type, btn) {
+  entCurMovie = type;
+  document.querySelectorAll('.movie-type-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  const grid = document.getElementById('movie-grid');
+  grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--muted);padding:20px;font-size:.8rem">로딩 중...</div>';
+
+  // TMDB 시도
+  const live = await loadTMDBMovies(type);
+  if (live?.length) {
+    grid.innerHTML = live.map(d => {
+      const bg = '#0a0a0a';
+      return `<div class="movie-card" onclick="window.open('https://search.naver.com/search.naver?query=${encodeURIComponent(d.title+' 영화')}','_blank')">
+        <div class="movie-poster" style="background:${bg}">
+          ${d.poster ? `<img src="${d.poster}" alt="${d.title}" loading="lazy">` : `<span class="movie-poster-emoji">🎬</span>`}
+          <span class="movie-rank-badge">${d.rank}위</span>
+        </div>
+        <div class="movie-info">
+          <div class="movie-title">${d.title}</div>
+          <div class="movie-sub">${d.year}</div>
+          <div class="movie-rating-row"><span class="movie-star">★</span><span class="movie-score">${d.rating}</span></div>
+          <div style="font-family:'Noto Sans KR',sans-serif;font-size:.63rem;color:var(--muted);margin-top:5px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${d.desc}</div>
+        </div>
+      </div>`;
+    }).join('');
+    return;
+  }
+
+  // fallback: 큐레이션
+  const list = MOVIE_DATA[type] || [];
+  grid.innerHTML = list.map(d => movieCardHtml(d, true)).join('');
+}
+
+function entInit() {
+  // TMDB 키 없을 때 안내
+  if (!TMDB_KEY) document.getElementById('ent-tmdb-note').style.display = 'flex';
+  // OTT 렌더
+  document.getElementById('ent-grid').innerHTML = OTT_DATA.map(entCardHtml).join('');
+  // TV 편성 렌더
+  document.getElementById('tv-grid').innerHTML = TV_SCHED.map(tvCardHtml).join('');
+  // 영화 렌더 (kr 기본)
+  movieFilter('kr', document.getElementById('mv-btn-kr'));
+}
+
+// ──────────────────────────────────────────
 
 function krCardHtml(d) {
   const w = krWeatherCache[d.id];
