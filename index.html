@@ -393,6 +393,11 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
 .ap-link.arr:hover { background:rgba(38,217,139,.18); }
 
 /* ── 맛집 지도 ── */
+.mj-info-box { display:flex; flex-wrap:wrap; align-items:center; gap:8px; background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:10px 16px; margin-bottom:16px; font-family:'Noto Sans KR',sans-serif; font-size:.72rem; color:var(--muted); line-height:1.6; }
+.mj-info-box b { color:var(--text); font-weight:600; }
+.mj-info-formula { font-family:'Roboto Mono',monospace; font-size:.62rem; color:var(--accent2); }
+.mj-info-sep { color:var(--border); font-size:.8rem; }
+.mj-info-item { display:flex; align-items:center; gap:4px; }
 .mj-city-bar { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px; }
 .mj-city-btn { font-family:'Noto Sans KR',sans-serif; font-size:.73rem; font-weight:500; padding:6px 14px; border-radius:20px; border:1px solid var(--border); background:var(--surface2); color:var(--muted); cursor:pointer; transition:all .18s; white-space:nowrap; }
 .mj-city-btn:hover { color:var(--text); }
@@ -875,6 +880,13 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
         <div class="sec-desc">네이버 · 카카오 · 구글 평점 종합 + 리뷰 수 가중 스코어</div>
       </div>
       <div class="sec-line"></div>
+    </div>
+    <div class="mj-info-box">
+      <span class="mj-info-item">📊 <b>종합점수</b> = 리뷰 수 가중평균 <span class="mj-info-formula">(N점×N리뷰 + K점×K리뷰 + G점×G리뷰) ÷ 총리뷰</span></span>
+      <span class="mj-info-sep">·</span>
+      <span class="mj-info-item">⭐ 각 플랫폼 <b>5점 만점</b></span>
+      <span class="mj-info-sep">·</span>
+      <span class="mj-info-item">💬 리뷰 많을수록 <b>가산점 +0.1</b> 최대</span>
     </div>
     <div class="mj-city-bar" id="mj-city-bar"></div>
     <div class="mj-cat-bar">
