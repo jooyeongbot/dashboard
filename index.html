@@ -345,6 +345,37 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
 .cg-leg-dot.mid  { background:rgba(255,179,71,.9); }
 .cg-leg-dot.high { background:rgba(255,79,79,.9); }
 
+/* ── 국내여행 ── */
+.kr-filter { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:20px; }
+.kr-filter-btn { font-family:'Noto Sans KR',sans-serif; font-size:.75rem; font-weight:500; padding:6px 16px; border-radius:20px; border:1px solid var(--border); background:var(--surface2); color:var(--muted); cursor:pointer; transition:all .18s; }
+.kr-filter-btn:hover { color:var(--text); }
+.kr-filter-btn.active { background:rgba(79,156,255,.12); border-color:rgba(79,156,255,.35); color:var(--accent2); }
+.kr-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px; }
+.kr-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow:hidden; transition:all .2s; cursor:pointer; }
+.kr-card:hover { border-color:rgba(79,156,255,.4); transform:translateY(-3px); box-shadow:0 8px 32px rgba(0,0,0,.3); }
+.kr-card-top { padding:20px 20px 16px; }
+.kr-card-head { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:10px; }
+.kr-city { font-family:'Noto Sans KR',sans-serif; font-size:1.35rem; font-weight:700; color:var(--text); line-height:1.1; }
+.kr-region { font-family:'Roboto Mono',monospace; font-size:.6rem; color:var(--muted); margin-top:3px; }
+.kr-weather { text-align:right; }
+.kr-temp { font-family:'Noto Sans KR',sans-serif; font-size:1.1rem; font-weight:600; color:var(--text); }
+.kr-wdesc { font-family:'Roboto Mono',monospace; font-size:.58rem; color:var(--muted); margin-top:2px; }
+.kr-tags { display:flex; gap:5px; flex-wrap:wrap; margin-bottom:12px; }
+.kr-tag { font-family:'Noto Sans KR',sans-serif; font-size:.65rem; padding:3px 9px; border-radius:10px; background:rgba(79,156,255,.1); border:1px solid rgba(79,156,255,.2); color:var(--accent2); }
+.kr-section-label { font-family:'Noto Sans KR',sans-serif; font-size:.62rem; font-weight:600; color:var(--muted); letter-spacing:.06em; margin-bottom:5px; }
+.kr-list { display:flex; flex-wrap:wrap; gap:4px; margin-bottom:10px; }
+.kr-item { font-family:'Noto Sans KR',sans-serif; font-size:.7rem; color:var(--text); background:var(--surface2); border:1px solid var(--border); border-radius:6px; padding:3px 8px; }
+.kr-transport { margin-bottom:10px; }
+.kr-tr-row { display:flex; align-items:center; gap:8px; padding:4px 0; border-bottom:1px solid rgba(100,160,255,.06); }
+.kr-tr-icon { font-size:.9rem; min-width:20px; }
+.kr-tr-label { font-family:'Noto Sans KR',sans-serif; font-size:.68rem; font-weight:600; color:var(--accent2); min-width:40px; }
+.kr-tr-info { font-family:'Noto Sans KR',sans-serif; font-size:.68rem; color:var(--muted); }
+.kr-links { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; padding:14px 20px; border-top:1px solid var(--border); background:var(--surface2); }
+.kr-link { display:flex; flex-direction:column; align-items:center; gap:4px; padding:8px 4px; border-radius:10px; text-decoration:none; transition:all .18s; border:1px solid transparent; }
+.kr-link:hover { background:rgba(79,156,255,.1); border-color:rgba(79,156,255,.25); }
+.kr-link-icon { font-size:1.2rem; }
+.kr-link-label { font-family:'Noto Sans KR',sans-serif; font-size:.6rem; color:var(--muted); }
+
 /* ── 공항 ── */
 .airport-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:14px; }
 .airport-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:20px 22px; transition:all .2s; }
@@ -380,6 +411,9 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
       </button>
       <button class="tab-btn" onclick="showTab('news')" id="tab-news">
         <span class="tab-icon">📰</span> 뉴스
+      </button>
+      <button class="tab-btn" onclick="showTab('korea')" id="tab-korea">
+        <span class="tab-icon">🗺</span> 국내여행
       </button>
     </div>
     <div class="nav-right">
@@ -760,11 +794,36 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
   </div>
 </div>
 
+<!-- ══════════════════════════════════════
+     KOREA TRAVEL SECTION
+══════════════════════════════════════ -->
+<div class="section" id="section-korea">
+  <div class="wrap">
+    <div class="sec-head" style="margin-top:24px">
+      <div><div class="sec-title">// 국내 여행지 가이드</div><div class="sec-desc">교통편 · 실시간 날씨 · 먹거리 · 관광지 · 블로그/지도 바로가기</div></div>
+      <div class="sec-line"></div>
+    </div>
+    <div class="kr-filter" id="kr-filter">
+      <button class="kr-filter-btn active" onclick="krFilter('all',this)">전체</button>
+      <button class="kr-filter-btn" onclick="krFilter('island',this)">🏝 섬</button>
+      <button class="kr-filter-btn" onclick="krFilter('sea',this)">🌊 바다</button>
+      <button class="kr-filter-btn" onclick="krFilter('mountain',this)">⛰ 산·자연</button>
+      <button class="kr-filter-btn" onclick="krFilter('city',this)">🏙 도시·역사</button>
+      <button class="kr-filter-btn" onclick="krFilter('food',this)">🍜 음식</button>
+    </div>
+    <div class="kr-grid" id="kr-grid"></div>
+    <footer style="margin-top:56px">
+      <div class="ft">PULSE DASHBOARD · 국내여행 가이드</div>
+      <div class="ft">날씨 DATA BY <span>OPEN-METEO</span> · 링크 BY <span>NAVER</span></div>
+    </footer>
+  </div>
+</div>
+
 <script>
 // ═══════════════════════════════════════════
 //  TAB NAVIGATION
 // ═══════════════════════════════════════════
-let stockLoaded = false, travelLoaded = false, newsLoaded = false;
+let stockLoaded = false, travelLoaded = false, newsLoaded = false, koreaLoaded = false;
 
 const MINI_CHARTS = [
   {id:'mc-0', symbol:'NASDAQ:QQQ'},
@@ -958,6 +1017,11 @@ function showTab(tab) {
   if (tab === 'news' && !newsLoaded) {
     newsLoaded = true;
     loadNaverNews('all');
+  }
+  if (tab === 'korea' && !koreaLoaded) {
+    koreaLoaded = true;
+    krRender('all');
+    krLoadWeather();
   }
 }
 
@@ -2326,6 +2390,128 @@ setInterval(sLoadAll, 120000);
 setInterval(loadVolRank, 120000);
 // 주식 탭이 기본이므로 바로 로드
 showTab('stock');
+
+// ═══════════════════════════════════════════
+//  국내 여행지 가이드
+// ═══════════════════════════════════════════
+const KR_DEST = [
+  { id:'jeju', name:'제주', emoji:'🌺', region:'제주특별자치도', cats:['island','sea','mountain'],
+    transport:[{icon:'✈️',label:'비행기',info:'김포→제주 50분 / 인천→제주 1시간'},{icon:'🚗',label:'렌트카',info:'현지 이동 필수 (대중교통 불편)'}],
+    food:['흑돼지 오겹살','전복죽','갈치조림','성게국수','한라봉'],
+    spots:['성산일출봉','한라산','협재해수욕장','우도','만장굴'],
+    lat:33.4996, lon:126.5312, naver_blog:'제주 여행', naver_map:'제주도',
+    traffic:'https://map.naver.com/v5/search/제주' },
+  { id:'busan', name:'부산', emoji:'🌊', region:'부산광역시', cats:['sea','city','food'],
+    transport:[{icon:'🚄',label:'KTX',info:'서울→부산 2시간 15분'},{icon:'✈️',label:'비행기',info:'김포→김해 55분'},{icon:'🚌',label:'고속버스',info:'서울→부산 4시간 30분'}],
+    food:['돼지국밥','밀면','씨앗호떡','해운대 회','낙곱새'],
+    spots:['해운대','광안리','감천문화마을','자갈치시장','태종대'],
+    lat:35.1796, lon:129.0756, naver_blog:'부산 여행', naver_map:'부산',
+    traffic:'https://map.naver.com/v5/search/부산' },
+  { id:'gangneung', name:'강릉', emoji:'🌲', region:'강원특별자치도', cats:['sea','mountain','food'],
+    transport:[{icon:'🚄',label:'KTX',info:'서울→강릉 2시간'},{icon:'🚗',label:'자동차',info:'영동고속도로 약 3시간'}],
+    food:['초당순두부','강릉 커피','오징어순대','막국수','홍게'],
+    spots:['경포해수욕장','오죽헌','강릉 커피거리','정동진','주문진항'],
+    lat:37.7519, lon:128.8760, naver_blog:'강릉 여행', naver_map:'강릉',
+    traffic:'https://map.naver.com/v5/search/강릉' },
+  { id:'gyeongju', name:'경주', emoji:'🏛', region:'경상북도', cats:['city','mountain'],
+    transport:[{icon:'🚄',label:'KTX',info:'서울→신경주 2시간 10분'},{icon:'🚌',label:'고속버스',info:'서울→경주 3시간 30분'}],
+    food:['경주빵','황남빵','교동쌈밥','한정식','찰보리빵'],
+    spots:['불국사','석굴암','첨성대','대릉원','동궁과 월지'],
+    lat:35.8562, lon:129.2247, naver_blog:'경주 여행', naver_map:'경주',
+    traffic:'https://map.naver.com/v5/search/경주' },
+  { id:'jeonju', name:'전주', emoji:'🍱', region:'전북특별자치도', cats:['city','food'],
+    transport:[{icon:'🚄',label:'KTX',info:'서울→전주 1시간 40분'},{icon:'🚌',label:'고속버스',info:'서울→전주 2시간 30분'}],
+    food:['전주비빔밥','콩나물국밥','피순대','전주막걸리','한옥마을 간식'],
+    spots:['전주한옥마을','경기전','전동성당','남부시장','덕진공원'],
+    lat:35.8242, lon:127.1480, naver_blog:'전주 여행', naver_map:'전주',
+    traffic:'https://map.naver.com/v5/search/전주' },
+  { id:'yeosu', name:'여수', emoji:'🎆', region:'전라남도', cats:['sea','city'],
+    transport:[{icon:'🚄',label:'KTX',info:'서울→여수엑스포 3시간'},{icon:'✈️',label:'비행기',info:'김포→여수 1시간'}],
+    food:['게장','갓김치','굴구이','돌게탕','서대회'],
+    spots:['여수 밤바다','오동도','향일암','돌산공원','케이블카'],
+    lat:34.7604, lon:127.6622, naver_blog:'여수 여행', naver_map:'여수',
+    traffic:'https://map.naver.com/v5/search/여수' },
+  { id:'sokcho', name:'속초', emoji:'🏔', region:'강원특별자치도', cats:['sea','mountain'],
+    transport:[{icon:'🚌',label:'고속버스',info:'서울→속초 2시간 30분'},{icon:'🚗',label:'자동차',info:'서울양양고속도로 약 2시간 30분'}],
+    food:['아바이순대','오징어순대','닭강정','물회','속초 오징어'],
+    spots:['설악산','속초해수욕장','아바이마을','청초호','외옹치항'],
+    lat:38.2070, lon:128.5918, naver_blog:'속초 여행', naver_map:'속초',
+    traffic:'https://map.naver.com/v5/search/속초' },
+  { id:'tongyeong', name:'통영', emoji:'⛵', region:'경상남도', cats:['sea','island'],
+    transport:[{icon:'🚌',label:'고속버스',info:'서울→통영 4시간'},{icon:'🚗',label:'자동차',info:'남해고속도로 약 4시간'}],
+    food:['충무김밥','굴요리','꿀빵','다찌','해산물'],
+    spots:['한려수도','통영케이블카','미륵산','달아공원','남망산'],
+    lat:34.8544, lon:128.4330, naver_blog:'통영 여행', naver_map:'통영',
+    traffic:'https://map.naver.com/v5/search/통영' },
+];
+
+const krWeatherCache = {};
+
+function krCardHtml(d) {
+  const w = krWeatherCache[d.id];
+  const wHtml = w
+    ? `<div class="kr-temp">${w.icon} ${w.temp}°C</div><div class="kr-wdesc">${w.desc}</div>`
+    : `<div class="kr-temp" style="color:var(--muted);font-size:.72rem">날씨 로딩중</div>`;
+  const trHtml = d.transport.map(t =>
+    `<div class="kr-tr-row"><span class="kr-tr-icon">${t.icon}</span><span class="kr-tr-label">${t.label}</span><span class="kr-tr-info">${t.info}</span></div>`
+  ).join('');
+  const catLabel = {island:'섬',sea:'바다',mountain:'산·자연',city:'도시·역사',food:'음식'};
+  return `<div class="kr-card" data-id="${d.id}">
+    <div class="kr-card-top">
+      <div class="kr-card-head">
+        <div><div class="kr-city">${d.emoji} ${d.name}</div><div class="kr-region">${d.region}</div></div>
+        <div class="kr-weather">${wHtml}</div>
+      </div>
+      <div class="kr-tags">${d.cats.map(c=>`<span class="kr-tag">${catLabel[c]||c}</span>`).join('')}</div>
+      <div class="kr-section-label">🍽 대표 먹거리</div>
+      <div class="kr-list">${d.food.map(f=>`<span class="kr-item">${f}</span>`).join('')}</div>
+      <div class="kr-section-label">📍 주요 관광지</div>
+      <div class="kr-list">${d.spots.map(s=>`<span class="kr-item">${s}</span>`).join('')}</div>
+      <div class="kr-section-label">🚌 서울에서 가는 방법</div>
+      <div class="kr-transport">${trHtml}</div>
+    </div>
+    <div class="kr-links">
+      <a class="kr-link" href="https://search.naver.com/search.naver?where=blog&query=${encodeURIComponent(d.naver_blog)}" target="_blank">
+        <span class="kr-link-icon">📝</span><span class="kr-link-label">블로그</span></a>
+      <a class="kr-link" href="https://map.naver.com/v5/search/${encodeURIComponent(d.naver_map)}" target="_blank">
+        <span class="kr-link-icon">🗺</span><span class="kr-link-label">지도</span></a>
+      <a class="kr-link" href="${d.traffic}" target="_blank">
+        <span class="kr-link-icon">🚗</span><span class="kr-link-label">도로상황</span></a>
+      <a class="kr-link" href="https://www.letskorail.com/" target="_blank">
+        <span class="kr-link-icon">🚄</span><span class="kr-link-label">KTX예매</span></a>
+    </div>
+  </div>`;
+}
+
+function krRender(cat) {
+  const grid = document.getElementById('kr-grid');
+  if (!grid) return;
+  const list = cat === 'all' ? KR_DEST : KR_DEST.filter(d => d.cats.includes(cat));
+  grid.innerHTML = list.map(krCardHtml).join('');
+}
+
+function krFilter(cat, btn) {
+  document.querySelectorAll('.kr-filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  krRender(cat);
+}
+
+async function krLoadWeather() {
+  const WMO = {0:'맑음',1:'대체로 맑음',2:'구름 많음',3:'흐림',45:'안개',51:'이슬비',61:'비',63:'비',65:'강한 비',71:'눈',80:'소나기',95:'천둥번개'};
+  const ICO = {0:'☀️',1:'🌤',2:'⛅',3:'☁️',45:'🌫',51:'🌦',61:'🌧',65:'🌧',71:'🌨',80:'🌦',95:'⛈'};
+  await Promise.allSettled(KR_DEST.map(async d => {
+    try {
+      const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${d.lat}&longitude=${d.lon}&current_weather=true`);
+      const j = await r.json();
+      const cw = j.current_weather;
+      krWeatherCache[d.id] = { temp:Math.round(cw.temperature), icon:ICO[cw.weathercode]||'🌡', desc:WMO[cw.weathercode]||'날씨정보' };
+    } catch {}
+  }));
+  const activeBtn = document.querySelector('#kr-filter .kr-filter-btn.active');
+  const catMap = {'전체':'all','섬':'island','바다':'sea','산·자연':'mountain','도시·역사':'city','음식':'food'};
+  const cur = activeBtn ? catMap[activeBtn.textContent.trim().replace(/^.\s/,'')] || 'all' : 'all';
+  krRender(cur);
+}
 </script>
 </body>
 </html>
