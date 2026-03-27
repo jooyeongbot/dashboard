@@ -454,16 +454,16 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
         <span class="tab-icon">📈</span> 주식
       </button>
       <button class="tab-btn" onclick="showTab('travel')" id="tab-travel">
-        <span class="tab-icon">✈️</span> 여행
-      </button>
-      <button class="tab-btn" onclick="showTab('news')" id="tab-news">
-        <span class="tab-icon">📰</span> 뉴스
+        <span class="tab-icon">✈️</span> 해외여행
       </button>
       <button class="tab-btn" onclick="showTab('korea')" id="tab-korea">
         <span class="tab-icon">🗺</span> 국내여행
       </button>
       <button class="tab-btn" onclick="showTab('food')" id="tab-food">
         <span class="tab-icon">🍽</span> 맛집
+      </button>
+      <button class="tab-btn" onclick="showTab('news')" id="tab-news">
+        <span class="tab-icon">📰</span> 뉴스
       </button>
     </div>
     <div class="nav-right">
@@ -860,6 +860,7 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
       <button class="kr-filter-btn" onclick="krFilter('mountain',this)">⛰ 산·자연</button>
       <button class="kr-filter-btn" onclick="krFilter('city',this)">🏙 도시·역사</button>
       <button class="kr-filter-btn" onclick="krFilter('food',this)">🍜 음식</button>
+      <button class="kr-filter-btn" onclick="krFilter('activity',this)">🎯 액티비티</button>
     </div>
     <div class="kr-grid" id="kr-grid"></div>
     <footer style="margin-top:56px">
@@ -1631,12 +1632,28 @@ async function loadKrMarket() {
 //  3개월 수익률 TOP 10
 // ═══════════════════════════════════════════
 async function fetch3MonthReturn(sym) {
-  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?range=3mo&interval=1wk`;
-  const proxy = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
-  const r = await fetch(proxy);
-  if (!r.ok) throw new Error('fetch failed');
-  const outer = await r.json();
-  const d = JSON.parse(outer.contents);
+  const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?range=3mo&interval=1wk`;
+  const proxies = [
+    `https://api.allorigins.win/get?url=${encodeURIComponent(yahooUrl)}`,
+    `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(yahooUrl)}`,
+  ];
+  let d = null;
+  for (const proxy of proxies) {
+    try {
+      const ctrl = new AbortController();
+      const tid = setTimeout(() => ctrl.abort(), 9000);
+      const r = await fetch(proxy, { signal: ctrl.signal });
+      clearTimeout(tid);
+      if (!r.ok) continue;
+      const text = await r.text();
+      // allorigins wraps in {contents:...}, codetabs returns raw JSON
+      let raw = text;
+      try { const j = JSON.parse(text); raw = j.contents ?? text; } catch {}
+      d = JSON.parse(raw);
+      if (d?.chart?.result?.[0]) break;
+    } catch { continue; }
+  }
+  if (!d) throw new Error('all proxies failed');
   const closes = d?.chart?.result?.[0]?.indicators?.quote?.[0]?.close;
   if (!closes?.length || closes.length < 2) throw new Error('no data');
   const valid = closes.filter(v => v != null);
@@ -2254,15 +2271,16 @@ function getDomain(url) {
 }
 
 // Google 뉴스 RSS — 트렌드(많이 다뤄진) 순 정렬
-const NEWS_GOOGLE_RSS = {
-  all: 'https://news.google.com/rss?hl=ko&gl=KR&ceid=KR:ko',
-  pol: 'https://news.google.com/rss/search?q=정치&hl=ko&gl=KR&ceid=KR:ko',
-  eco: 'https://news.google.com/rss/search?q=경제+비즈니스&hl=ko&gl=KR&ceid=KR:ko',
-  soc: 'https://news.google.com/rss/headlines/section/topic/NATION?hl=ko&gl=KR&ceid=KR:ko',
-  int: 'https://news.google.com/rss/headlines/section/topic/WORLD?hl=ko&gl=KR&ceid=KR:ko',
-  it:  'https://news.google.com/rss/headlines/section/topic/TECHNOLOGY?hl=ko&gl=KR&ceid=KR:ko',
-  ent: 'https://news.google.com/rss/search?q=연예+엔터테인먼트&hl=ko&gl=KR&ceid=KR:ko',
-  spt: 'https://news.google.com/rss/headlines/section/topic/SPORTS?hl=ko&gl=KR&ceid=KR:ko',
+// 연합뉴스 RSS (안정적) + Google News 백업
+const NEWS_SOURCES = {
+  all: ['https://www.yna.co.kr/RSS/all.xml',          'https://news.google.com/rss?hl=ko&gl=KR&ceid=KR:ko'],
+  pol: ['https://www.yna.co.kr/RSS/politics.xml',     'https://news.google.com/rss/search?q=정치&hl=ko&gl=KR&ceid=KR:ko'],
+  eco: ['https://www.yna.co.kr/RSS/economy.xml',      'https://news.google.com/rss/search?q=경제&hl=ko&gl=KR&ceid=KR:ko'],
+  soc: ['https://www.yna.co.kr/RSS/society.xml',      'https://news.google.com/rss/search?q=사회&hl=ko&gl=KR&ceid=KR:ko'],
+  int: ['https://www.yna.co.kr/RSS/international.xml','https://news.google.com/rss/headlines/section/topic/WORLD?hl=ko&gl=KR&ceid=KR:ko'],
+  it:  ['https://www.yna.co.kr/RSS/science.xml',      'https://news.google.com/rss/headlines/section/topic/TECHNOLOGY?hl=ko&gl=KR&ceid=KR:ko'],
+  ent: ['https://www.yna.co.kr/RSS/entertainments.xml','https://news.google.com/rss/search?q=연예&hl=ko&gl=KR&ceid=KR:ko'],
+  spt: ['https://www.yna.co.kr/RSS/sports.xml',       'https://news.google.com/rss/headlines/section/topic/SPORTS?hl=ko&gl=KR&ceid=KR:ko'],
 };
 
 let currentNewsCat = 'all';
@@ -2339,15 +2357,20 @@ async function loadNaverNews(catKey) {
   const el = document.getElementById('news-grid');
   if (newsCache[catKey]) { renderNewsItems(newsCache[catKey]); return; }
   el.innerHTML = '<div class="tv-loading">📰 뉴스 불러오는 중...</div>';
-  try {
-    const url = NEWS_GOOGLE_RSS[catKey] || NEWS_GOOGLE_RSS.all;
-    const items = await fetchRSS(url, null);
-    if (!items.length) throw new Error('empty');
-    newsCache[catKey] = items;
-    renderNewsItems(items);
-  } catch(e) {
-    el.innerHTML = '<div style="color:var(--muted);padding:24px;font-size:.8rem">뉴스를 불러올 수 없습니다</div>';
+  const urls = NEWS_SOURCES[catKey] || NEWS_SOURCES.all;
+  let items = [];
+  for (const url of urls) {
+    try {
+      items = await fetchRSS(url, null);
+      if (items.length) break;
+    } catch {}
   }
+  if (!items.length) {
+    el.innerHTML = '<div style="color:var(--muted);padding:24px;font-size:.8rem">뉴스를 불러올 수 없습니다</div>';
+    return;
+  }
+  newsCache[catKey] = items;
+  renderNewsItems(items);
 }
 
 function renderNewsItems(items) {
@@ -2501,7 +2524,7 @@ const KR_DEST = [
     spots:['해운대','광안리','감천문화마을','자갈치시장','태종대'],
     lat:35.1796, lon:129.0756, naver_blog:'부산 여행', naver_map:'부산',
     traffic:'https://map.naver.com/v5/search/부산' },
-  { id:'sokcho', name:'속초', emoji:'🏔', region:'강원특별자치도', cats:['sea','mountain'],
+  { id:'sokcho', name:'속초', emoji:'🏔', region:'강원특별자치도', cats:['sea','mountain','activity'],
     transport:[{icon:'🚌',label:'고속버스',info:'서울→속초 2시간 30분'},{icon:'🚗',label:'자동차',info:'서울양양고속도로 약 2시간 30분'}],
     food:['아바이순대','오징어순대','닭강정','물회','속초 오징어'],
     spots:['설악산','속초해수욕장','아바이마을','청초호','외옹치항'],
@@ -2519,7 +2542,7 @@ const KR_DEST = [
     spots:['전주한옥마을','경기전','전동성당','남부시장','덕진공원'],
     lat:35.8242, lon:127.1480, naver_blog:'전주 여행', naver_map:'전주',
     traffic:'https://map.naver.com/v5/search/전주' },
-  { id:'gapyeong', name:'가평', emoji:'🌿', region:'경기도', cats:['mountain','sea'],
+  { id:'gapyeong', name:'가평', emoji:'🌿', region:'경기도', cats:['mountain','activity'],
     transport:[{icon:'🚄',label:'ITX-청춘',info:'서울청량리→가평 1시간'},{icon:'🚗',label:'자동차',info:'경춘고속도로 약 1시간'}],
     food:['잣막걸리','잣두부','닭갈비','쏘가리매운탕','산채비빔밥'],
     spots:['남이섬','자라섬','쁘띠프랑스','아침고요수목원','유명산'],
@@ -2537,7 +2560,7 @@ const KR_DEST = [
     spots:['불국사','석굴암','첨성대','대릉원','동궁과 월지'],
     lat:35.8562, lon:129.2247, naver_blog:'경주 여행', naver_map:'경주',
     traffic:'https://map.naver.com/v5/search/경주' },
-  { id:'chuncheon', name:'춘천', emoji:'🦆', region:'강원특별자치도', cats:['mountain','food'],
+  { id:'chuncheon', name:'춘천', emoji:'🦆', region:'강원특별자치도', cats:['mountain','food','activity'],
     transport:[{icon:'🚄',label:'ITX-청춘',info:'서울청량리→춘천 1시간 10분'},{icon:'🚌',label:'고속버스',info:'서울→춘천 1시간 30분'}],
     food:['닭갈비','막국수','순두부','감자전','칡국수'],
     spots:['남이섬','소양강댐','강촌레일바이크','명동닭갈비골목','삼악산'],
@@ -2603,6 +2626,42 @@ const KR_DEST = [
     spots:['공산성(세계문화유산)','무령왕릉','백제문화단지','부소산성','낙화암'],
     lat:36.4465, lon:127.1190, naver_blog:'공주 부여 여행', naver_map:'공주',
     traffic:'https://map.naver.com/v5/search/공주' },
+  { id:'yangyang', name:'양양', emoji:'🏄', region:'강원특별자치도', cats:['sea','activity'],
+    transport:[{icon:'🚌',label:'고속버스',info:'서울→양양 2시간 30분'},{icon:'🚗',label:'자동차',info:'서울양양고속도로 약 2시간 30분'}],
+    food:['연어회','물회','해물라면','전복죽','서핑 후 치킨'],
+    spots:['인구해변(서핑 성지)','낙산사','낙산해수욕장','하조대','38선휴게소'],
+    lat:38.0754, lon:128.6192, naver_blog:'양양 서핑', naver_map:'양양',
+    traffic:'https://map.naver.com/v5/search/양양' },
+  { id:'pyeongchang', name:'평창', emoji:'⛷', region:'강원특별자치도', cats:['mountain','activity'],
+    transport:[{icon:'🚄',label:'KTX',info:'서울→진부(오대산) 1시간 30분'},{icon:'🚗',label:'자동차',info:'영동고속도로 약 2시간 30분'}],
+    food:['메밀막국수','황태국','감자옹심이','한우','봉평 메밀전병'],
+    spots:['용평스키리조트','알펜시아','휘닉스파크','대관령','오대산'],
+    lat:37.5747, lon:128.3544, naver_blog:'평창 여행', naver_map:'평창',
+    traffic:'https://map.naver.com/v5/search/평창' },
+  { id:'suncheon', name:'순천', emoji:'🌾', region:'전라남도', cats:['mountain','sea'],
+    transport:[{icon:'🚄',label:'KTX',info:'서울→순천 2시간 40분'},{icon:'🚌',label:'고속버스',info:'서울→순천 3시간 30분'}],
+    food:['꼬막정식','간장게장','생선구이','비빔밥','떡갈비'],
+    spots:['순천만국가정원','순천만습지(갈대밭)','낙안읍성','선암사','드라마세트장'],
+    lat:34.9506, lon:127.4875, naver_blog:'순천 여행', naver_map:'순천',
+    traffic:'https://map.naver.com/v5/search/순천' },
+  { id:'daegu', name:'대구', emoji:'🍎', region:'대구광역시', cats:['city','food'],
+    transport:[{icon:'🚄',label:'KTX',info:'서울→동대구 1시간 40분'},{icon:'✈️',label:'비행기',info:'김포→대구 55분'}],
+    food:['납작만두','따로국밥','동인동 찜갈비','막창구이','양념통닭'],
+    spots:['팔공산','동성로','서문시장','근대골목','앞산공원'],
+    lat:35.8714, lon:128.6014, naver_blog:'대구 여행', naver_map:'대구',
+    traffic:'https://map.naver.com/v5/search/대구' },
+  { id:'hadong', name:'하동', emoji:'🍵', region:'경상남도', cats:['mountain','activity'],
+    transport:[{icon:'🚌',label:'고속버스',info:'서울→하동 4시간'},{icon:'🚗',label:'자동차',info:'남해고속도로 약 4시간'}],
+    food:['재첩국','재첩비빔밥','은어회','녹차아이스크림','섬진강 벚꽃 막걸리'],
+    spots:['지리산 노고단','쌍계사','섬진강 벚꽃길','최참판댁','화개장터'],
+    lat:35.0676, lon:127.7516, naver_blog:'하동 여행', naver_map:'하동',
+    traffic:'https://map.naver.com/v5/search/하동' },
+  { id:'suwon', name:'수원', emoji:'🏰', region:'경기도', cats:['city','activity'],
+    transport:[{icon:'🚄',label:'KTX',info:'서울→수원 20분'},{icon:'🚇',label:'지하철',info:'서울→수원 1호선 1시간'}],
+    food:['수원갈비','왕갈비','통닭거리 닭','수원왕만두','해장국'],
+    spots:['화성(세계문화유산)','행궁동 벽화마을','수원화성박물관','광교호수공원','수원월드컵경기장'],
+    lat:37.2636, lon:127.0286, naver_blog:'수원 여행', naver_map:'수원',
+    traffic:'https://map.naver.com/v5/search/수원' },
 ];
 
 const krWeatherCache = {};
@@ -2839,6 +2898,48 @@ const MATJIP_DATA = {
     {name:'공주 제민천 카페거리',type:'카페',cat:'카페',emoji:'☕',addr:'공주시 반죽동 제민천',naver:{s:4.5,r:8000},kakao:{s:4.4,r:5500},google:{s:4.3,r:1800}},
     {name:'낙화암 뷰 카페',type:'뷰카페',cat:'카페',emoji:'🌸',addr:'부여군 부여읍 부소산성',naver:{s:4.4,r:6000},kakao:{s:4.3,r:4000},google:{s:4.2,r:1200}},
   ],
+  yangyang:[
+    {name:'인구해변 서핑 식당가',type:'해산물·분식',cat:'분식',emoji:'🏄',addr:'양양군 현북면 인구리',naver:{s:4.5,r:12000},kakao:{s:4.4,r:8000},google:{s:4.3,r:2500}},
+    {name:'연어회 전문점',type:'연어회',cat:'해산물',emoji:'🐟',addr:'양양군 양양읍 남대천',naver:{s:4.5,r:9000},kakao:{s:4.4,r:6000},google:{s:4.3,r:1800}},
+    {name:'낙산사 앞 물회',type:'물회',cat:'해산물',emoji:'🍣',addr:'양양군 강현면 낙산사',naver:{s:4.4,r:7000},kakao:{s:4.3,r:4500},google:{s:4.2,r:1200}},
+    {name:'양양 서퍼비치 카페',type:'서핑카페',cat:'카페',emoji:'☕',addr:'양양군 현북면 하조대',naver:{s:4.6,r:15000},kakao:{s:4.5,r:10000},google:{s:4.4,r:3500}},
+    {name:'남애항 횟집',type:'회·해산물',cat:'해산물',emoji:'🐠',addr:'양양군 현남면 남애항',naver:{s:4.4,r:6000},kakao:{s:4.3,r:4000},google:{s:4.2,r:1000}},
+  ],
+  pyeongchang:[
+    {name:'봉평 메밀막국수',type:'메밀막국수',cat:'한식',emoji:'🍜',addr:'평창군 봉평면 창동리',naver:{s:4.6,r:14000},kakao:{s:4.5,r:9000},google:{s:4.4,r:3000}},
+    {name:'효석문화마을 메밀전병',type:'메밀전병',cat:'분식',emoji:'🥞',addr:'평창군 봉평면 이효석문화마을',naver:{s:4.5,r:10000},kakao:{s:4.4,r:7000},google:{s:4.3,r:2000}},
+    {name:'대관령 황태구이',type:'황태구이',cat:'한식',emoji:'🐟',addr:'평창군 대관령면',naver:{s:4.5,r:8000},kakao:{s:4.4,r:5000},google:{s:4.2,r:1200}},
+    {name:'알펜시아 스키장 레스토랑',type:'레스토랑',cat:'카페',emoji:'⛷',addr:'평창군 대관령면 알펜시아',naver:{s:4.3,r:9000},kakao:{s:4.2,r:6000},google:{s:4.1,r:2000}},
+    {name:'감자옹심이 전문집',type:'감자옹심이',cat:'한식',emoji:'🥔',addr:'평창군 평창읍',naver:{s:4.5,r:7000},kakao:{s:4.4,r:4500},google:{s:4.3,r:1200}},
+  ],
+  suncheon:[
+    {name:'꼬막정식 전문점',type:'꼬막정식',cat:'해산물',emoji:'🐚',addr:'순천시 연향동',naver:{s:4.6,r:12000},kakao:{s:4.5,r:8000},google:{s:4.4,r:2500}},
+    {name:'순천만 갈대카페',type:'카페',cat:'카페',emoji:'🌾',addr:'순천시 대대동 순천만',naver:{s:4.5,r:10000},kakao:{s:4.4,r:7000},google:{s:4.3,r:2200}},
+    {name:'낙안읍성 한정식',type:'전통 한정식',cat:'한식',emoji:'🍱',addr:'순천시 낙안면 낙안읍성',naver:{s:4.5,r:7000},kakao:{s:4.4,r:4500},google:{s:4.2,r:1200}},
+    {name:'간장게장 명가',type:'간장게장',cat:'해산물',emoji:'🦀',addr:'순천시 해룡면',naver:{s:4.5,r:8000},kakao:{s:4.4,r:5000},google:{s:4.3,r:1500}},
+    {name:'순천 드라마세트장 분식',type:'분식',cat:'분식',emoji:'🎬',addr:'순천시 비례골 드라마촬영장',naver:{s:4.3,r:6000},kakao:{s:4.2,r:4000},google:{s:4.1,r:1000}},
+  ],
+  daegu:[
+    {name:'납작만두 골목',type:'납작만두',cat:'분식',emoji:'🥟',addr:'대구 중구 대신동',naver:{s:4.5,r:16000},kakao:{s:4.4,r:10000},google:{s:4.3,r:3500}},
+    {name:'동인동 찜갈비 골목',type:'찜갈비',cat:'한식',emoji:'🥩',addr:'대구 중구 동인동',naver:{s:4.5,r:18000},kakao:{s:4.5,r:12000},google:{s:4.3,r:4000}},
+    {name:'서문시장 야시장',type:'야시장·분식',cat:'분식',emoji:'🏮',addr:'대구 중구 서문시장',naver:{s:4.5,r:22000},kakao:{s:4.4,r:14000},google:{s:4.4,r:5500}},
+    {name:'앞산 막창구이',type:'막창',cat:'한식',emoji:'🍖',addr:'대구 남구 앞산 일대',naver:{s:4.5,r:12000},kakao:{s:4.4,r:8000},google:{s:4.3,r:2500}},
+    {name:'팔공산 갓바위 산채식당',type:'산채한식',cat:'한식',emoji:'🌿',addr:'대구 동구 팔공산',naver:{s:4.3,r:7000},kakao:{s:4.2,r:4500},google:{s:4.1,r:1200}},
+  ],
+  hadong:[
+    {name:'재첩국 전문점',type:'재첩국',cat:'한식',emoji:'🐚',addr:'하동군 하동읍 섬진강변',naver:{s:4.6,r:9000},kakao:{s:4.5,r:6000},google:{s:4.4,r:1800}},
+    {name:'화개장터 장어구이',type:'장어구이',cat:'한식',emoji:'🐍',addr:'하동군 화개면 화개장터',naver:{s:4.5,r:8000},kakao:{s:4.4,r:5000},google:{s:4.2,r:1300}},
+    {name:'쌍계사 앞 녹차카페',type:'녹차카페',cat:'카페',emoji:'🍵',addr:'하동군 화개면 쌍계사로',naver:{s:4.6,r:10000},kakao:{s:4.5,r:7000},google:{s:4.4,r:2500}},
+    {name:'섬진강 은어회',type:'은어회',cat:'해산물',emoji:'🐟',addr:'하동군 하동읍 섬진강',naver:{s:4.5,r:6000},kakao:{s:4.4,r:4000},google:{s:4.2,r:1000}},
+    {name:'최참판댁 한정식',type:'전통 한정식',cat:'한식',emoji:'🏯',addr:'하동군 악양면 평사리',naver:{s:4.4,r:5000},kakao:{s:4.3,r:3000},google:{s:4.1,r:800}},
+  ],
+  suwon:[
+    {name:'수원 왕갈비 골목',type:'왕갈비',cat:'한식',emoji:'🥩',addr:'수원시 팔달구 수원왕갈비타운',naver:{s:4.5,r:20000},kakao:{s:4.5,r:13000},google:{s:4.4,r:5000}},
+    {name:'행궁동 카페거리',type:'카페',cat:'카페',emoji:'☕',addr:'수원시 팔달구 행궁동',naver:{s:4.6,r:18000},kakao:{s:4.5,r:12000},google:{s:4.5,r:4500}},
+    {name:'수원통닭 골목',type:'통닭',cat:'분식',emoji:'🍗',addr:'수원시 팔달구 영동통닭거리',naver:{s:4.5,r:15000},kakao:{s:4.4,r:10000},google:{s:4.3,r:3500}},
+    {name:'화성 길목 왕만두',type:'왕만두',cat:'분식',emoji:'🥟',addr:'수원시 팔달구 화서동',naver:{s:4.4,r:10000},kakao:{s:4.3,r:7000},google:{s:4.2,r:2000}},
+    {name:'광교호수공원 카페',type:'뷰카페',cat:'카페',emoji:'🌊',addr:'수원시 영통구 광교호수공원',naver:{s:4.5,r:14000},kakao:{s:4.4,r:9500},google:{s:4.3,r:3200}},
+  ],
 };
 
 // ── 맛집 상태
@@ -2959,7 +3060,7 @@ function krCardHtml(d) {
   const trHtml = d.transport.map(t =>
     `<div class="kr-tr-row"><span class="kr-tr-icon">${t.icon}</span><span class="kr-tr-label">${t.label}</span><span class="kr-tr-info">${t.info}</span></div>`
   ).join('');
-  const catLabel = {island:'섬',sea:'바다',mountain:'산·자연',city:'도시·역사',food:'음식'};
+  const catLabel = {island:'섬',sea:'바다',mountain:'산·자연',city:'도시·역사',food:'음식',activity:'액티비티'};
   return `<div class="kr-card" data-id="${d.id}">
     <div class="kr-card-top">
       <div class="kr-card-head">
