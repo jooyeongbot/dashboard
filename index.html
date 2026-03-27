@@ -623,19 +623,31 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
 ══════════════════════════════════════ -->
 <div class="section" id="section-travel">
   <div class="wrap">
-    <!-- 네이버 DataLab 인기 여행지 -->
+    <!-- 도시 검색 (최상단) -->
     <div class="sec-head" style="margin-top:24px">
+      <div><div class="sec-title">// 도시 검색 — 실시간 날씨 조회</div></div>
+      <div class="sec-line"></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-bottom:16px;align-items:center">
+      <input id="tv-search" type="text" placeholder="도시명 입력 (Seoul, Tokyo, Paris, 서울...)" oninput="tvSearch(this.value)"
+        style="flex:1;font-family:'Noto Sans KR','Inter',sans-serif;font-size:.85rem;padding:10px 18px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--text);outline:none;transition:border-color .2s"
+        onfocus="this.style.borderColor='rgba(79,156,255,.5)'" onblur="this.style.borderColor='var(--border)'">
+    </div>
+    <div id="tv-search-grid" class="tv-grid" style="display:none"></div>
+
+    <!-- 인기 여행지 검색 순위 -->
+    <div class="sec-head" style="margin-top:44px">
       <div><div class="sec-title">// 인기 여행지 검색 순위</div><div class="sec-desc">네이버 DataLab 검색어 트렌드 기준 · 최근 3개월 · &quot;○○ 여행&quot; 키워드 검색량</div></div>
       <div class="sec-line"></div>
     </div>
     <div id="wiki-rank-grid" style="font-family:'Noto Sans KR',sans-serif;font-size:.8rem;color:var(--muted);padding:12px 0"><span class="dots"><span></span><span></span><span></span></span> 검색 트렌드 분석 중...</div>
 
-    <!-- 인천공항 혼잡도 -->
+    <!-- 공항 혼잡도 (ICN + GMP, 7일) -->
     <div class="sec-head" style="margin-top:44px">
-      <div><div class="sec-title">// 인천공항 혼잡도</div><div class="sec-desc">요일 · 시간대 · 계절 기반 통계적 예측 · 현재 시각 기준</div></div>
+      <div><div class="sec-title">// 공항 혼잡도</div><div class="sec-desc">요일 · 시간대 · 계절 기반 통계적 예측 · 1주일 시간별 조회 가능</div></div>
       <div class="sec-line"></div>
     </div>
-    <div class="icn-congestion" id="icn-congestion-box"></div>
+    <div class="cg-grid" id="cg-grid"></div>
 
     <!-- 공항 빠른 조회 -->
     <div class="sec-head" style="margin-top:44px">
@@ -701,18 +713,6 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
     <div id="tv-grid" class="tv-grid">
       <div class="tv-loading">🌍 여행지 날씨 분석 중...</div>
     </div>
-
-    <!-- 도시 검색 -->
-    <div class="sec-head" style="margin-top:44px">
-      <div class="sec-title">// 도시 검색 — 실시간 날씨 조회</div>
-      <div class="sec-line"></div>
-    </div>
-    <div style="display:flex;gap:10px;margin-bottom:16px;align-items:center">
-      <input id="tv-search" type="text" placeholder="도시명 입력 (Seoul, Tokyo, Paris, 서울...)" oninput="tvSearch(this.value)"
-        style="flex:1;font-family:'Noto Sans KR','Inter',sans-serif;font-size:.85rem;padding:10px 18px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--text);outline:none;transition:border-color .2s"
-        onfocus="this.style.borderColor='rgba(79,156,255,.5)'" onblur="this.style.borderColor='var(--border)'">
-    </div>
-    <div id="tv-search-grid" class="tv-grid" style="display:none"></div>
 
     <!-- 환율 변동 -->
     <div class="sec-head" style="margin-top:44px">
@@ -953,7 +953,7 @@ function showTab(tab) {
     loadNaverDataLab();
     loadTravel(false);
     loadFxChange();
-    loadIcnCongestion();
+    loadCgCongestion();
   }
   if (tab === 'news' && !newsLoaded) {
     newsLoaded = true;
@@ -1737,73 +1737,107 @@ async function fetchCityWeather(city) {
 // ═══════════════════════════════════════════
 //  인천공항 혼잡도 (시간대+요일+계절 통계 예측)
 // ═══════════════════════════════════════════
-function icnCongestionLevel(hour, dow, month) {
-  // 기본 시간대별 혼잡도 점수 (0~10)
-  const hourScore = [2,1,1,1,2,4,7,9,9,8,7,6,6,6,6,6,7,8,9,9,8,7,5,3][hour];
-  // 요일 보정: 금=+2, 일=+2, 목=+1, 월=+1
-  const dowBonus = [2,1,0,0,1,2,2][dow]; // 일월화수목금토
-  // 성수기 보정: 7~8월, 1월, 12월
-  const seasonBonus = [1,0,0,0,0,0,2,2,0,0,0,1][month];
-  return Math.min(10, hourScore + dowBonus * 0.6 + seasonBonus * 0.4);
+// ═══════════════════════════════════════════
+//  공항 혼잡도 (ICN + GMP, 7일 시간별)
+// ═══════════════════════════════════════════
+const CG_SCORES = {
+  icn: [2,1,1,1,2,4,7,9,9,8,7,6,6,6,6,6,7,8,9,9,8,7,5,3],
+  gmp: [0,0,0,0,0,0,4,8,8,7,6,5,5,5,5,5,6,8,9,8,6,4,2,0],
+};
+const CG_DOW_BONUS    = [2,1,0,0,1,2,2]; // 일월화수목금토
+const CG_SEASON_BONUS = [1,0,0,0,0,0,2,2,0,0,0,1]; // 1월~12월
+
+function cgScore(ap, hour, dow, month) {
+  const base = CG_SCORES[ap][hour];
+  if (base === 0) return 0;
+  return Math.min(10, base + CG_DOW_BONUS[dow] * 0.6 + CG_SEASON_BONUS[month] * 0.4);
+}
+function cgClass(s) { return s === 0 ? 'off' : s >= 7 ? 'high' : s >= 4 ? 'mid' : 'low'; }
+
+function cgRenderCard(card, ap, dayOffset) {
+  const KST = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul' }));
+  const d = new Date(KST); d.setDate(d.getDate() + dayOffset);
+  const dow = d.getDay(), month = d.getMonth();
+  const curH = dayOffset === 0 ? KST.getHours() : -1;
+  const statusText = { low:'여유', mid:'보통', high:'혼잡', off:'닫힘' };
+
+  const bars = Array.from({length:24}, (_,h) => {
+    const s = cgScore(ap, h, dow, month);
+    const c = cgClass(s);
+    const ht = s === 0 ? 15 : Math.max(18, (s/10)*100);
+    return `<div class="cg-bar ${c}${h===curH?' now':''}" style="height:${ht}%" title="${h}시 · ${statusText[c]}"></div>`;
+  }).join('');
+
+  const labels = Array.from({length:24}, (_,h) =>
+    `<div class="cg-hlabel">${h%6===0?h+'시':''}</div>`
+  ).join('');
+
+  card.querySelector('.cg-bars-wrap').innerHTML = bars;
+  card.querySelector('.cg-hlabels').innerHTML = labels;
 }
 
-function icnGetClass(score) {
-  if (score >= 7) return 'high';
-  if (score >= 4) return 'mid';
-  return 'low';
-}
-
-function loadIcnCongestion() {
-  const el = document.getElementById('icn-congestion-box');
-  if (!el) return;
+function loadCgCongestion() {
+  const grid = document.getElementById('cg-grid');
+  if (!grid) return;
 
   const KST = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul' }));
   const h = KST.getHours(), dow = KST.getDay(), month = KST.getMonth();
+  const mm = String(KST.getMinutes()).padStart(2,'0');
 
-  const score = icnCongestionLevel(h, dow, month);
-  const cls = icnGetClass(score);
+  const dayNames = ['일','월','화','수','목','금','토'];
+  const days = Array.from({length:7}, (_,i) => {
+    const d = new Date(KST); d.setDate(d.getDate()+i);
+    return { label: i===0?'오늘':i===1?'내일':dayNames[d.getDay()], dow:d.getDay(), month:d.getMonth() };
+  });
 
-  const statusText = { low: '여유로움', mid: '보통', high: '혼잡' };
-  const emoji      = { low: '🟢', mid: '🟡', high: '🔴' };
-  const tips = {
-    low:  '현재 공항 내 이동 및 체크인이 원활할 것으로 예상됩니다.',
-    mid:  '적당한 혼잡도입니다. 출국 기준 2시간 전 여유있게 도착하세요.',
-    high: '혼잡 예상 시간대입니다. 출국 기준 3시간 전 도착을 권장합니다.',
-  };
+  const airports = [
+    { ap:'icn', name:'인천국제공항', iata:'ICN · T1/T2' },
+    { ap:'gmp', name:'김포국제공항', iata:'GMP · 국내+국제' },
+  ];
 
-  // 24시간 타임라인 생성
-  const bars = Array.from({ length: 24 }, (_, i) => {
-    const s = icnCongestionLevel(i, dow, month);
-    const c = icnGetClass(s);
-    const isNow = i === h;
-    const pct = Math.round((s / 10) * 100);
-    return `<div class="icn-bar ${c}${isNow ? ' now' : ''}" style="height:${12 + pct * 0.16}px" title="${i}시 · ${statusText[c]}"></div>`;
+  const statusText = { low:'여유', mid:'보통', high:'혼잡', off:'닫힘' };
+  const emoji = { low:'🟢', mid:'🟡', high:'🔴', off:'⚫' };
+
+  grid.innerHTML = airports.map(({ ap, name, iata }) => {
+    const s = cgScore(ap, h, dow, month);
+    const cls = cgClass(s);
+    const tabs = days.map((d,i) =>
+      `<button class="cg-day-btn${i===0?' active':''}" data-ap="${ap}" data-offset="${i}">${d.label}</button>`
+    ).join('');
+    return `<div class="cg-card" id="cgcard-${ap}">
+      <div class="cg-ap-name">${name}</div>
+      <div class="cg-ap-iata">${iata}</div>
+      <div class="cg-status-row">
+        <div class="cg-emoji">${emoji[cls]}</div>
+        <div>
+          <div class="cg-status-text ${cls}">${statusText[cls]}</div>
+          <div class="cg-score">지수 ${s.toFixed(1)}/10 · KST ${String(h).padStart(2,'0')}:${mm}</div>
+        </div>
+      </div>
+      <div class="cg-day-tabs">${tabs}</div>
+      <div class="cg-bars-wrap"></div>
+      <div class="cg-hlabels"></div>
+      <div class="cg-legend">
+        <div class="cg-leg"><div class="cg-leg-dot low"></div>여유</div>
+        <div class="cg-leg"><div class="cg-leg-dot mid"></div>보통</div>
+        <div class="cg-leg"><div class="cg-leg-dot high"></div>혼잡</div>
+        <div class="cg-leg" style="margin-left:auto;font-size:.58rem;color:var(--muted);opacity:.6">■ 현재</div>
+      </div>
+    </div>`;
   }).join('');
 
-  const labels = Array.from({ length: 24 }, (_, i) =>
-    `<div class="icn-hour-label">${i % 6 === 0 ? i + '시' : ''}</div>`
-  ).join('');
-
-  el.innerHTML = `
-    <div class="icn-top">
-      <div class="icn-level">${emoji[cls]}</div>
-      <div class="icn-info">
-        <div class="icn-status ${cls}">현재 ${statusText[cls]}</div>
-        <div class="icn-reason">${tips[cls]}</div>
-      </div>
-      <div style="font-family:'Roboto Mono',monospace;font-size:.62rem;color:var(--muted);text-align:right;line-height:1.8">
-        KST ${String(h).padStart(2,'0')}:${String(KST.getMinutes()).padStart(2,'0')}<br>
-        혼잡도 지수 <span style="color:var(--text);font-weight:600">${score.toFixed(1)}</span> / 10
-      </div>
-    </div>
-    <div class="icn-timeline" style="align-items:flex-end;margin-top:16px">${bars}</div>
-    <div class="icn-hour-labels">${labels}</div>
-    <div class="icn-legend">
-      <div class="icn-leg"><div class="icn-leg-dot low"></div>여유</div>
-      <div class="icn-leg"><div class="icn-leg-dot mid"></div>보통</div>
-      <div class="icn-leg"><div class="icn-leg-dot high"></div>혼잡</div>
-      <div class="icn-leg" style="margin-left:auto;opacity:.5">■ 현재 시각</div>
-    </div>`;
+  // 초기 렌더 + 탭 이벤트
+  airports.forEach(({ ap }) => {
+    const card = document.getElementById(`cgcard-${ap}`);
+    cgRenderCard(card, ap, 0);
+    card.querySelectorAll('.cg-day-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        card.querySelectorAll('.cg-day-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        cgRenderCard(card, ap, +btn.dataset.offset);
+      });
+    });
+  });
 }
 
 async function loadTravel(forceRefresh) {
