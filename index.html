@@ -311,6 +311,12 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
 .kr-status.open  { background:rgba(38,217,139,.12); border:1px solid rgba(38,217,139,.3); color:var(--up); }
 .kr-status.close { background:rgba(100,100,120,.15); border:1px solid rgba(100,100,120,.3); color:var(--muted); }
 
+/* ── 시장 토글 (미국/국내) ── */
+.market-toggle-bar { display:flex; gap:8px; align-items:center; margin-top:22px; margin-bottom:4px; }
+.mkt-btn { font-family:'Noto Sans KR','Inter',sans-serif; font-size:.82rem; font-weight:600; padding:8px 22px; border-radius:10px; border:1px solid var(--border); background:var(--surface); color:var(--muted); cursor:pointer; transition:all .2s; letter-spacing:.02em; }
+.mkt-btn:hover { border-color:rgba(79,156,255,.5); color:var(--text); background:rgba(79,156,255,.07); }
+.mkt-btn.active { background:var(--accent); color:#fff; border-color:var(--accent); box-shadow:0 2px 12px rgba(79,156,255,.35); }
+
 /* ── 공항 혼잡도 ── */
 .cg-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
 @media(max-width:700px){ .cg-grid { grid-template-columns:1fr; } }
@@ -656,6 +662,14 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
   </div>
 
   <div class="wrap">
+    <!-- 시장 토글 -->
+    <div class="market-toggle-bar">
+      <button class="mkt-btn active" id="mktbtn-us" onclick="switchMarket('us',this)">🇺🇸 미국</button>
+      <button class="mkt-btn" id="mktbtn-kr" onclick="switchMarket('kr',this)">🇰🇷 국내</button>
+    </div>
+
+    <!-- ── 미국 주식 콘텐츠 ── -->
+    <div id="stock-us">
     <!-- 글로벌 마켓 미니 차트 -->
     <div class="sec-head" style="margin-top:24px"><div><div class="sec-title">// 글로벌 마켓</div><div class="sec-desc">주요 지수·원자재·암호화폐 실시간 미니차트 (TradingView)</div></div><div class="sec-line"></div></div>
     <div class="mini-grid">
@@ -767,7 +781,104 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
       <div class="ft">PULSE DASHBOARD · 미국 주식 · 실시간 환율</div>
       <div class="ft">DATA BY <span>YAHOO FINANCE</span> · <span>OPEN.ER-API.COM</span> · CHART BY <span>TRADINGVIEW</span></div>
     </footer>
-  </div>
+    </div><!-- /stock-us -->
+
+    <!-- ══════════════════════════════════════
+         국내 주식 섹션
+    ══════════════════════════════════════ -->
+    <div id="stock-kr" style="display:none">
+
+      <!-- 국내 시장 지수 -->
+      <div class="sec-head" style="margin-top:24px"><div><div class="sec-title">// 국내 시장</div><div class="sec-desc">KOSPI · KOSDAQ · KOSPI200 실시간 지수 · 네이버 금융 · KST 09:00~15:30 개장</div></div><div class="sec-line"></div></div>
+      <div class="kr-market-grid">
+        <div class="kr-idx-card" id="kr-kospi-2"><div class="kr-idx-name">KOSPI</div><div class="kr-idx-price" style="color:var(--muted)">—</div></div>
+        <div class="kr-idx-card" id="kr-kosdaq-2"><div class="kr-idx-name">KOSDAQ</div><div class="kr-idx-price" style="color:var(--muted)">—</div></div>
+        <div class="kr-idx-card" id="kr-kpi200-2"><div class="kr-idx-name">KOSPI 200</div><div class="kr-idx-price" style="color:var(--muted)">—</div></div>
+      </div>
+
+      <!-- 국내 미니차트 -->
+      <div class="sec-head" style="margin-top:28px"><div><div class="sec-title">// 국내 주요 종목 미니차트</div><div class="sec-desc">KOSPI 시가총액 상위 8개 종목 · TradingView KRX</div></div><div class="sec-line"></div></div>
+      <div class="mini-grid">
+        <div class="mini-item" id="krmc-0"></div>
+        <div class="mini-item" id="krmc-1"></div>
+        <div class="mini-item" id="krmc-2"></div>
+        <div class="mini-item" id="krmc-3"></div>
+        <div class="mini-item" id="krmc-4"></div>
+        <div class="mini-item" id="krmc-5"></div>
+        <div class="mini-item" id="krmc-6"></div>
+        <div class="mini-item" id="krmc-7"></div>
+      </div>
+
+      <!-- 국내 차트 -->
+      <div id="kr-chart-section" style="display:none">
+        <div class="sec-head"><div class="sec-title">// 차트</div><div class="sec-line"></div></div>
+        <div class="chart-header">
+          <div>
+            <div class="chart-title" id="kr-chart-title">—</div>
+            <div class="chart-sub" id="kr-chart-sub">—</div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <div class="chart-intervals">
+              <button class="intv-btn active" onclick="setKrInterval('1',this)">1분</button>
+              <button class="intv-btn" onclick="setKrInterval('5',this)">5분</button>
+              <button class="intv-btn" onclick="setKrInterval('15',this)">15분</button>
+              <button class="intv-btn" onclick="setKrInterval('60',this)">1시간</button>
+              <button class="intv-btn" onclick="setKrInterval('D',this)">1일</button>
+              <button class="intv-btn" onclick="setKrInterval('W',this)">1주</button>
+            </div>
+            <button class="close-btn" onclick="closeKrChart()">✕ 닫기</button>
+          </div>
+        </div>
+        <div id="kr-tv-chart"></div>
+      </div>
+
+      <!-- 국내 주요 종목 -->
+      <div class="sec-head"><div><div class="sec-title">// 국내 주요 종목</div><div class="sec-desc">네이버 금융 기준 · 당일 종가 등락률 · 2분 자동 갱신</div></div><div class="sec-line"></div></div>
+      <div class="stock-grid" id="kr-stock-grid"></div>
+
+      <!-- 국내 3개월 수익률 -->
+      <div class="sec-head"><div><div class="sec-title">// 3개월 수익률 TOP 10</div><div class="sec-desc">3개월 전 종가 대비 현재 주가 상승률 기준 · Yahoo Finance (.KS) · 1회 산출</div></div><div class="sec-line"></div></div>
+      <div id="kr-top3m-list" style="font-family:'Roboto Mono',monospace;font-size:.7rem;color:var(--muted);padding:16px 0">분석 중...</div>
+
+      <!-- 국내 등락률 상위 -->
+      <div class="sec-head">
+        <div><div class="sec-title">// 등락률 상위 종목</div><div class="sec-desc">당일 등락률 상위 국내 종목 · 상승/하락 각 5개 · 네이버 금융</div></div>
+        <div class="sec-line"></div>
+      </div>
+      <div class="gl-grid">
+        <div class="gl-box">
+          <div class="gl-head gainer">📈 상승 TOP 5</div>
+          <div id="kr-vol-buy-list"><div style="padding:16px;font-family:'Roboto Mono',monospace;font-size:.7rem;color:var(--muted)">로딩 중...</div></div>
+        </div>
+        <div class="gl-box">
+          <div class="gl-head loser">📉 하락 TOP 5</div>
+          <div id="kr-vol-sell-list"><div style="padding:16px;font-family:'Roboto Mono',monospace;font-size:.7rem;color:var(--muted)">로딩 중...</div></div>
+        </div>
+      </div>
+
+      <!-- 국내 급등락 -->
+      <div class="sec-head">
+        <div><div class="sec-title">// 급등락 종목</div><div class="sec-desc">당일 국내 주요 종목 등락률 기준</div></div>
+        <div class="sec-line"></div>
+      </div>
+      <div class="gl-grid">
+        <div class="gl-box">
+          <div class="gl-head gainer">▲ 급등 TOP 8</div>
+          <div id="kr-gainers-list"><div style="padding:16px;font-family:'Roboto Mono',monospace;font-size:.7rem;color:var(--muted)">로딩 중...</div></div>
+        </div>
+        <div class="gl-box">
+          <div class="gl-head loser">▼ 급락 TOP 8</div>
+          <div id="kr-losers-list"><div style="padding:16px;font-family:'Roboto Mono',monospace;font-size:.7rem;color:var(--muted)">로딩 중...</div></div>
+        </div>
+      </div>
+
+      <footer>
+        <div class="ft">PULSE DASHBOARD · 국내 주식</div>
+        <div class="ft">DATA BY <span>NAVER FINANCE</span> · <span>YAHOO FINANCE</span> · CHART BY <span>TRADINGVIEW KRX</span></div>
+      </footer>
+    </div><!-- /stock-kr -->
+
+  </div><!-- /wrap -->
 </div>
 
 <!-- ══════════════════════════════════════
@@ -2634,11 +2745,311 @@ async function loadFxChange() {
 }
 
 // ═══════════════════════════════════════════
+//  국내 주식 (Korean Stocks)
+// ═══════════════════════════════════════════
+const KR_STOCKS = [
+  {code:'005930', name:'삼성전자',        ySym:'005930.KS', market:'KOSPI'},
+  {code:'000660', name:'SK하이닉스',       ySym:'000660.KS', market:'KOSPI'},
+  {code:'373220', name:'LG에너지솔루션',   ySym:'373220.KS', market:'KOSPI'},
+  {code:'005380', name:'현대차',           ySym:'005380.KS', market:'KOSPI'},
+  {code:'000270', name:'기아',             ySym:'000270.KS', market:'KOSPI'},
+  {code:'035420', name:'NAVER',            ySym:'035420.KS', market:'KOSPI'},
+  {code:'035720', name:'카카오',           ySym:'035720.KS', market:'KOSPI'},
+  {code:'207940', name:'삼성바이오로직스', ySym:'207940.KS', market:'KOSPI'},
+  {code:'068270', name:'셀트리온',         ySym:'068270.KS', market:'KOSPI'},
+  {code:'006400', name:'삼성SDI',          ySym:'006400.KS', market:'KOSPI'},
+  {code:'105560', name:'KB금융',           ySym:'105560.KS', market:'KOSPI'},
+  {code:'005490', name:'POSCO홀딩스',      ySym:'005490.KS', market:'KOSPI'},
+];
+
+const KR_MINI_CHARTS = [
+  {id:'krmc-0', symbol:'KRX:005930'},
+  {id:'krmc-1', symbol:'KRX:000660'},
+  {id:'krmc-2', symbol:'KRX:373220'},
+  {id:'krmc-3', symbol:'KRX:005380'},
+  {id:'krmc-4', symbol:'KRX:035420'},
+  {id:'krmc-5', symbol:'KRX:035720'},
+  {id:'krmc-6', symbol:'KRX:207940'},
+  {id:'krmc-7', symbol:'KRX:068270'},
+];
+
+let krQuoteCache = {};
+let krCurrentCode = null;
+let krCurrentInterval = 'D';
+let krStockLoaded = false;
+
+// ── 시장 토글 ────────────────────────────────
+function switchMarket(mode, btn) {
+  document.querySelectorAll('.mkt-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('stock-us').style.display = mode === 'us' ? '' : 'none';
+  document.getElementById('stock-kr').style.display = mode === 'kr' ? '' : 'none';
+  if (mode === 'kr' && !krStockLoaded) {
+    krStockLoaded = true;
+    loadKrMiniCharts();
+    buildKrStockGrid();
+    loadKrMarket2();
+    krStockLoadAll().then(() => {
+      loadKrVolRank();
+      loadKrTop3Month();
+    });
+  }
+}
+
+// ── KR 미니차트 ──────────────────────────────
+function loadKrMiniCharts() {
+  KR_MINI_CHARTS.forEach(({id, symbol}) => {
+    const el = document.getElementById(id);
+    if (!el || el.dataset.loaded) return;
+    el.dataset.loaded = '1';
+    const w = document.createElement('div');
+    w.className = 'tradingview-widget-container__widget';
+    el.appendChild(w);
+    const s = document.createElement('script');
+    s.type = 'text/javascript';
+    s.async = true;
+    s.src = 'https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js';
+    s.textContent = JSON.stringify({
+      symbol, width:'100%', height:200, locale:'kr', dateRange:'1D',
+      colorTheme:'dark', trendLineColor:'rgba(79,156,255,1)',
+      underLineColor:'rgba(79,156,255,0.1)', underLineBottomColor:'rgba(0,0,0,0)',
+      isTransparent:true, autosize:true,
+    });
+    el.appendChild(s);
+  });
+}
+
+// ── KOSPI/KOSDAQ 지수 (KR 탭) ─────────────────
+async function loadKrMarket2() {
+  const KST = new Date(new Date().toLocaleString('en-US', {timeZone:'Asia/Seoul'}));
+  const kDay = KST.getDay(), kMins = KST.getHours()*60 + KST.getMinutes();
+  const isOpen = kDay >= 1 && kDay <= 5 && kMins >= 540 && kMins < 930;
+  const statusHtml = `<div class="kr-status ${isOpen ? 'open' : 'close'}">${isOpen ? '● OPEN' : '● CLOSED'}</div>`;
+  const targets = [
+    { id:'KOSPI',  elId:'kr-kospi-2',  label:'KOSPI' },
+    { id:'KOSDAQ', elId:'kr-kosdaq-2', label:'KOSDAQ' },
+    { id:'KPI200', elId:'kr-kpi200-2', label:'KOSPI 200' },
+  ];
+  for (const t of targets) {
+    const el = document.getElementById(t.elId);
+    if (!el) continue;
+    try {
+      const r = await fetch(`https://m.stock.naver.com/api/index/${t.id}/basic`);
+      if (!r.ok) throw new Error();
+      const d = await r.json();
+      const price = parseFloat((d.closePrice||'0').replace(/,/g,''));
+      const chg   = parseFloat((d.compareToPreviousClosePrice||'0').replace(/,/g,''));
+      const pct   = parseFloat(d.fluctuationsRatio||'0');
+      const up    = chg >= 0;
+      const open  = parseFloat((d.openPrice||'0').replace(/,/g,''));
+      el.innerHTML = `
+        ${statusHtml}
+        <div class="kr-idx-name">${t.label}</div>
+        <div class="kr-idx-price ${up?'up':'down'}">${price.toLocaleString('ko-KR',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+        <div class="kr-idx-chg ${up?'up':'down'}">${up?'▲':'▼'} ${Math.abs(chg).toFixed(2)} (${up?'+':''}${pct.toFixed(2)}%)</div>
+        ${open ? `<div class="kr-idx-sub">시가 ${open.toLocaleString('ko-KR',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>` : ''}
+      `;
+    } catch {
+      el.innerHTML = `<div class="kr-idx-name">${t.label}</div><div class="kr-idx-price" style="color:var(--muted)">—</div>`;
+    }
+  }
+}
+
+// ── Naver Mobile API 개별 종목 조회 ─────────────
+async function fetchKrQuote(code) {
+  const r = await fetch(`https://m.stock.naver.com/api/stock/${code}/basic`);
+  if (!r.ok) throw new Error('fetch failed');
+  const d = await r.json();
+  const price = parseFloat((d.closePrice||'0').replace(/,/g,''));
+  const chg   = parseFloat((d.compareToPreviousClosePrice||'0').replace(/,/g,''));
+  const pct   = parseFloat(d.fluctuationsRatio||'0');
+  return { code, name: d.stockName || code, price, chg, pct };
+}
+
+// ── KR 종목 카드 빌드 ──────────────────────────
+function buildKrStockGrid() {
+  document.getElementById('kr-stock-grid').innerHTML = KR_STOCKS.map(s => `
+    <div class="s-card" id="ksc-${s.code}" onclick="krOpenChart('${s.code}','${s.name}')">
+      <div class="sc-sym">${s.code}</div>
+      <div class="sc-name">${s.name}</div>
+      <div class="sc-row">
+        <div class="sc-price" id="kscp-${s.code}"><div class="dots"><span></span><span></span><span></span></div></div>
+        <div class="sc-pct flat" id="kscpct-${s.code}">—</div>
+      </div>
+      <div class="sc-vol" id="kscvol-${s.code}">${s.market}</div>
+    </div>`).join('');
+}
+
+function krUpdateCard(q) {
+  const cl = q.pct > 0 ? 'up' : q.pct < 0 ? 'down' : 'flat';
+  const priceEl = document.getElementById(`kscp-${q.code}`);
+  const pctEl   = document.getElementById(`kscpct-${q.code}`);
+  if (!priceEl) return;
+  priceEl.textContent = q.price.toLocaleString('ko-KR') + '원';
+  priceEl.className = `sc-price ${cl}`;
+  pctEl.textContent = (q.pct >= 0 ? '+' : '') + q.pct.toFixed(2) + '%';
+  pctEl.className = `sc-pct ${cl}`;
+}
+
+// ── 전체 조회 & 렌더 ──────────────────────────
+async function krStockLoadAll() {
+  const results = await Promise.allSettled(KR_STOCKS.map(s => fetchKrQuote(s.code)));
+  results.forEach(r => {
+    if (r.status === 'fulfilled') {
+      krQuoteCache[r.value.code] = r.value;
+      krUpdateCard(r.value);
+    }
+  });
+  krRenderGainersLosers(Object.values(krQuoteCache));
+  loadKrVolRank();
+}
+
+// ── 등락률 상위 매수/매도 종목 ───────────────────
+function loadKrVolRank() {
+  const buyEl  = document.getElementById('kr-vol-buy-list');
+  const sellEl = document.getElementById('kr-vol-sell-list');
+  const quotes = Object.values(krQuoteCache);
+  if (!quotes.length) return;
+  const sorted  = [...quotes].sort((a,b) => b.pct - a.pct);
+  const rising  = sorted.filter(q => q.pct > 0).slice(0, 5);
+  const falling = [...sorted].reverse().filter(q => q.pct < 0).slice(0, 5);
+  const volRow = q => `
+    <div class="gl-row" onclick="krOpenChart('${q.code}','${q.name}')">
+      <div style="min-width:0">
+        <div class="gl-sym">${q.code}</div>
+        <div style="font-size:.6rem;color:var(--muted);font-family:'Noto Sans KR',sans-serif;margin-top:1px">${q.name}</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div style="font-family:'Roboto Mono',monospace;font-size:.78rem;font-weight:600;color:var(--text)">${q.price.toLocaleString('ko-KR')}원</div>
+        <div class="gl-pct ${q.pct>0?'up':q.pct<0?'down':'flat'}" style="margin-top:2px">${(q.pct>=0?'+':'')+q.pct.toFixed(2)}%</div>
+      </div>
+    </div>`;
+  buyEl.innerHTML  = rising.length  ? rising.map(volRow).join('')  : '<div style="padding:16px;font-size:.7rem;color:var(--muted)">데이터 없음</div>';
+  sellEl.innerHTML = falling.length ? falling.map(volRow).join('') : '<div style="padding:16px;font-size:.7rem;color:var(--muted)">데이터 없음</div>';
+}
+
+// ── 급등락 렌더 ───────────────────────────────
+function krRenderGainersLosers(quotes) {
+  const sorted = [...quotes].sort((a,b) => b.pct - a.pct);
+  const cl = q => q.pct > 0 ? 'up' : q.pct < 0 ? 'down' : 'flat';
+  const glRow = q => `
+    <div class="gl-row" onclick="krOpenChart('${q.code}','${q.name}')">
+      <div>
+        <div class="gl-sym">${q.code}</div>
+        <div style="font-size:.6rem;color:var(--muted);font-family:'Noto Sans KR',sans-serif;margin-top:1px">${q.name}</div>
+      </div>
+      <div>
+        <div class="gl-price">${q.price.toLocaleString('ko-KR')}원</div>
+        <div class="gl-pct ${cl(q)}">${(q.pct>=0?'+':'')+q.pct.toFixed(2)}%</div>
+      </div>
+    </div>`;
+  document.getElementById('kr-gainers-list').innerHTML = sorted.slice(0,8).map(glRow).join('') || '<div style="padding:16px;color:var(--muted);font-size:.7rem">데이터 없음</div>';
+  document.getElementById('kr-losers-list').innerHTML  = sorted.slice(-8).reverse().map(glRow).join('') || '<div style="padding:16px;color:var(--muted);font-size:.7rem">데이터 없음</div>';
+}
+
+// ── 3개월 수익률 (Yahoo Finance .KS) ─────────────
+async function fetchKrTop3Month(ySym, code, name) {
+  const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ySym)}?range=3mo&interval=1wk`;
+  const proxies = [
+    `https://api.allorigins.win/get?url=${encodeURIComponent(yahooUrl)}`,
+    `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(yahooUrl)}`,
+  ];
+  let d = null;
+  for (const proxy of proxies) {
+    try {
+      const ctrl = new AbortController();
+      const tid = setTimeout(() => ctrl.abort(), 9000);
+      const r = await fetch(proxy, { signal: ctrl.signal });
+      clearTimeout(tid);
+      if (!r.ok) continue;
+      const text = await r.text();
+      let raw = text;
+      try { const j = JSON.parse(text); raw = j.contents ?? text; } catch {}
+      d = JSON.parse(raw);
+      if (d?.chart?.result?.[0]) break;
+    } catch { continue; }
+  }
+  if (!d) throw new Error('all proxies failed');
+  const closes = d?.chart?.result?.[0]?.indicators?.quote?.[0]?.close;
+  if (!closes?.length) throw new Error('no data');
+  const valid = closes.filter(v => v != null);
+  if (valid.length < 2) throw new Error('no valid data');
+  const pct = ((valid[valid.length-1] - valid[0]) / valid[0]) * 100;
+  const price = krQuoteCache[code]?.price ?? valid[valid.length-1];
+  return { code, name, pct, price };
+}
+
+async function loadKrTop3Month() {
+  const el = document.getElementById('kr-top3m-list');
+  const results = await Promise.allSettled(KR_STOCKS.map(s => fetchKrTop3Month(s.ySym, s.code, s.name)));
+  const ok = results
+    .filter(r => r.status === 'fulfilled' && isFinite(r.value.pct))
+    .map(r => r.value)
+    .sort((a, b) => b.pct - a.pct)
+    .slice(0, 10);
+  if (!ok.length) { el.textContent = '데이터 없음'; return; }
+  const maxAbs = Math.max(...ok.map(i => Math.abs(i.pct)));
+  const rankClass = i => i===0?'gold':i===1?'silver':i===2?'bronze':'';
+  el.innerHTML = `<div class="top3m-grid">${ok.map((item, i) => `
+    <div class="top3m-row" onclick="krOpenChart('${item.code}','${item.name}')">
+      <div class="top3m-rank ${rankClass(i)}">${i+1}</div>
+      <div class="top3m-info">
+        <div class="top3m-sym">${item.code}</div>
+        <div class="top3m-name">${item.name}</div>
+        <div class="top3m-bar-wrap">
+          <div class="top3m-bar-bg"><div class="top3m-bar-fill" style="width:${Math.max(4,(Math.abs(item.pct)/maxAbs)*100).toFixed(1)}%;${item.pct<0?'background:var(--down)':''}"></div></div>
+        </div>
+      </div>
+      <div class="top3m-right">
+        <div class="top3m-pct ${item.pct>=0?'up':'down'}">${item.pct>=0?'+':''}${item.pct.toFixed(1)}%</div>
+        <div class="top3m-price">${item.price != null ? item.price.toLocaleString('ko-KR')+'원' : '—'}</div>
+      </div>
+    </div>`).join('')}</div>`;
+}
+
+// ── KR 차트 열기/닫기 ────────────────────────
+function krOpenChart(code, name) {
+  krCurrentCode = code;
+  document.querySelectorAll('#kr-stock-grid .s-card').forEach(el=>el.classList.remove('active'));
+  document.getElementById(`ksc-${code}`)?.classList.add('active');
+  const sec = document.getElementById('kr-chart-section');
+  sec.style.display = 'block';
+  document.getElementById('kr-chart-title').textContent = code + ' — ' + name;
+  const q = krQuoteCache[code];
+  if (q) {
+    const cl = q.pct > 0 ? 'up' : q.pct < 0 ? 'down' : 'flat';
+    document.getElementById('kr-chart-sub').innerHTML =
+      `<span class="${cl}">${q.price.toLocaleString('ko-KR')}원  ${(q.pct>=0?'+':'')+q.pct.toFixed(2)}%</span>`;
+  }
+  document.getElementById('kr-tv-chart').innerHTML = '';
+  new TradingView.widget({
+    container_id:'kr-tv-chart', symbol:`KRX:${code}`, interval:krCurrentInterval,
+    timezone:'Asia/Seoul', theme:'dark', style:'1', locale:'ko', toolbar_bg:'#0c1220',
+    enable_publishing:false, allow_symbol_change:true, save_image:false,
+    width:'100%', height:480, studies:['RSI@tv-basicstudies','MASimple@tv-basicstudies'],
+  });
+  sec.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function closeKrChart() {
+  document.getElementById('kr-chart-section').style.display = 'none';
+  document.querySelectorAll('#kr-stock-grid .s-card').forEach(el=>el.classList.remove('active'));
+  krCurrentCode = null;
+}
+
+function setKrInterval(intv, btn) {
+  krCurrentInterval = intv;
+  document.querySelectorAll('#kr-chart-section .intv-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if (krCurrentCode) krOpenChart(krCurrentCode, document.getElementById('kr-chart-title').textContent.split(' — ')[1] || '');
+}
+
+// ═══════════════════════════════════════════
 //  INIT
 // ═══════════════════════════════════════════
 wBuildGrid();
 sBuildStockGrid();
-setInterval(sLoadAll, 120000);
+setInterval(() => { sLoadAll(); if (krStockLoaded) krStockLoadAll(); }, 120000);
 setInterval(loadVolRank, 120000);
 // 주식 탭이 기본이므로 바로 로드
 showTab('stock');
