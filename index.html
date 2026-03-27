@@ -2098,12 +2098,12 @@ function getDomain(url) {
 // Google 뉴스 RSS — 트렌드(많이 다뤄진) 순 정렬
 const NEWS_GOOGLE_RSS = {
   all: 'https://news.google.com/rss?hl=ko&gl=KR&ceid=KR:ko',
-  pol: 'https://news.google.com/rss/headlines/section/topic/POLITICS?hl=ko&gl=KR&ceid=KR:ko',
-  eco: 'https://news.google.com/rss/headlines/section/topic/BUSINESS?hl=ko&gl=KR&ceid=KR:ko',
+  pol: 'https://news.google.com/rss/search?q=정치&hl=ko&gl=KR&ceid=KR:ko',
+  eco: 'https://news.google.com/rss/search?q=경제+비즈니스&hl=ko&gl=KR&ceid=KR:ko',
   soc: 'https://news.google.com/rss/headlines/section/topic/NATION?hl=ko&gl=KR&ceid=KR:ko',
   int: 'https://news.google.com/rss/headlines/section/topic/WORLD?hl=ko&gl=KR&ceid=KR:ko',
   it:  'https://news.google.com/rss/headlines/section/topic/TECHNOLOGY?hl=ko&gl=KR&ceid=KR:ko',
-  ent: 'https://news.google.com/rss/headlines/section/topic/ENTERTAINMENT?hl=ko&gl=KR&ceid=KR:ko',
+  ent: 'https://news.google.com/rss/search?q=연예+엔터테인먼트&hl=ko&gl=KR&ceid=KR:ko',
   spt: 'https://news.google.com/rss/headlines/section/topic/SPORTS?hl=ko&gl=KR&ceid=KR:ko',
 };
 
@@ -2132,10 +2132,16 @@ function parseRSSXml(text, fallbackSource) {
   }).filter(it => it.title && it.link);
 }
 
+function fetchWithTimeout(url, ms=8000) {
+  const ctrl = new AbortController();
+  const id = setTimeout(() => ctrl.abort(), ms);
+  return fetch(url, { signal: ctrl.signal }).finally(() => clearTimeout(id));
+}
+
 async function fetchRSS(url, fallbackSource) {
   // 1순위: rss2json
   try {
-    const r = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}&count=30`);
+    const r = await fetchWithTimeout(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}&count=30`);
     if (r.ok) {
       const d = await r.json();
       if (d.status === 'ok' && d.items?.length) {
@@ -2152,7 +2158,7 @@ async function fetchRSS(url, fallbackSource) {
 
   // 2순위: allorigins raw
   try {
-    const r = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`);
+    const r = await fetchWithTimeout(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`);
     if (r.ok) {
       const items = parseRSSXml(await r.text(), fallbackSource);
       if (items.length) return items;
@@ -2161,7 +2167,7 @@ async function fetchRSS(url, fallbackSource) {
 
   // 3순위: corsproxy.io
   try {
-    const r = await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`);
+    const r = await fetchWithTimeout(`https://corsproxy.io/?${encodeURIComponent(url)}`);
     if (r.ok) {
       const items = parseRSSXml(await r.text(), fallbackSource);
       if (items.length) return items;
