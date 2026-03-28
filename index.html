@@ -1075,6 +1075,19 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
       <div class="tv-loading">🌍 여행지 날씨 분석 중...</div>
     </div>
 
+    <!-- 해외 도시 가이드 -->
+    <div class="sec-head" style="margin-top:44px">
+      <div><div class="sec-title">// 해외 도시 가이드</div><div class="sec-desc">대표 먹거리 · 주요 관광지 · 항공 정보 · 실시간 현지 날씨</div></div>
+      <div class="sec-line"></div>
+    </div>
+    <div class="kr-filter" id="ov-filter">
+      <button class="kr-filter-btn active" onclick="ovFilter('all',this)">전체</button>
+      <button class="kr-filter-btn" onclick="ovFilter('japan',this)">🇯🇵 일본</button>
+      <button class="kr-filter-btn" onclick="ovFilter('asia',this)">🌏 아시아</button>
+      <button class="kr-filter-btn" onclick="ovFilter('world',this)">🌍 해외</button>
+    </div>
+    <div class="kr-grid" id="ov-grid"><div class="tv-loading">🌍 해외 도시 정보 불러오는 중...</div></div>
+
     <!-- 환율 변동 -->
     <div class="sec-head" style="margin-top:44px">
       <div><div class="sec-title">// 한 달 전 대비 저렴해진 나라 (KRW 기준)</div><div class="sec-desc">1개월 전 환율 대비 현재 변동률 · 음수(↓)일수록 해당국 여행 비용 저렴 · fawazahmed0 currency-api</div></div>
@@ -1588,6 +1601,8 @@ function showTab(tab) {
     loadTravel(false);
     loadFxChange();
     loadCgCongestion();
+    ovRender('all');
+    ovLoadWeather();
   }
   if (tab === 'news' && !newsLoaded) {
     newsLoaded = true;
@@ -3603,6 +3618,122 @@ const KR_DEST = [
 const krWeatherCache = {};
 
 // ═══════════════════════════════════════════
+//  해외 여행지 데이터
+// ═══════════════════════════════════════════
+const OVERSEAS_DEST = [
+  // ── 일본 ──
+  { id:'tokyo', name:'도쿄', emoji:'🗼', region:'일본', cat:'japan',
+    transport:[{icon:'✈️',label:'비행기',info:'인천→나리타/하네다 2시간 30분'},{icon:'✈️',label:'비행기',info:'김포→하네다 2시간 (도심 접근 유리)'}],
+    food:['라멘','스시','텐동','도쿄 바나나','모츠나베'],
+    spots:['시부야 스크램블','아사쿠사 센소지','신주쿠 골든가이','하라주쿠','도쿄 타워'],
+    lat:35.6762, lon:139.6503, dep:'ICN', arr:'TYO' },
+  { id:'osaka', name:'오사카', emoji:'🏯', region:'일본', cat:'japan',
+    transport:[{icon:'✈️',label:'비행기',info:'인천→간사이 1시간 50분'},{icon:'✈️',label:'비행기',info:'김포→이타미 1시간 50분'}],
+    food:['타코야키','오코노미야키','쿠시카츠','카레우동','이치란 라멘'],
+    spots:['오사카성','도톤보리','유니버설 스튜디오','난바','시텐노지'],
+    lat:34.6937, lon:135.5023, dep:'ICN', arr:'OSA' },
+  { id:'fukuoka', name:'후쿠오카', emoji:'🌸', region:'일본', cat:'japan',
+    transport:[{icon:'✈️',label:'비행기',info:'인천→후쿠오카 1시간 20분'},{icon:'⛴',label:'페리',info:'부산→후쿠오카 3시간 (카멜리아 라인)'}],
+    food:['하카타 라멘','모츠나베','미즈타키','우동','야키토리'],
+    spots:['캐널시티','오호리공원','다자이후텐만구','나카스 포장마차','모모치 해변'],
+    lat:33.5904, lon:130.4017, dep:'ICN', arr:'FUK' },
+  { id:'sapporo', name:'삿포로', emoji:'❄️', region:'일본', cat:'japan',
+    transport:[{icon:'✈️',label:'비행기',info:'인천→신치토세 2시간 40분'}],
+    food:['삿포로 미소라멘','징기스칸 BBQ','스프카레','해산물덮밥','로이즈 초콜릿'],
+    spots:['오도리공원','삿포로 맥주박물관','스스키노','홋카이도 신궁','모이와산'],
+    lat:43.0642, lon:141.3469, dep:'ICN', arr:'CTS' },
+  { id:'kyoto', name:'교토', emoji:'⛩', region:'일본', cat:'japan',
+    transport:[{icon:'✈️',label:'비행기',info:'인천→간사이 1시간 50분 후 JR 하루카 75분'}],
+    food:['유도후','가이세키 요리','마치야 카페','말차 파르페','니시키 시장 간식'],
+    spots:['후시미이나리','기요미즈데라','아라시야마 대나무숲','킨카쿠지','기온 거리'],
+    lat:35.0116, lon:135.7681, dep:'ICN', arr:'OSA' },
+  { id:'naha', name:'나하 (오키나와)', emoji:'🌺', region:'일본', cat:'japan',
+    transport:[{icon:'✈️',label:'비행기',info:'인천→나하 2시간 30분'}],
+    food:['오키나와 소바','고야 참프루','해산물 정식','사타안다기','아와모리 칵테일'],
+    spots:['슈리성','코우리섬 하트 바위','나하 국제거리','만좌모','추라우미 수족관'],
+    lat:26.2124, lon:127.6809, dep:'ICN', arr:'OKA' },
+  // ── 아시아 ──
+  { id:'bangkok', name:'방콕', emoji:'🛕', region:'태국', cat:'asia',
+    transport:[{icon:'✈️',label:'비행기',info:'인천→수완나품 5시간 30분'}],
+    food:['팟타이','솜땀','똠얌꿍','카오만까이','망고찹쌀밥'],
+    spots:['왓포 와불','카오산로드','짜오프라야강 유람','아이콘시암','짜뚜짝 시장'],
+    lat:13.7563, lon:100.5018, dep:'ICN', arr:'BKK' },
+  { id:'bali', name:'발리', emoji:'🌴', region:'인도네시아', cat:'asia',
+    transport:[{icon:'✈️',label:'비행기',info:'인천→응우라라이 6시간 30분'}],
+    food:['나시고렝','바비굴링','미고렝','사테 리릿','피나 콜라다'],
+    spots:['우붓 원숭이숲','따나롯 사원','스미냑 해변','꾸따 비치','테겔랄랑 계단식 논'],
+    lat:-8.3405, lon:115.0920, dep:'ICN', arr:'DPS' },
+  { id:'singapore', name:'싱가포르', emoji:'🦁', region:'싱가포르', cat:'asia',
+    transport:[{icon:'✈️',label:'비행기',info:'인천→창이공항 6시간 30분'}],
+    food:['치킨라이스','칠리크랩','락사','프론미','호커센터 음식'],
+    spots:['마리나베이샌즈','가든스바이더베이','센토사섬','차이나타운','클락키'],
+    lat:1.3521, lon:103.8198, dep:'ICN', arr:'SIN' },
+  { id:'hongkong', name:'홍콩', emoji:'🌆', region:'홍콩', cat:'asia',
+    transport:[{icon:'✈️',label:'비행기',info:'인천→첵랍콕 3시간 30분'}],
+    food:['딤섬','에그타르트','완탄면','철판소고기','홍콩식 밀크티'],
+    spots:['빅토리아 피크','침사추이 해안','몽콕 야시장','스탠리 마켓','란타우섬 大佛'],
+    lat:22.3193, lon:114.1694, dep:'ICN', arr:'HKG' },
+  { id:'danang', name:'다낭', emoji:'🌊', region:'베트남', cat:'asia',
+    transport:[{icon:'✈️',label:'비행기',info:'인천→다낭 4시간 30분'}],
+    food:['미꽝','반미','분짜','바인쎄오','신선한 해산물'],
+    spots:['미케 비치','바나힐 황금 다리','오행산','호이안 구시가지','드래곤 브리지'],
+    lat:16.0544, lon:108.2022, dep:'ICN', arr:'DAD' },
+  { id:'cebu', name:'세부', emoji:'🐠', region:'필리핀', cat:'asia',
+    transport:[{icon:'✈️',label:'비행기',info:'인천→막탄세부 4시간 20분'}],
+    food:['레촌 바비','시니강','아도보','피토피토','망고 디저트'],
+    spots:['말라파스쿠아 다이빙','막탄 리조트 비치','산 페드로 요새','카르본 시장','투말로그 폭포'],
+    lat:10.3157, lon:123.8854, dep:'ICN', arr:'CEB' },
+  { id:'taipei', name:'타이페이', emoji:'🏙', region:'대만', cat:'asia',
+    transport:[{icon:'✈️',label:'비행기',info:'인천→타오위안 2시간 30분'}],
+    food:['소롱포','루로판','망고빙수','지파이','버블티'],
+    spots:['지우펀 야경','타이페이 101','스린 야시장','예류 지질공원','단수이 황혼'],
+    lat:25.0330, lon:121.5654, dep:'ICN', arr:'TPE' },
+  { id:'kotakinabalu', name:'코타키나발루', emoji:'🌅', region:'말레이시아', cat:'asia',
+    transport:[{icon:'✈️',label:'비행기',info:'인천→코타키나발루 5시간 10분'}],
+    food:['해산물 BBQ','사바 라이스','탄두리 치킨','코피티암 아침식사','망고스틴'],
+    spots:['사피섬 스노클링','가야섬','키나발루산 일출','탄중아루 선셋','마리마리 문화촌'],
+    lat:5.9788, lon:116.0753, dep:'ICN', arr:'BKI' },
+  // ── 해외 ──
+  { id:'sydney', name:'시드니', emoji:'🦘', region:'호주', cat:'world',
+    transport:[{icon:'✈️',label:'비행기',info:'인천→시드니 10시간'}],
+    food:['팀탐','피시앤칩스','BBQ','아보카도 토스트','플랫화이트 커피'],
+    spots:['오페라하우스','하버브리지 클라이밍','본다이비치','블루마운틴','달링하버'],
+    lat:-33.8688, lon:151.2093, dep:'ICN', arr:'SYD' },
+  { id:'paris', name:'파리', emoji:'🗼', region:'프랑스', cat:'world',
+    transport:[{icon:'✈️',label:'비행기',info:'인천→샤를드골 12시간'}],
+    food:['크루아상','에스카르고','마카롱','크렘브륄레','스테이크타르타르'],
+    spots:['에펠탑','루브르 박물관','베르사유 궁전','몽마르트르','샹젤리제'],
+    lat:48.8566, lon:2.3522, dep:'ICN', arr:'CDG' },
+  { id:'barcelona', name:'바르셀로나', emoji:'🏖', region:'스페인', cat:'world',
+    transport:[{icon:'✈️',label:'비행기',info:'인천→바르셀로나 13시간'}],
+    food:['파에야','타파스','하몬','상그리아','크레마 카탈라나'],
+    spots:['사그라다 파밀리아','바르셀로네타 비치','람블라스 거리','구엘공원','몬세라트'],
+    lat:41.3851, lon:2.1734, dep:'ICN', arr:'BCN' },
+  { id:'hawaii', name:'하와이', emoji:'🌺', region:'미국', cat:'world',
+    transport:[{icon:'✈️',label:'비행기',info:'인천→호놀룰루 9시간'}],
+    food:['포케 볼','로코모코','말라사다','신선한 파인애플','코나 커피'],
+    spots:['와이키키 비치','다이아몬드 헤드','하나우마 베이','노스쇼어 서핑','폴리네시아 문화센터'],
+    lat:21.3069, lon:-157.8583, dep:'ICN', arr:'HNL' },
+  { id:'maldives', name:'몰디브', emoji:'🏝', region:'몰디브', cat:'world',
+    transport:[{icon:'✈️',label:'비행기',info:'인천→말레 8시간 30분'}],
+    food:['마스 히우니','가루디야','리하쿠리바','씨푸드 뷔페','이국적인 과일'],
+    spots:['수상 빌라 일출','스노클링·다이빙','산호초 투어','수중 레스토랑','말레 구시가지'],
+    lat:4.1755, lon:73.5093, dep:'ICN', arr:'MLE' },
+  { id:'dubai', name:'두바이', emoji:'🏙', region:'UAE', cat:'world',
+    transport:[{icon:'✈️',label:'비행기',info:'인천→두바이 9시간 30분'}],
+    food:['샤와르마','하리스','루미','카르지','두바이 초콜릿'],
+    spots:['버즈칼리파 전망대','팜주메이라','두바이몰 아쿠아리움','사막 사파리','두바이 프레임'],
+    lat:25.2048, lon:55.2708, dep:'ICN', arr:'DXB' },
+  { id:'rome', name:'로마', emoji:'🏛', region:'이탈리아', cat:'world',
+    transport:[{icon:'✈️',label:'비행기',info:'인천→피우미치노 12시간 30분'}],
+    food:['카르보나라','젤라또','로마식 피자','카치오에페페','티라미수'],
+    spots:['콜로세움','바티칸 박물관','트레비 분수','판테온','보르게세 갤러리'],
+    lat:41.9028, lon:12.4964, dep:'ICN', arr:'FCO' },
+];
+
+const ovWeatherCache = {};
+
+// ═══════════════════════════════════════════
 //  맛집 데이터 (네이버·카카오·구글 평점+리뷰)
 // ═══════════════════════════════════════════
 const MATJIP_DATA = {
@@ -4427,6 +4558,77 @@ async function krLoadWeather() {
   const catMap = {'전체':'all','섬':'island','바다':'sea','산·자연':'mountain','도시·역사':'city','음식':'food'};
   const cur = activeBtn ? catMap[activeBtn.textContent.trim().replace(/^.\s/,'')] || 'all' : 'all';
   krRender(cur);
+}
+
+// ═══════════════════════════════════════════
+//  해외 여행지 카드
+// ═══════════════════════════════════════════
+function ovCardHtml(d) {
+  const w = ovWeatherCache[d.id];
+  const wHtml = w
+    ? `<div class="kr-temp">${w.icon} ${w.temp}°C</div><div class="kr-wdesc">${w.desc}</div>`
+    : `<div class="kr-temp" style="color:var(--muted);font-size:.72rem">날씨 로딩중</div>`;
+  const trHtml = d.transport.map(t =>
+    `<div class="kr-tr-row"><span class="kr-tr-icon">${t.icon}</span><span class="kr-tr-label">${t.label}</span><span class="kr-tr-info">${t.info}</span></div>`
+  ).join('');
+  const catLabel = {japan:'일본',asia:'아시아',world:'해외'};
+  const dateStr = (() => { const dt=new Date(); dt.setDate(dt.getDate()+14); return dt.toISOString().slice(0,10).replace(/-/g,''); })();
+  const flightUrl = `https://flight.naver.com/flights/international/${d.dep}-${d.arr}-${dateStr}?adult=1`;
+  const blogUrl = `https://search.naver.com/search.naver?where=blog&query=${encodeURIComponent(d.name+' 여행')}`;
+  const mapUrl = `https://www.google.com/maps/search/${encodeURIComponent(d.name)}`;
+  return `<div class="kr-card" data-id="${d.id}">
+    <div class="kr-card-top">
+      <div class="kr-card-head">
+        <div><div class="kr-city">${d.emoji} ${d.name}</div><div class="kr-region">${d.region}</div></div>
+        <div class="kr-weather">${wHtml}</div>
+      </div>
+      <div class="kr-tags"><span class="kr-tag">${catLabel[d.cat]||d.cat}</span></div>
+      <div class="kr-section-label">🍽 대표 먹거리</div>
+      <div class="kr-list">${d.food.map(f=>`<span class="kr-item">${f}</span>`).join('')}</div>
+      <div class="kr-section-label">📍 주요 관광지</div>
+      <div class="kr-list">${d.spots.map(s=>`<span class="kr-item">${s}</span>`).join('')}</div>
+      <div class="kr-section-label">✈️ 한국에서 가는 방법</div>
+      <div class="kr-transport">${trHtml}</div>
+    </div>
+    <div class="kr-links">
+      <a class="kr-link" href="${flightUrl}" target="_blank">
+        <span class="kr-link-icon">✈️</span><span class="kr-link-label">항공권</span></a>
+      <a class="kr-link" href="${blogUrl}" target="_blank">
+        <span class="kr-link-icon">📝</span><span class="kr-link-label">블로그</span></a>
+      <a class="kr-link" href="${mapUrl}" target="_blank">
+        <span class="kr-link-icon">🗺</span><span class="kr-link-label">지도</span></a>
+    </div>
+  </div>`;
+}
+
+function ovRender(cat) {
+  const grid = document.getElementById('ov-grid');
+  if (!grid) return;
+  const list = cat === 'all' ? OVERSEAS_DEST : OVERSEAS_DEST.filter(d => d.cat === cat);
+  grid.innerHTML = list.map(ovCardHtml).join('');
+}
+
+function ovFilter(cat, btn) {
+  document.querySelectorAll('#ov-filter .kr-filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  ovRender(cat);
+}
+
+async function ovLoadWeather() {
+  const WMO = {0:'맑음',1:'대체로 맑음',2:'구름 많음',3:'흐림',45:'안개',51:'이슬비',61:'비',63:'비',65:'강한 비',71:'눈',80:'소나기',95:'천둥번개'};
+  const ICO = {0:'☀️',1:'🌤',2:'⛅',3:'☁️',45:'🌫',51:'🌦',61:'🌧',65:'🌧',71:'🌨',80:'🌦',95:'⛈'};
+  await Promise.allSettled(OVERSEAS_DEST.map(async d => {
+    try {
+      const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${d.lat}&longitude=${d.lon}&current_weather=true`);
+      const j = await r.json();
+      const cw = j.current_weather;
+      ovWeatherCache[d.id] = { temp:Math.round(cw.temperature), icon:ICO[cw.weathercode]||'🌡', desc:WMO[cw.weathercode]||'날씨정보' };
+    } catch {}
+  }));
+  const activeBtn = document.querySelector('#ov-filter .kr-filter-btn.active');
+  const catMap = {'전체':'all','일본':'japan','아시아':'asia','해외':'world'};
+  const cur = activeBtn ? (catMap[activeBtn.textContent.trim()] || catMap[Object.keys(catMap).find(k=>activeBtn.textContent.includes(k))] || 'all') : 'all';
+  ovRender(cur);
 }
 
 // ═══════════════════════════════════════════
