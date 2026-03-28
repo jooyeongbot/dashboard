@@ -74,7 +74,7 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
 .w-chip { background:var(--surface2); border:1px solid var(--border); border-radius:20px; padding:5px 13px; font-size:.76rem; color:var(--muted); cursor:pointer; font-family:'Roboto Mono',monospace; transition:all .2s; }
 .w-chip:hover { border-color:var(--accent); color:var(--accent2); background:rgba(79,156,255,.06); }
 .w-err { background:rgba(255,90,70,.08); border:1px solid rgba(255,90,70,.2); border-radius:8px; padding:12px 16px; color:#ff8070; font-size:.82rem; margin-top:10px; display:none; font-family:'Roboto Mono',monospace; }
-#w-detail { display:none; margin:36px 0; animation:fadeUp .35s ease; }
+#w-detail { margin:36px 0; animation:fadeUp .35s ease; }
 .w-detail-box { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:32px 36px; display:grid; grid-template-columns:1fr auto; gap:28px; align-items:center; position:relative; overflow:hidden; }
 .w-detail-box::before { content:''; position:absolute; top:-50px; right:-50px; width:220px; height:220px; border-radius:50%; background:radial-gradient(circle, rgba(79,156,255,.08) 0%, transparent 70%); pointer-events:none; }
 .d-city { font-family:'Noto Sans KR','Inter',sans-serif; font-size:3rem; letter-spacing:.04em; line-height:1; }
@@ -584,29 +584,15 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
   </div>
 
   <div class="wrap">
-    <!-- 검색 -->
-    <div style="margin:36px 0 40px">
-      <div class="w-search-label">// 도시 검색 — 실시간 날씨 조회</div>
-      <div class="w-search-row">
-        <input class="w-search-input" id="w-inp" type="text" placeholder="도시명 입력 (Seoul, Tokyo, Paris, 서울...)" />
-        <button class="w-btn" id="w-searchBtn" onclick="wDoSearch()">조회</button>
+    <!-- 상세 날씨 (기본: 화성시 / 검색 시 변경) -->
+    <div id="w-detail" style="margin-top:36px">
+      <div class="sec-head" style="margin-top:0;margin-bottom:0">
+        <div>
+          <div class="sec-title">// 날씨 상세</div>
+          <div class="sec-desc" id="w-detail-label">경기도 화성시 · Open-Meteo 실시간</div>
+        </div>
+        <div class="sec-line"></div>
       </div>
-      <div class="w-err" id="w-err"></div>
-      <div class="w-chips" id="w-chips"></div>
-    </div>
-
-    <!-- 내 지역 날씨 (화성시 고정) -->
-    <div class="sec-head" style="margin-top:0;margin-bottom:12px">
-      <div><div class="sec-title">// 내 지역 날씨</div><div class="sec-desc">경기도 화성시 · Open-Meteo 실시간</div></div>
-      <div class="sec-line"></div>
-    </div>
-    <div id="home-weather-card" style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px 24px;margin-bottom:36px;display:flex;align-items:center;gap:24px;flex-wrap:wrap">
-      <div style="font-family:'Roboto Mono',monospace;font-size:.62rem;color:var(--muted)">불러오는 중...</div>
-    </div>
-
-    <!-- 상세 날씨 -->
-    <div id="w-detail">
-      <div class="sec-head"><div class="sec-title">// 상세 날씨</div><div class="sec-line"></div></div>
       <div class="w-detail-box">
         <div>
           <div class="d-city" id="d-city">—</div>
@@ -636,8 +622,19 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
       <div class="w-weekly" id="w-weekly"></div>
     </div>
 
+    <!-- 도시 검색 -->
+    <div style="margin:40px 0 32px">
+      <div class="w-search-label">// 도시 검색 — 다른 지역 날씨 조회</div>
+      <div class="w-search-row">
+        <input class="w-search-input" id="w-inp" type="text" placeholder="도시명 입력 (Seoul, Tokyo, Paris, 서울...)" />
+        <button class="w-btn" id="w-searchBtn" onclick="wDoSearch()">조회</button>
+      </div>
+      <div class="w-err" id="w-err"></div>
+      <div class="w-chips" id="w-chips"></div>
+    </div>
+
     <!-- 세계 도시 그리드 -->
-    <div style="margin-top:40px">
+    <div style="margin-top:0">
       <div class="sec-head"><div class="sec-title">// 세계 주요 도시 — 실시간</div><div class="sec-line"></div></div>
       <div class="world-grid" id="w-grid"></div>
     </div>
@@ -1040,6 +1037,14 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
       <div><div class="sec-title">// 국내 여행지 가이드</div><div class="sec-desc">교통편 · 실시간 날씨 · 먹거리 · 관광지 · 블로그/지도 바로가기</div></div>
       <div class="sec-line"></div>
     </div>
+    <!-- 도시 날씨 검색 -->
+    <div style="margin-bottom:28px">
+      <div class="w-search-row">
+        <input class="w-search-input" id="kr-w-inp" type="text" placeholder="도시명으로 날씨 검색 (제주, 부산, 강릉...)" />
+        <button class="w-btn" onclick="krWeatherSearch()">날씨 조회</button>
+      </div>
+      <div id="kr-w-result" style="margin-top:12px"></div>
+    </div>
     <div class="kr-filter" id="kr-filter">
       <button class="kr-filter-btn active" onclick="krFilter('all',this)">전체</button>
       <button class="kr-filter-btn" onclick="krFilter('island',this)">🏝 섬</button>
@@ -1163,7 +1168,7 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
 // ═══════════════════════════════════════════
 //  TAB NAVIGATION
 // ═══════════════════════════════════════════
-let stockLoaded = false, travelLoaded = false, newsLoaded = false, koreaLoaded = false, foodLoaded = false, entLoaded = false;
+let stockLoaded = false, travelLoaded = false, newsLoaded = false, koreaLoaded = false, foodLoaded = false, entLoaded = false, weatherLoaded = false;
 
 const MINI_CHARTS = [
   {id:'mc-0', symbol:'NASDAQ:QQQ'},
@@ -1346,9 +1351,9 @@ function showTab(tab) {
       loadTop3Month();
     });
   }
-  if (tab === 'weather' && !document.getElementById('home-weather-card').dataset.loaded) {
-    document.getElementById('home-weather-card').dataset.loaded = '1';
-    loadHomeWeather();
+  if (tab === 'weather' && !weatherLoaded) {
+    weatherLoaded = true;
+    wShowDetail('화성시', '대한민국', 37.1996, 126.8313);
   }
   if (tab === 'travel' && !travelLoaded) {
     travelLoaded = true;
@@ -1491,8 +1496,8 @@ function wRenderHourly(dayIndex) {
 }
 
 async function wShowDetail(cityName, countryName, lat, lon) {
-  const det = document.getElementById('w-detail');
-  det.style.display = 'block';
+  const label = document.getElementById('w-detail-label');
+  if (label) label.textContent = cityName + (countryName ? ' · ' + countryName : '') + ' · Open-Meteo 실시간';
   document.getElementById('d-city').textContent = cityName;
   document.getElementById('d-country').textContent = countryName;
   document.getElementById('d-desc').textContent = '로딩 중...';
@@ -1500,7 +1505,6 @@ async function wShowDetail(cityName, countryName, lat, lon) {
   document.getElementById('d-temp').textContent = '—';
   document.getElementById('w-hourly').innerHTML = '';
   document.getElementById('w-weekly').innerHTML = '';
-  det.scrollIntoView({behavior:'smooth', block:'start'});
   try {
     const d = await wFetchWeather(lat, lon);
     const cur = d.current;
@@ -1586,6 +1590,7 @@ async function wDoSearch() {
 }
 function wSearchByName(name) { document.getElementById('w-inp').value = name; wDoSearch(); }
 document.getElementById('w-inp').addEventListener('keydown', e => { if(e.key==='Enter') wDoSearch(); });
+document.getElementById('kr-w-inp').addEventListener('keydown', e => { if(e.key==='Enter') krWeatherSearch(); });
 
 // ═══════════════════════════════════════════
 //  STOCK — Finnhub API
@@ -1837,7 +1842,7 @@ async function sLoadAll() {
 
   sFetchAll(bgSyms).then(bgRes => {
     bgRes.forEach(q => { quoteCache[q.symbol]=q; });
-    sRenderGainersLosers([...stockRes]);
+    sRenderGainersLosers(STOCKS.map(s=>quoteCache[s.sym]).filter(Boolean));
     // 히트맵은 캐시에서 바로 렌더
     hmRender(quoteCache);
     loadVolRank();
@@ -1891,26 +1896,27 @@ async function loadKrMarket() {
 // ═══════════════════════════════════════════
 async function fetch3MonthReturn(sym) {
   const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?range=3mo&interval=1wk`;
-  const proxies = [
-    `https://api.allorigins.win/get?url=${encodeURIComponent(yahooUrl)}`,
-    `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(yahooUrl)}`,
-  ];
+  const tryProxy = async (proxyUrl, isWrapped) => {
+    const ctrl = new AbortController();
+    const tid = setTimeout(() => ctrl.abort(), 8000);
+    const r = await fetch(proxyUrl, { signal: ctrl.signal });
+    clearTimeout(tid);
+    if (!r.ok) throw new Error();
+    const text = await r.text();
+    let raw = text;
+    if (isWrapped) { try { raw = JSON.parse(text).contents ?? text; } catch {} }
+    const d = JSON.parse(raw);
+    if (!d?.chart?.result?.[0]) throw new Error();
+    return d;
+  };
   let d = null;
-  for (const proxy of proxies) {
-    try {
-      const ctrl = new AbortController();
-      const tid = setTimeout(() => ctrl.abort(), 9000);
-      const r = await fetch(proxy, { signal: ctrl.signal });
-      clearTimeout(tid);
-      if (!r.ok) continue;
-      const text = await r.text();
-      // allorigins wraps in {contents:...}, codetabs returns raw JSON
-      let raw = text;
-      try { const j = JSON.parse(text); raw = j.contents ?? text; } catch {}
-      d = JSON.parse(raw);
-      if (d?.chart?.result?.[0]) break;
-    } catch { continue; }
-  }
+  try {
+    d = await Promise.any([
+      tryProxy(`https://corsproxy.io/?url=${encodeURIComponent(yahooUrl)}`, false),
+      tryProxy(`https://api.allorigins.win/get?url=${encodeURIComponent(yahooUrl)}`, true),
+      tryProxy(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(yahooUrl)}`, false),
+    ]);
+  } catch { throw new Error('all proxies failed'); }
   if (!d) throw new Error('all proxies failed');
   const closes = d?.chart?.result?.[0]?.indicators?.quote?.[0]?.close;
   if (!closes?.length || closes.length < 2) throw new Error('no data');
@@ -3027,25 +3033,27 @@ function krRenderGainersLosers(quotes) {
 // ── 3개월 수익률 (Yahoo Finance .KS) ─────────────
 async function fetchKrTop3Month(ySym, code, name) {
   const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ySym)}?range=3mo&interval=1wk`;
-  const proxies = [
-    `https://api.allorigins.win/get?url=${encodeURIComponent(yahooUrl)}`,
-    `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(yahooUrl)}`,
-  ];
+  const tryProxy = async (proxyUrl, isWrapped) => {
+    const ctrl = new AbortController();
+    const tid = setTimeout(() => ctrl.abort(), 8000);
+    const r = await fetch(proxyUrl, { signal: ctrl.signal });
+    clearTimeout(tid);
+    if (!r.ok) throw new Error();
+    const text = await r.text();
+    let raw = text;
+    if (isWrapped) { try { raw = JSON.parse(text).contents ?? text; } catch {} }
+    const d = JSON.parse(raw);
+    if (!d?.chart?.result?.[0]) throw new Error();
+    return d;
+  };
   let d = null;
-  for (const proxy of proxies) {
-    try {
-      const ctrl = new AbortController();
-      const tid = setTimeout(() => ctrl.abort(), 9000);
-      const r = await fetch(proxy, { signal: ctrl.signal });
-      clearTimeout(tid);
-      if (!r.ok) continue;
-      const text = await r.text();
-      let raw = text;
-      try { const j = JSON.parse(text); raw = j.contents ?? text; } catch {}
-      d = JSON.parse(raw);
-      if (d?.chart?.result?.[0]) break;
-    } catch { continue; }
-  }
+  try {
+    d = await Promise.any([
+      tryProxy(`https://corsproxy.io/?url=${encodeURIComponent(yahooUrl)}`, false),
+      tryProxy(`https://api.allorigins.win/get?url=${encodeURIComponent(yahooUrl)}`, true),
+      tryProxy(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(yahooUrl)}`, false),
+    ]);
+  } catch { throw new Error('all proxies failed'); }
   if (!d) throw new Error('all proxies failed');
   const closes = d?.chart?.result?.[0]?.indicators?.quote?.[0]?.close;
   if (!closes?.length) throw new Error('no data');
@@ -4109,6 +4117,54 @@ function krFilter(cat, btn) {
   document.querySelectorAll('.kr-filter-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   krRender(cat);
+}
+
+async function krWeatherSearch() {
+  const q = document.getElementById('kr-w-inp').value.trim();
+  if (!q) return;
+  const el = document.getElementById('kr-w-result');
+  el.innerHTML = '<div style="font-size:.75rem;color:var(--muted);padding:8px 0">🔍 검색 중...</div>';
+  try {
+    const geo = await wGeocode(q);
+    const d = await wFetchWeather(geo.lat, geo.lon);
+    const cur = d.current;
+    const w = getW(cur.weather_code);
+    const DAYS = ['일','월','화','수','목','금','토'];
+    const weekHtml = d.daily.time.map((date,i) => {
+      const wd = getW(d.daily.weather_code[i]);
+      const tmin = Math.round(d.daily.temperature_2m_min[i]);
+      const tmax = Math.round(d.daily.temperature_2m_max[i]);
+      const rain = d.daily.precipitation_probability_max[i] ?? 0;
+      const dayName = i===0?'오늘':DAYS[new Date(date).getDay()];
+      return `<div style="display:flex;flex-direction:column;align-items:center;gap:4px;min-width:52px">
+        <div style="font-size:.65rem;color:var(--muted)">${dayName}</div>
+        <div style="font-size:1.2rem">${wd.icon}</div>
+        <div style="font-size:.7rem;font-weight:600">${tmax}°</div>
+        <div style="font-size:.65rem;color:var(--muted)">${tmin}°</div>
+        <div style="font-size:.6rem;color:var(--accent)">${rain}%</div>
+      </div>`;
+    }).join('');
+    el.innerHTML = `
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 22px">
+        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:16px">
+          <div style="font-size:2rem">${w.icon}</div>
+          <div>
+            <div style="font-size:1.1rem;font-weight:700;color:var(--text)">${geo.city} <span style="font-size:.7rem;color:var(--muted);font-weight:400">${geo.country}</span></div>
+            <div style="font-size:.72rem;color:var(--accent2);margin-top:2px">${w.desc}</div>
+          </div>
+          <div style="font-size:2rem;font-weight:700;color:var(--text);margin-left:auto">${Math.round(cur.temperature_2m)}°C</div>
+        </div>
+        <div style="display:flex;gap:16px;font-size:.7rem;color:var(--muted);margin-bottom:16px;flex-wrap:wrap">
+          <span>체감 ${Math.round(cur.apparent_temperature)}°C</span>
+          <span>💧 ${cur.relative_humidity_2m}%</span>
+          <span>💨 ${Math.round(cur.wind_speed_10m)} km/h</span>
+          <span>🌧 ${cur.precipitation_probability??0}%</span>
+        </div>
+        <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:4px">${weekHtml}</div>
+      </div>`;
+  } catch {
+    el.innerHTML = '<div style="font-size:.75rem;color:var(--muted);padding:8px 0">⚠ 도시를 찾을 수 없습니다. 영문 또는 한글로 다시 시도해보세요.</div>';
+  }
 }
 
 async function krLoadWeather() {
