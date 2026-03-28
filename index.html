@@ -3773,13 +3773,22 @@ async function loadOTTPosters() {
     try {
       let poster = null;
 
-      // 1차: TVmaze (완전 무료, 키 불필요, CORS 지원)
+      // 1차: TVmaze shows (드라마/예능)
       const q = encodeURIComponent(d.titleEn || d.title);
       const r = await fetch(`https://api.tvmaze.com/search/shows?q=${q}`);
       if (r.ok) {
         const results = await r.json();
         const img = results[0]?.show?.image;
         if (img) poster = img.original || img.medium;
+      }
+      // 2차: TVmaze movies (영화 타입)
+      if (!poster) {
+        const rm = await fetch(`https://api.tvmaze.com/search/movies?q=${q}`);
+        if (rm.ok) {
+          const results = await rm.json();
+          const img = results[0]?.movie?.image;
+          if (img) poster = img.original || img.medium;
+        }
       }
 
       // 2차: TMDB (키 있을 때, 영화 포함)
