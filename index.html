@@ -455,6 +455,11 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
 .ent-plat-btn.tving.active   { background:rgba(255,0,66,.15);  border-color:rgba(255,0,66,.4);  color:#ff0042; }
 .ent-plat-btn.watcha.active  { background:rgba(255,60,120,.15);border-color:rgba(255,60,120,.4);color:#ff3c78; }
 .ent-plat-btn.all.active     { background:rgba(79,156,255,.12);border-color:rgba(79,156,255,.3);color:var(--accent2); }
+.ent-plat-btn.kbs.active    { background:rgba(0,75,157,.15);  border-color:rgba(0,75,157,.4);  color:#3d9ae8; }
+.ent-plat-btn.mbc.active    { background:rgba(0,168,107,.15); border-color:rgba(0,168,107,.4); color:#00c87a; }
+.ent-plat-btn.sbs.active    { background:rgba(200,30,30,.15); border-color:rgba(200,30,30,.4); color:#ff5252; }
+.ent-plat-btn.apple.active  { background:rgba(160,160,160,.15);border-color:rgba(160,160,160,.4);color:#b0b0b0; }
+.ent-plat-btn.coupang.active{ background:rgba(200,0,50,.15);  border-color:rgba(200,0,50,.4);  color:#ff2255; }
 .ent-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:14px; margin-bottom:40px; }
 .ent-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; overflow:hidden; transition:all .2s; cursor:pointer; }
 .ent-card:hover { transform:translateY(-3px); box-shadow:0 8px 28px rgba(0,0,0,.35); border-color:rgba(255,255,255,.15); }
@@ -1084,6 +1089,10 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
       <button class="ent-plat-btn wavve"           onclick="entFilter('wavve',this)">🌊 Wavve</button>
       <button class="ent-plat-btn tving"           onclick="entFilter('tving',this)">📡 Tving</button>
       <button class="ent-plat-btn watcha"          onclick="entFilter('watcha',this)">💜 Watcha</button>
+      <button class="ent-plat-btn apple"           onclick="entFilter('apple',this)">🍎 Apple TV+</button>
+      <button class="ent-plat-btn kbs"             onclick="entFilter('kbs',this)">📺 KBS</button>
+      <button class="ent-plat-btn mbc"             onclick="entFilter('mbc',this)">📺 MBC</button>
+      <button class="ent-plat-btn sbs"             onclick="entFilter('sbs',this)">📺 SBS</button>
     </div>
     <div class="ent-grid" id="ent-grid"></div>
 
@@ -3613,35 +3622,75 @@ const TMDB_BASE = 'https://api.themoviedb.org/3';
 
 // ── OTT 큐레이션 데이터
 const OTT_DATA = [
-  // Netflix
+  // ── Netflix ──────────────────────────────
   {title:'오징어게임 시즌2',titleEn:'Squid Game S2',plat:'netflix',type:'드라마',genres:['스릴러','서바이벌'],rating:8.2,year:2024,ep:7,emoji:'🦑',bg:'#141414',desc:'기훈의 귀환. 더 잔인하고 더 거대해진 서바이벌 게임이 다시 시작된다.',link:'https://www.netflix.com/search?q=오징어게임'},
-  {title:'흑백요리사',titleEn:'Culinary Class Wars',plat:'netflix',type:'예능',genres:['요리','서바이벌'],rating:9.1,year:2024,ep:12,emoji:'👨‍🍳',bg:'#1a0a00',desc:'흑수저 vs 백수저, 100인의 요리사가 맞붙는 역대급 요리 서바이벌.', link:'https://www.netflix.com/search?q=흑백요리사'},
+  {title:'흑백요리사',titleEn:'Culinary Class Wars',plat:'netflix',type:'예능',genres:['요리','서바이벌'],rating:9.1,year:2024,ep:12,emoji:'👨‍🍳',bg:'#1a0a00',desc:'흑수저 vs 백수저, 100인의 요리사가 맞붙는 역대급 요리 서바이벌.',link:'https://www.netflix.com/search?q=흑백요리사'},
   {title:'더 글로리',titleEn:'The Glory',plat:'netflix',type:'드라마',genres:['복수극','스릴러'],rating:8.7,year:2023,ep:16,emoji:'🔥',bg:'#0d0a1a',desc:'학교폭력 피해자의 치밀한 복수. 송혜교 주연 글로벌 히트작.',link:'https://www.netflix.com/search?q=더글로리'},
   {title:'피지컬:100 시즌2',titleEn:'Physical: 100 S2',plat:'netflix',type:'예능',genres:['서바이벌','스포츠'],rating:8.1,year:2024,ep:10,emoji:'💪',bg:'#0a0a0a',desc:'완벽한 신체를 가진 100인의 생존 경쟁. 최강의 몸을 가진 자가 살아남는다.',link:'https://www.netflix.com/search?q=피지컬100'},
   {title:'돌풍',titleEn:'Whirlwind',plat:'netflix',type:'드라마',genres:['정치','스릴러'],rating:8.3,year:2024,ep:12,emoji:'🌀',bg:'#050510',desc:'대통령을 향한 검사의 돌풍. 한국 정치 스릴러의 새로운 기준.',link:'https://www.netflix.com/search?q=돌풍'},
   {title:'정년이',titleEn:'Jeong Nyeon',plat:'netflix',type:'드라마',genres:['시대극','성장'],rating:8.4,year:2024,ep:12,emoji:'🎭',bg:'#1a0d00',desc:'1950년대 여성 국극단을 배경으로 한 찬란한 성장 드라마.',link:'https://www.netflix.com/search?q=정년이'},
   {title:'살인자ㅇ난감',titleEn:'A Killer Paradox',plat:'netflix',type:'드라마',genres:['스릴러','블랙코미디'],rating:8.0,year:2024,ep:8,emoji:'🔪',bg:'#0a0000',desc:'우연히 살인을 저지른 평범한 편의점 알바생. 도망치지 못하는 이유.',link:'https://www.netflix.com/search?q=살인자ㅇ난감'},
   {title:'나는 솔로',titleEn:'I Am Solo',plat:'netflix',type:'예능',genres:['연애','리얼리티'],rating:7.9,year:2025,ep:null,emoji:'💘',bg:'#1a0010',desc:'나이, 학력, 직업 불문 평범한 솔로들의 찐 연애 관찰 예능. 매 시즌 화제.',link:'https://www.netflix.com/search?q=나는솔로'},
-  // Disney+
+  {title:'지금 우리 학교는',titleEn:'All of Us Are Dead',plat:'netflix',type:'드라마',genres:['좀비','스릴러'],rating:7.6,year:2022,ep:12,emoji:'🧟',bg:'#0a0000',desc:'고등학교에서 좀비 바이러스가 창궐한다. 학생들의 처절한 생존기.',link:'https://www.netflix.com/search?q=지금우리학교는'},
+  {title:'닭강정',titleEn:'Chicken Nugget',plat:'netflix',type:'드라마',genres:['SF','코미디'],rating:7.3,year:2024,ep:10,emoji:'🍗',bg:'#1a0a00',desc:'치킨너겟으로 변한 아버지를 구하려는 딸의 코믹 SF 어드벤처.',link:'https://www.netflix.com/search?q=닭강정'},
+  {title:'지옥',titleEn:'Hellbound',plat:'netflix',type:'드라마',genres:['공포','스릴러'],rating:7.4,year:2021,ep:6,emoji:'🔥',bg:'#0a0000',desc:'지옥행을 선고받은 사람들. 연상호 감독의 충격적인 초자연 공포 스릴러.',link:'https://www.netflix.com/search?q=지옥'},
+  {title:'수리남',titleEn:'Narco-Saints',plat:'netflix',type:'드라마',genres:['범죄','스릴러'],rating:7.5,year:2022,ep:6,emoji:'🌴',bg:'#00100a',desc:'마약왕이 지배하는 수리남. 실화 기반 범죄 스릴러. 황정민·하정우 주연.',link:'https://www.netflix.com/search?q=수리남'},
+  {title:'경성크리처',titleEn:'Gyeongseong Creature',plat:'netflix',type:'드라마',genres:['시대극','SF','공포'],rating:7.0,year:2023,ep:10,emoji:'🧫',bg:'#0a0500',desc:'1945년 경성, 일제 치하의 공포. 박서준·한소희 주연 시대극 크리처물.',link:'https://www.netflix.com/search?q=경성크리처'},
+  {title:'킹덤',titleEn:'Kingdom',plat:'netflix',type:'드라마',genres:['좀비','역사','스릴러'],rating:8.4,year:2019,ep:12,emoji:'👑',bg:'#0a0500',desc:'조선 시대 왕위 다툼 속 좀비 창궐. 넷플릭스 최초 한국 오리지널 대작.',link:'https://www.netflix.com/search?q=킹덤'},
+  // ── Disney+ ──────────────────────────────
   {title:'무빙',titleEn:'Moving',plat:'disney',type:'드라마',genres:['액션','SF','가족'],rating:9.0,year:2023,ep:20,emoji:'⚡',bg:'#000d1a',desc:'초능력을 숨긴 부모와 그 아이들. 한국 슈퍼히어로물의 역대급 완성작.',link:'https://www.disneyplus.com/ko-kr/search?q=무빙'},
   {title:'쇼군',titleEn:'Shōgun',plat:'disney',type:'드라마',genres:['시대극','역사'],rating:8.6,year:2024,ep:10,emoji:'⚔️',bg:'#0a0500',desc:'16세기 봉건 일본에 표류한 영국 선원. 에미상 18관왕 글로벌 대작.',link:'https://www.disneyplus.com/ko-kr/search?q=쇼군'},
   {title:'비질란테',titleEn:'Vigilante',plat:'disney',type:'드라마',genres:['액션','범죄'],rating:8.1,year:2023,ep:8,emoji:'🦸',bg:'#05050a',desc:'낮에는 경찰대 학생, 밤에는 악인을 처단하는 자경단원. 남주혁 주연.',link:'https://www.disneyplus.com/ko-kr/search?q=비질란테'},
+  {title:'카지노',titleEn:'Casino',plat:'disney',type:'드라마',genres:['범죄','스릴러'],rating:8.3,year:2022,ep:20,emoji:'🎰',bg:'#0a0500',desc:'마카오 카지노를 둘러싼 권력 암투. 최민식 주연 Disney+ 오리지널.',link:'https://www.disneyplus.com/ko-kr/search?q=카지노'},
   {title:'만달로리안 시즌4',titleEn:'The Mandalorian S4',plat:'disney',type:'드라마',genres:['SF','어드벤처'],rating:8.3,year:2025,ep:8,emoji:'🚀',bg:'#000008',desc:'스타워즈 유니버스. 은하계를 떠도는 만달로리안 전사와 그로구의 여정.',link:'https://www.disneyplus.com/ko-kr/search?q=만달로리안'},
   {title:'데드풀 & 울버린',titleEn:'Deadpool & Wolverine',plat:'disney',type:'영화',genres:['액션','코미디'],rating:7.8,year:2024,ep:null,emoji:'🩸',bg:'#1a0000',desc:'마블 최초 R등급 영화. 두 안티히어로의 충격적인 만남.',link:'https://www.disneyplus.com/ko-kr/search?q=데드풀'},
-  // Wavve
+  {title:'무파사: 라이온 킹',titleEn:'Mufasa: The Lion King',plat:'disney',type:'영화',genres:['애니','가족'],rating:7.2,year:2024,ep:null,emoji:'🦁',bg:'#1a0a00',desc:'무파사의 전설이 시작된다. 라이온 킹 프리퀄 실사 애니메이션.',link:'https://www.disneyplus.com/ko-kr/search?q=무파사'},
+  // ── Wavve ────────────────────────────────
   {title:'이상한 변호사 우영우',titleEn:'Extraordinary Attorney Woo',plat:'wavve',type:'드라마',genres:['법정','힐링'],rating:8.4,year:2022,ep:16,emoji:'🐋',bg:'#00101a',desc:'자폐스펙트럼 천재 변호사의 성장 이야기. 전 세계 넷플릭스 1위 달성.',link:'https://www.wavve.com/'},
   {title:'연인',titleEn:'My Dearest',plat:'wavve',type:'드라마',genres:['시대극','로맨스'],rating:8.5,year:2023,ep:20,emoji:'🌸',bg:'#1a0a0a',desc:'병자호란을 배경으로 한 가슴 아픈 사랑 이야기. 안은진·남궁민 주연.',link:'https://www.wavve.com/'},
   {title:'마스크걸',titleEn:'Mask Girl',plat:'wavve',type:'드라마',genres:['스릴러','드라마'],rating:7.9,year:2023,ep:7,emoji:'🎭',bg:'#0a0a00',desc:'외모 콤플렉스를 가진 여성이 인터넷 방송으로 스타가 되며 벌어지는 사건.',link:'https://www.wavve.com/'},
   {title:'나의 해방일지',titleEn:'My Liberation Notes',plat:'wavve',type:'드라마',genres:['드라마','힐링'],rating:8.6,year:2022,ep:16,emoji:'✍️',bg:'#050a05',desc:'답답한 일상에서 해방을 꿈꾸는 삼남매의 조용하고 깊은 이야기.',link:'https://www.wavve.com/'},
-  // Tving
+  {title:'반짝이는 워터멜론',titleEn:'Glittering Watermelon',plat:'wavve',type:'드라마',genres:['청춘','판타지','음악'],rating:8.3,year:2023,ep:16,emoji:'🍉',bg:'#001a00',desc:'타임슬립으로 1995년 아버지의 젊은 시절을 만난다. 설현·최현욱 주연.',link:'https://www.wavve.com/'},
+  {title:'피라미드 게임',titleEn:'Pyramid Game',plat:'wavve',type:'드라마',genres:['스릴러','학원'],rating:7.8,year:2024,ep:10,emoji:'🔺',bg:'#0a0000',desc:'학교 내 잔인한 순위 게임. 충격적인 학원 스릴러.',link:'https://www.wavve.com/'},
+  {title:'닥터 슬럼프',titleEn:'Doctor Slump',plat:'wavve',type:'드라마',genres:['로맨스','힐링'],rating:8.0,year:2024,ep:16,emoji:'😮‍💨',bg:'#050510',desc:'잘나가던 의사와 변호사가 번아웃으로 만나 서로를 치유하는 로맨스.',link:'https://www.wavve.com/'},
+  // ── Tving ────────────────────────────────
+  {title:'선재 업고 튀어',titleEn:'Lovely Runner',plat:'tving',type:'드라마',genres:['로맨스','타임슬립'],rating:8.9,year:2024,ep:16,emoji:'⏰',bg:'#0a0005',desc:'아이돌 스타의 죽음을 막기 위해 과거로 달려간다. 2024 최고 화제작.',link:'https://www.tving.com/'},
+  {title:'내 남편과 결혼해줘',titleEn:'Marry My Husband',plat:'tving',type:'드라마',genres:['복수','판타지'],rating:8.4,year:2024,ep:16,emoji:'💍',bg:'#1a0010',desc:'남편과 친구에게 배신당한 여자, 과거로 돌아가 복수를 시작하다.',link:'https://www.tving.com/'},
+  {title:'이재, 곧 죽습니다',titleEn:"Death's Game",plat:'tving',type:'드라마',genres:['판타지','스릴러'],rating:8.2,year:2023,ep:8,emoji:'💀',bg:'#05050a',desc:'12번 죽어가며 인생을 깨닫는 남자. 최준영·박소담 주연 Tving 오리지널.',link:'https://www.tving.com/'},
   {title:'환승연애3',titleEn:'Transit Love 3',plat:'tving',type:'예능',genres:['연애','리얼리티'],rating:8.2,year:2023,ep:12,emoji:'💔',bg:'#1a0005',desc:'전 연인들과 새로운 인연들이 한 공간에서 펼치는 혼돈의 연애 리얼리티.',link:'https://www.tving.com/'},
-  {title:'술꾼도시여자들 시즌2',titleEn:'Drinking Solo Women S2',plat:'tving',type:'드라마',genres:['코미디','우정'],rating:8.1,year:2023,ep:10,emoji:'🍻',bg:'#0a0510',desc:'세 친구의 술과 함께하는 웃고 우는 도시 여성 이야기 시즌2.',link:'https://www.tving.com/'},
+  {title:'술꾼도시여자들 시즌2',titleEn:'Work Later Drink Now S2',plat:'tving',type:'드라마',genres:['코미디','우정'],rating:8.1,year:2023,ep:10,emoji:'🍻',bg:'#0a0510',desc:'세 친구의 술과 함께하는 웃고 우는 도시 여성 이야기 시즌2.',link:'https://www.tving.com/'},
   {title:'서울의 봄',titleEn:'12.12: The Day',plat:'tving',type:'영화',genres:['역사','드라마'],rating:8.8,year:2023,ep:null,emoji:'🪖',bg:'#050505',desc:'1979년 12·12 군사반란. 황정민·정우성 주연 천만 영화.',link:'https://www.tving.com/'},
   {title:'피식대학 BEST',titleEn:'Psick Univ Best',plat:'tving',type:'예능',genres:['코미디','버라이어티'],rating:9.2,year:2024,ep:null,emoji:'😂',bg:'#0a0a00',desc:'1인 개인기부터 스케치 코미디까지. 2030 최고 코미디 채널.',link:'https://www.tving.com/'},
-  // Watcha
-  {title:'러브캐처 in 서울',titleEn:'Love Catcher in Seoul',plat:'watcha',type:'예능',genres:['연애','추리'],rating:7.9,year:2023,ep:10,emoji:'💜',bg:'#10001a',desc:'사랑꾼과 금전꾼이 섞인 연애 추리 예능. 진짜 마음을 찾아라.',link:'https://watcha.com/'},
+  {title:'연애남매',titleEn:'Love in the Big City',plat:'tving',type:'드라마',genres:['로맨스','우정'],rating:7.8,year:2024,ep:8,emoji:'🌆',bg:'#0a000a',desc:'퀴어 감수성이 담긴 도시 청춘의 사랑과 우정 이야기. 노상현·노윤서 주연.',link:'https://www.tving.com/'},
+  // ── Watcha ───────────────────────────────
   {title:'브레이킹 배드',titleEn:'Breaking Bad',plat:'watcha',type:'드라마',genres:['범죄','스릴러'],rating:9.5,year:2013,ep:62,emoji:'⚗️',bg:'#050a00',desc:'암 선고를 받은 화학 교사의 마약 제조 이야기. 역사상 최고의 드라마.',link:'https://watcha.com/'},
   {title:'체르노빌',titleEn:'Chernobyl',plat:'watcha',type:'드라마',genres:['역사','스릴러'],rating:9.4,year:2019,ep:5,emoji:'☢️',bg:'#0a0500',desc:'1986년 체르노빌 원전 사고의 실화. IMDb 역사상 최고 평점 미니시리즈.',link:'https://watcha.com/'},
+  {title:'러브캐처 in 서울',titleEn:'Love Catcher in Seoul',plat:'watcha',type:'예능',genres:['연애','추리'],rating:7.9,year:2023,ep:10,emoji:'💜',bg:'#10001a',desc:'사랑꾼과 금전꾼이 섞인 연애 추리 예능. 진짜 마음을 찾아라.',link:'https://watcha.com/'},
+  {title:'더 베어',titleEn:'The Bear',plat:'watcha',type:'드라마',genres:['요리','드라마'],rating:8.7,year:2022,ep:10,emoji:'🐻',bg:'#0a0500',desc:'파인 다이닝 셰프가 형의 샌드위치 가게를 물려받다. 에미상 석권 미국 드라마.',link:'https://watcha.com/'},
+  {title:'석세션',titleEn:'Succession',plat:'watcha',type:'드라마',genres:['가족','권력'],rating:8.9,year:2023,ep:39,emoji:'💼',bg:'#050505',desc:'미디어 재벌가의 후계자 전쟁. 에미상 최다 수상 드라마.',link:'https://watcha.com/'},
+  // ── Apple TV+ ────────────────────────────
+  {title:'폭싹 속았수다',titleEn:'When Life Gives You Tangerines',plat:'apple',type:'드라마',genres:['가족','시대극'],rating:9.1,year:2025,ep:16,emoji:'🍊',bg:'#1a0a00',desc:'제주도를 배경으로 한 70년 세월의 가족 서사. 아이유·박보검 주연. 2025 최고 화제작.',link:'https://tv.apple.com/kr'},
+  {title:'테드 래소',titleEn:'Ted Lasso',plat:'apple',type:'드라마',genres:['스포츠','코미디'],rating:8.8,year:2021,ep:34,emoji:'⚽',bg:'#0a0a1a',desc:'미식축구 코치가 영국 축구팀을 맡다. 에미상 7관왕 힐링 코미디.',link:'https://tv.apple.com/kr'},
+  {title:'슈링킹',titleEn:'Shrinking',plat:'apple',type:'드라마',genres:['코미디','힐링'],rating:8.3,year:2023,ep:22,emoji:'🛋️',bg:'#050a10',desc:'규칙을 무시하는 정신과 의사의 파격적인 상담. 제이슨 시걸 주연 힐링 코미디.',link:'https://tv.apple.com/kr'},
+  // ── KBS 공중파 ───────────────────────────
+  {title:'고려거란전쟁',titleEn:'Goryeo-Khitan War',plat:'kbs',type:'드라마',genres:['역사','전쟁'],rating:8.5,year:2023,ep:32,emoji:'🏹',bg:'#000a1a',desc:'강감찬 장군이 이끈 귀주대첩. KBS 역대 최고 시청률 역사 대작.',link:'https://program.kbs.co.kr/'},
+  {title:'수사반장 1958',titleEn:'Detective 1958',plat:'kbs',type:'드라마',genres:['수사','시대극'],rating:8.3,year:2024,ep:16,emoji:'🕵️',bg:'#0a0500',desc:'1958년 서울 수사반장의 이야기. 이제훈 주연 레트로 수사 드라마.',link:'https://program.kbs.co.kr/'},
+  {title:'1박 2일 시즌4',titleEn:'2 Days 1 Night S4',plat:'kbs',type:'예능',genres:['여행','버라이어티'],rating:8.0,year:2024,ep:null,emoji:'🏕️',bg:'#050a00',desc:'국내 여행지를 돌아다니며 미션을 수행하는 국민 여행 예능. 시즌4 진행 중.',link:'https://program.kbs.co.kr/'},
+  {title:'불후의 명곡',titleEn:'Immortal Songs',plat:'kbs',type:'예능',genres:['음악','경연'],rating:8.1,year:2024,ep:null,emoji:'🎤',bg:'#0a0010',desc:'전설적인 가수의 명곡을 현역 가수들이 재해석. 30년 전통의 음악 경연.',link:'https://program.kbs.co.kr/'},
+  {title:'슈퍼맨이 돌아왔다',titleEn:'The Return of Superman',plat:'kbs',type:'예능',genres:['육아','가족'],rating:7.9,year:2024,ep:null,emoji:'👶',bg:'#000a10',desc:'아빠와 아이들의 48시간. 유명인 가족의 리얼 육아 관찰 예능.',link:'https://program.kbs.co.kr/'},
+  // ── MBC 공중파 ───────────────────────────
+  {title:'원더풀 월드',titleEn:'Wonderful World',plat:'mbc',type:'드라마',genres:['복수','스릴러'],rating:8.1,year:2024,ep:16,emoji:'🌍',bg:'#001a0a',desc:'아들을 잃은 어머니의 복수. 김남주·차은우 주연 MBC 2024 대표 드라마.',link:'https://www.mbc.co.kr/'},
+  {title:'나 혼자 산다',titleEn:'I Live Alone',plat:'mbc',type:'예능',genres:['리얼리티','라이프'],rating:8.2,year:2024,ep:null,emoji:'🛋',bg:'#050a05',desc:'1인 가구 유명인들의 솔직한 일상 공개. 무지개 회원들의 장수 예능.',link:'https://www.mbc.co.kr/'},
+  {title:'놀면 뭐하니?',titleEn:'How Do You Play?',plat:'mbc',type:'예능',genres:['버라이어티','도전'],rating:8.0,year:2024,ep:null,emoji:'🎉',bg:'#0a0a05',desc:'유재석의 새로운 프로젝트 도전기. 음악·요리·스포츠 등 다양한 부캐 활동.',link:'https://www.mbc.co.kr/'},
+  {title:'라디오스타',titleEn:'Radio Star',plat:'mbc',type:'예능',genres:['토크','예능'],rating:7.8,year:2024,ep:null,emoji:'🎙',bg:'#0a0505',desc:'독설 MC들의 신랄한 토크쇼. 20년 전통의 게스트 저격 프로그램.',link:'https://www.mbc.co.kr/'},
+  {title:'폭군',titleEn:'Tyrant',plat:'mbc',type:'드라마',genres:['정치','스릴러'],rating:7.9,year:2024,ep:16,emoji:'⚖️',bg:'#050005',desc:'권력의 정점에 선 자의 몰락. 오만석 주연 MBC 정치 스릴러.',link:'https://www.mbc.co.kr/'},
+  // ── SBS 공중파 ───────────────────────────
+  {title:'마이 데몬',titleEn:'My Demon',plat:'sbs',type:'드라마',genres:['판타지','로맨스'],rating:7.7,year:2023,ep:16,emoji:'😈',bg:'#10000a',desc:'악마와 재벌녀의 계약 동거. 송강·김유정 주연 판타지 로맨스.',link:'https://programs.sbs.co.kr/'},
+  {title:'열혈사제2',titleEn:'Fiery Priest 2',plat:'sbs',type:'드라마',genres:['액션','코미디'],rating:8.2,year:2023,ep:16,emoji:'✝️',bg:'#1a0500',desc:'김해일 신부의 화끈한 악당 응징. 김남길 주연 액션 코미디 시즌2.',link:'https://programs.sbs.co.kr/'},
+  {title:'런닝맨',titleEn:'Running Man',plat:'sbs',type:'예능',genres:['버라이어티','게임'],rating:8.0,year:2024,ep:null,emoji:'🏃',bg:'#0a0000',desc:'대한민국 대표 예능. 14년 째 이어지는 국민 게임 버라이어티.',link:'https://programs.sbs.co.kr/'},
+  {title:'커넥션',titleEn:'Connection',plat:'sbs',type:'드라마',genres:['범죄','스릴러'],rating:7.8,year:2024,ep:16,emoji:'🔗',bg:'#050a0a',desc:'마약에 중독된 형사가 마약 조직의 실체를 파헤친다. 지성 주연 범죄 스릴러.',link:'https://programs.sbs.co.kr/'},
+  {title:'골 때리는 그녀들',titleEn:'Kick a Goal',plat:'sbs',type:'예능',genres:['스포츠','예능'],rating:7.9,year:2024,ep:null,emoji:'⚽',bg:'#001a00',desc:'여성 연예인들의 진짜 축구 경쟁. 승부욕과 우정이 넘치는 스포츠 예능.',link:'https://programs.sbs.co.kr/'},
+  {title:'미운 우리 새끼',titleEn:'My Ugly Duckling',plat:'sbs',type:'예능',genres:['관찰','가족'],rating:7.7,year:2024,ep:null,emoji:'👩‍👦',bg:'#0a0500',desc:'유명인 자녀들의 일상을 어머니들이 지켜보며 토크. 장수 관찰 예능.',link:'https://programs.sbs.co.kr/'},
 ];
 
 // ── 공중파 예능 편성표
@@ -3692,8 +3741,8 @@ let entCurPlat = 'all', entCurTV = 'all', entCurMovie = 'kr';
 const ottPosters = {};  // title → poster URL 캐시
 
 // 포스터 배경색 (플랫폼별)
-const PLAT_COLORS = {netflix:'#141414',disney:'#040f26',wavve:'#001428',tving:'#1a0008',watcha:'#12001a'};
-const PLAT_LABEL = {netflix:'NETFLIX',disney:'DISNEY+',wavve:'WAVVE',tving:'TVING',watcha:'WATCHA'};
+const PLAT_COLORS = {netflix:'#141414',disney:'#040f26',wavve:'#001428',tving:'#1a0008',watcha:'#12001a',apple:'#1a1a1a',kbs:'#000d1a',mbc:'#001a0a',sbs:'#1a0000'};
+const PLAT_LABEL  = {netflix:'NETFLIX',disney:'DISNEY+',wavve:'WAVVE',tving:'TVING',watcha:'WATCHA',apple:'APPLE TV+',kbs:'KBS',mbc:'MBC',sbs:'SBS'};
 
 function entStars(r) {
   const f = Math.floor(r/2); const h = (r/2 - f) >= 0.3 ? 1 : 0;
