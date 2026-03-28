@@ -1318,9 +1318,11 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
     <!-- TMDB 키 안내 -->
 
     <!-- ① OTT 인기 콘텐츠 -->
-    <div class="sec-head" style="margin-top:0;margin-bottom:14px">
+    <div class="sec-head" style="margin-top:0;margin-bottom:8px">
       <div><div class="sec-title" style="font-size:.8rem">📺 OTT 인기 콘텐츠</div></div>
+      <button id="ott-refresh-btn" class="tv-refresh" onclick="ottRefresh()">↻ 새로고침</button>
     </div>
+    <div style="font-size:.68rem;color:var(--muted);margin-bottom:10px">TMDB 기반 · 매주 월요일 자동갱신 · <span id="ott-last-update" style="color:var(--accent2)">-</span></div>
     <div class="ent-plat-bar" id="ent-plat-bar">
       <button class="ent-plat-btn all active"     onclick="entFilter('all',this)">전체</button>
       <button class="ent-plat-btn netflix"         onclick="entFilter('netflix',this)">🔴 Netflix</button>
@@ -4124,9 +4126,102 @@ function mjInit() {
 // ═══════════════════════════════════════════
 
 // ── TMDB 설정 (선택사항 - 무료 키: https://www.themoviedb.org/settings/api)
-const TMDB_KEY = '';  // ← 여기에 무료 API 키 입력 시 실시간 영화 포스터/평점 표시
+const TMDB_KEY = '8a4851798c8807d0f8fce069179598b0';
 const TMDB_IMG = 'https://image.tmdb.org/t/p/w342';
 const TMDB_BASE = 'https://api.themoviedb.org/3';
+
+// 플랫폼별 TMDB Watch Provider ID (한국 KR 기준)
+const TMDB_PLATS = [
+  { key:'netflix', id:8,   bg:'#141414', icon:'🔴' },
+  { key:'disney',  id:337, bg:'#000d1a', icon:'🔵' },
+  { key:'apple',   id:350, bg:'#0a0a0a', icon:'🍎' },
+  { key:'wavve',   id:356, bg:'#00101a', icon:'🌊' },
+  { key:'tving',   id:464, bg:'#0a0005', icon:'📡' },
+  { key:'watcha',  id:97,  bg:'#10001a', icon:'💜' },
+];
+
+let liveOttData = [];  // TMDB에서 가져온 실시간 OTT 데이터
+
+// 이번 주 월요일 00:00 타임스탬프
+function getLastMondayTs() {
+  const d = new Date();
+  const day = d.getDay() || 7;
+  d.setDate(d.getDate() - (day - 1));
+  d.setHours(0, 0, 0, 0);
+  return d.getTime();
+}
+
+// TMDB OTT 콘텐츠 fetch (월요일마다 자동갱신, localStorage 캐시)
+async function fetchTmdbOtt(force = false) {
+  const CACHE_KEY = 'tmdbOttV2';
+  const CACHE_DATE = 'tmdbOttDate';
+  if (!force) {
+    try {
+      const cached = localStorage.getItem(CACHE_KEY);
+      const cDate = parseInt(localStorage.getItem(CACHE_DATE) || '0');
+      if (cached && cDate >= getLastMondayTs()) return JSON.parse(cached);
+    } catch {}
+  }
+  const results = [];
+  await Promise.allSettled(TMDB_PLATS.map(async plat => {
+    try {
+      const [tv, mv] = await Promise.all([
+        fetch(`${TMDB_BASE}/discover/tv?api_key=${TMDB_KEY}&watch_region=KR&with_watch_providers=${plat.id}&sort_by=popularity.desc&language=ko-KR&page=1`).then(r=>r.json()),
+        fetch(`${TMDB_BASE}/discover/movie?api_key=${TMDB_KEY}&watch_region=KR&with_watch_providers=${plat.id}&sort_by=popularity.desc&language=ko-KR&page=1`).then(r=>r.json()),
+      ]);
+      (tv.results||[]).slice(0,4).forEach(item => results.push({
+        title: item.name || item.original_name,
+        titleEn: item.original_name,
+        plat: plat.key, type:'드라마', genres:[],
+        rating: Math.round((item.vote_average||0)*10)/10,
+        year: parseInt(item.first_air_date?.slice(0,4)) || 2024,
+        ep: null, emoji: plat.icon, bg: plat.bg,
+        desc: item.overview || '줄거리 정보 없음',
+        poster: item.poster_path ? TMDB_IMG + item.poster_path : null,
+        link: `https://www.themoviedb.org/tv/${item.id}`,
+      }));
+      (mv.results||[]).slice(0,2).forEach(item => results.push({
+        title: item.title || item.original_title,
+        titleEn: item.original_title,
+        plat: plat.key, type:'영화', genres:[],
+        rating: Math.round((item.vote_average||0)*10)/10,
+        year: parseInt(item.release_date?.slice(0,4)) || 2024,
+        ep: null, emoji: plat.icon, bg: plat.bg,
+        desc: item.overview || '줄거리 정보 없음',
+        poster: item.poster_path ? TMDB_IMG + item.poster_path : null,
+        link: `https://www.themoviedb.org/movie/${item.id}`,
+      }));
+    } catch {}
+  }));
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify(results));
+    localStorage.setItem(CACHE_DATE, Date.now().toString());
+  } catch {}
+  return results;
+}
+
+// TMDB + 공중파(KBS/MBC/SBS) 합친 전체 리스트
+function getOttAllData() {
+  const staticBc = OTT_DATA.filter(d => ['kbs','mbc','sbs'].includes(d.plat));
+  const ottPart = liveOttData.length
+    ? liveOttData
+    : OTT_DATA.filter(d => !['kbs','mbc','sbs'].includes(d.plat));
+  return [...ottPart, ...staticBc];
+}
+
+// 새로고침 버튼 핸들러
+async function ottRefresh() {
+  const btn = document.getElementById('ott-refresh-btn');
+  const grid = document.getElementById('ent-grid');
+  if (btn) { btn.textContent = '↻ 갱신 중...'; btn.disabled = true; }
+  grid.innerHTML = '<div class="tv-loading">📺 TMDB에서 최신 콘텐츠 가져오는 중...</div>';
+  liveOttData = await fetchTmdbOtt(true);
+  const activeBtn = document.querySelector('.ent-plat-btn.active') || document.querySelector('.ent-plat-btn.all');
+  if (activeBtn) entFilter(entCurPlat, activeBtn);
+  if (btn) { btn.textContent = '↻ 새로고침'; btn.disabled = false; }
+  const el = document.getElementById('ott-last-update');
+  if (el) el.textContent = '방금 갱신됨';
+}
 
 // ── OTT 큐레이션 데이터
 const OTT_DATA = [
@@ -4260,7 +4355,7 @@ function entStars(r) {
 function entCardHtml(d) {
   const bg = PLAT_COLORS[d.plat] || '#111';
   const epTxt = d.ep ? `${d.ep}화` : '영화';
-  const poster = ottPosters[d.title];
+  const poster = d.poster || ottPosters[d.title];
   return `<div class="ent-card" onclick="window.open('${d.link}','_blank')">
     <div class="ent-poster" style="background:${bg}">
       ${!poster ? `<div class="ent-poster-skeleton" id="sk-${d.title.replace(/\W/g,'_')}"></div><span class="ent-poster-emoji">${d.emoji}</span>` : ''}
@@ -4328,7 +4423,8 @@ function entFilter(plat, btn) {
   entCurPlat = plat;
   document.querySelectorAll('.ent-plat-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  const list = plat === 'all' ? OTT_DATA : OTT_DATA.filter(d => d.plat === plat);
+  const allData = getOttAllData();
+  const list = plat === 'all' ? allData : allData.filter(d => d.plat === plat);
   document.getElementById('ent-grid').innerHTML = list.map(entCardHtml).join('');
 }
 
@@ -4432,12 +4528,20 @@ async function movieFilter(type, btn) {
   grid.innerHTML = list.map(d => movieCardHtml(d, true)).join('');
 }
 
-function entInit() {
-  // TMDB 키 없을 때 안내
-  // OTT 렌더
-  document.getElementById('ent-grid').innerHTML = OTT_DATA.map(entCardHtml).join('');
-  // TMDB 포스터 비동기 로드 (키 있을 때)
-  loadOTTPosters();
+async function entInit() {
+  // TMDB에서 실시간 OTT 콘텐츠 로드 (localStorage 주간 캐시)
+  const grid = document.getElementById('ent-grid');
+  grid.innerHTML = '<div class="tv-loading">📺 최신 OTT 콘텐츠 불러오는 중...</div>';
+  liveOttData = await fetchTmdbOtt(false);
+  const allBtn = document.querySelector('.ent-plat-btn.all');
+  if (allBtn) entFilter('all', allBtn);
+  // 마지막 갱신일 표시
+  const cDate = parseInt(localStorage.getItem('tmdbOttDate') || '0');
+  const el = document.getElementById('ott-last-update');
+  if (el && cDate) {
+    const d = new Date(cDate);
+    el.textContent = `${d.getMonth()+1}/${d.getDate()} 갱신`;
+  }
   // TV 편성 렌더
   document.getElementById('tv-sched-grid').innerHTML = TV_SCHED.map(tvCardHtml).join('');
   // 영화 렌더 (kr 기본)
