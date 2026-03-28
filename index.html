@@ -459,8 +459,12 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
 .ent-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; overflow:hidden; transition:all .2s; cursor:pointer; }
 .ent-card:hover { transform:translateY(-3px); box-shadow:0 8px 28px rgba(0,0,0,.35); border-color:rgba(255,255,255,.15); }
 .ent-poster { width:100%; aspect-ratio:2/3; display:flex; align-items:center; justify-content:center; font-size:3rem; position:relative; overflow:hidden; }
-.ent-poster img { width:100%; height:100%; object-fit:cover; position:absolute; top:0; left:0; }
+.ent-poster img { width:100%; height:100%; object-fit:cover; position:absolute; top:0; left:0; transition:transform .3s; }
+.ent-card:hover .ent-poster img { transform:scale(1.04); }
+.ent-poster-overlay { position:absolute; bottom:0; left:0; right:0; height:45%; background:linear-gradient(transparent,rgba(0,0,0,.72)); z-index:1; pointer-events:none; }
 .ent-poster-emoji { position:relative; z-index:1; }
+.ent-poster-skeleton { width:100%; height:100%; position:absolute; top:0; left:0; background:linear-gradient(90deg,var(--surface) 25%,var(--surface2) 50%,var(--surface) 75%); background-size:200% 100%; animation:skeletonShimmer 1.4s infinite; }
+@keyframes skeletonShimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
 .ent-plat-dot { position:absolute; top:8px; right:8px; font-size:.6rem; font-weight:700; padding:3px 7px; border-radius:6px; z-index:2; letter-spacing:.03em; }
 .ent-plat-dot.netflix { background:#e50914; color:#fff; }
 .ent-plat-dot.disney  { background:#0a3fa8; color:#fff; }
@@ -1064,7 +1068,7 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
 
     <!-- TMDB 키 안내 -->
     <div class="tv-tmdb-note" id="ent-tmdb-note" style="display:none">
-      🎬 <b>실시간 영화 포스터/평점</b>을 보려면 무료 TMDB API 키가 필요합니다.
+      🎬 <b>OTT 드라마·영화 포스터</b>를 보려면 무료 TMDB API 키가 필요합니다.
       <a href="https://www.themoviedb.org/settings/api" target="_blank">여기서 무료 등록</a> 후
       소스 상단 <code>TMDB_KEY</code> 변수에 입력하세요.
     </div>
@@ -3685,6 +3689,7 @@ const MOVIE_DATA = {
 
 // ── 콘텐츠 탭 상태
 let entCurPlat = 'all', entCurTV = 'all', entCurMovie = 'kr';
+const ottPosters = {};  // title → poster URL 캐시
 
 // 포스터 배경색 (플랫폼별)
 const PLAT_COLORS = {netflix:'#141414',disney:'#040f26',wavve:'#001428',tving:'#1a0008',watcha:'#12001a'};
@@ -3698,9 +3703,11 @@ function entStars(r) {
 function entCardHtml(d) {
   const bg = PLAT_COLORS[d.plat] || '#111';
   const epTxt = d.ep ? `${d.ep}화` : '영화';
+  const poster = ottPosters[d.title];
   return `<div class="ent-card" onclick="window.open('${d.link}','_blank')">
     <div class="ent-poster" style="background:${bg}">
-      <span class="ent-poster-emoji">${d.emoji}</span>
+      ${!poster ? `<div class="ent-poster-skeleton" id="sk-${d.title.replace(/\W/g,'_')}"></div><span class="ent-poster-emoji">${d.emoji}</span>` : ''}
+      ${poster ? `<img src="${poster}" alt="${d.title}" loading="lazy" onerror="this.style.display='none'"><div class="ent-poster-overlay"></div>` : ''}
       <span class="ent-plat-dot ${d.plat}">${PLAT_LABEL[d.plat]}</span>
     </div>
     <div class="ent-info">
@@ -3713,6 +3720,28 @@ function entCardHtml(d) {
       </div>
     </div>
   </div>`;
+}
+
+// ── TMDB로 OTT 포스터 자동 로드 ─────────────────
+async function loadOTTPosters() {
+  if (!TMDB_KEY) return;
+  for (const d of OTT_DATA) {
+    try {
+      const isTV = d.type !== '영화';
+      const query = encodeURIComponent(d.titleEn || d.title);
+      const url = `${TMDB_BASE}/search/${isTV ? 'tv' : 'movie'}?api_key=${TMDB_KEY}&query=${query}&language=ko-KR&page=1`;
+      const r = await fetch(url);
+      if (!r.ok) continue;
+      const data = await r.json();
+      const item = data.results?.[0];
+      if (item?.poster_path) {
+        ottPosters[d.title] = TMDB_IMG + item.poster_path;
+        // 로드된 카드 즉시 업데이트
+        const list = entCurPlat === 'all' ? OTT_DATA : OTT_DATA.filter(x => x.plat === entCurPlat);
+        document.getElementById('ent-grid').innerHTML = list.map(entCardHtml).join('');
+      }
+    } catch { continue; }
+  }
 }
 
 function entFilter(plat, btn) {
@@ -3828,6 +3857,8 @@ function entInit() {
   if (!TMDB_KEY) document.getElementById('ent-tmdb-note').style.display = 'flex';
   // OTT 렌더
   document.getElementById('ent-grid').innerHTML = OTT_DATA.map(entCardHtml).join('');
+  // TMDB 포스터 비동기 로드 (키 있을 때)
+  loadOTTPosters();
   // TV 편성 렌더
   document.getElementById('tv-grid').innerHTML = TV_SCHED.map(tvCardHtml).join('');
   // 영화 렌더 (kr 기본)
