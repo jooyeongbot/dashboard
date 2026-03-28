@@ -241,6 +241,87 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
 /* ── NEWS TAB ── */
 .news-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(290px,1fr)); gap:14px; margin-top:4px; }
 @media(max-width:600px){ .news-grid { grid-template-columns:1fr; } }
+
+/* ── nav-tabs 스크롤 ── */
+.nav-tabs { overflow-x:auto; flex-wrap:nowrap; scrollbar-width:none; }
+.nav-tabs::-webkit-scrollbar { display:none; }
+
+/* ── 스포츠 ── */
+.sport-toggle-bar { display:flex; gap:8px; margin:24px 0 16px; }
+.sport-btn { font-family:'Noto Sans KR','Inter',sans-serif; font-size:.8rem; font-weight:600; padding:7px 18px; border-radius:10px; border:1px solid var(--border); background:var(--surface); color:var(--muted); cursor:pointer; transition:all .2s; }
+.sport-btn.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+.game-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:12px; margin-bottom:32px; }
+.game-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:16px 20px; }
+.game-date { font-family:'Roboto Mono',monospace; font-size:.6rem; color:var(--muted); margin-bottom:8px; }
+.game-teams { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.game-team { display:flex; flex-direction:column; align-items:center; gap:4px; min-width:70px; }
+.game-team-name { font-family:'Noto Sans KR','Inter',sans-serif; font-size:.8rem; font-weight:600; color:var(--text); }
+.game-score { font-family:'Roboto Mono',monospace; font-size:1.6rem; font-weight:700; }
+.game-vs { font-size:.7rem; color:var(--muted); }
+.game-status { font-family:'Roboto Mono',monospace; font-size:.62rem; color:var(--accent); margin-top:8px; text-align:center; }
+.stand-table { width:100%; border-collapse:collapse; font-size:.75rem; margin-bottom:32px; }
+.stand-table th { font-family:'Roboto Mono',monospace; font-size:.6rem; color:var(--muted); padding:6px 8px; text-align:right; border-bottom:1px solid var(--border); }
+.stand-table th:first-child,.stand-table td:first-child { text-align:left; }
+.stand-table th:nth-child(2),.stand-table td:nth-child(2) { text-align:left; }
+.stand-table td { padding:7px 8px; text-align:right; border-bottom:1px solid rgba(255,255,255,.04); color:var(--text); }
+.stand-table td:nth-child(2) { font-family:'Noto Sans KR','Inter',sans-serif; font-weight:600; }
+.stand-rank { font-family:'Roboto Mono',monospace; color:var(--muted); }
+.stand-rank.top { color:var(--accent); font-weight:700; }
+
+/* ── 공모주 ── */
+.ipo-filter-bar { display:flex; gap:8px; margin:0 0 20px; flex-wrap:wrap; }
+.ipo-filter-btn { font-family:'Roboto Mono',monospace; font-size:.72rem; padding:6px 14px; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--muted); cursor:pointer; transition:all .2s; }
+.ipo-filter-btn.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+.ipo-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:14px; margin-bottom:32px; }
+.ipo-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:20px; transition:all .2s; }
+.ipo-card:hover { border-color:rgba(79,156,255,.4); transform:translateY(-2px); }
+.ipo-name { font-family:'Noto Sans KR','Inter',sans-serif; font-size:1rem; font-weight:700; color:var(--text); margin-bottom:4px; }
+.ipo-sector { font-size:.65rem; color:var(--muted); margin-bottom:12px; font-family:'Roboto Mono',monospace; }
+.ipo-badge { display:inline-block; font-size:.6rem; font-weight:700; padding:3px 8px; border-radius:20px; margin-bottom:12px; }
+.ipo-badge.upcoming { background:rgba(79,156,255,.15); color:var(--accent); }
+.ipo-badge.open { background:rgba(0,220,130,.15); color:#00dc82; }
+.ipo-badge.listed { background:rgba(255,255,255,.08); color:var(--muted); }
+.ipo-badge.done { background:rgba(255,255,255,.05); color:var(--muted); }
+.ipo-rows { display:flex; flex-direction:column; gap:5px; }
+.ipo-row { display:flex; justify-content:space-between; font-size:.72rem; }
+.ipo-row-label { color:var(--muted); }
+.ipo-row-val { font-family:'Roboto Mono',monospace; color:var(--text); font-weight:600; }
+.ipo-row-val.up { color:var(--up); }
+.ipo-row-val.down { color:var(--down); }
+
+/* ── 부동산 ── */
+.re-city-bar { display:flex; gap:8px; margin:0 0 20px; overflow-x:auto; scrollbar-width:none; flex-wrap:nowrap; }
+.re-city-bar::-webkit-scrollbar { display:none; }
+.re-city-btn { font-family:'Noto Sans KR','Inter',sans-serif; font-size:.78rem; font-weight:600; padding:7px 16px; border-radius:10px; border:1px solid var(--border); background:var(--surface); color:var(--muted); cursor:pointer; white-space:nowrap; transition:all .2s; }
+.re-city-btn.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+.re-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(290px,1fr)); gap:14px; margin-bottom:32px; }
+.re-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:20px; transition:all .2s; cursor:pointer; }
+.re-card:hover { border-color:rgba(79,156,255,.4); transform:translateY(-2px); }
+.re-name { font-family:'Noto Sans KR','Inter',sans-serif; font-size:.9rem; font-weight:700; color:var(--text); }
+.re-addr { font-size:.65rem; color:var(--muted); margin-top:2px; margin-bottom:12px; }
+.re-price { font-family:'Roboto Mono',monospace; font-size:1.3rem; font-weight:700; color:var(--text); }
+.re-unit { font-size:.65rem; color:var(--muted); margin-left:4px; }
+.re-chg { font-size:.72rem; font-weight:600; margin-top:4px; }
+.re-meta { display:flex; gap:12px; margin-top:10px; font-size:.65rem; color:var(--muted); }
+
+/* ── AI 트렌드 ── */
+.ai-cat-bar { display:flex; gap:8px; margin:0 0 20px; flex-wrap:wrap; }
+.ai-cat-btn { font-family:'Roboto Mono',monospace; font-size:.72rem; padding:6px 14px; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--muted); cursor:pointer; transition:all .2s; }
+.ai-cat-btn.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+.ai-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:14px; margin-bottom:32px; }
+.ai-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:18px 20px; transition:all .2s; cursor:pointer; }
+.ai-card:hover { border-color:rgba(79,156,255,.4); transform:translateY(-2px); }
+.ai-card-title { font-family:'Roboto Mono',monospace; font-size:.82rem; font-weight:700; color:var(--accent); margin-bottom:4px; word-break:break-all; }
+.ai-card-org { font-size:.65rem; color:var(--muted); margin-bottom:6px; }
+.ai-card-desc { font-size:.72rem; color:var(--text); line-height:1.5; margin-bottom:10px; }
+.ai-card-tags { display:flex; gap:6px; flex-wrap:wrap; }
+.ai-tag { font-size:.6rem; padding:2px 8px; border-radius:20px; background:rgba(79,156,255,.12); color:var(--accent); }
+.ai-card-stats { display:flex; gap:14px; margin-top:10px; font-family:'Roboto Mono',monospace; font-size:.65rem; color:var(--muted); }
+.hf-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px 18px; }
+.hf-rank { font-family:'Roboto Mono',monospace; font-size:.62rem; color:var(--muted); margin-bottom:6px; }
+.hf-title { font-family:'Roboto Mono',monospace; font-size:.78rem; font-weight:700; color:var(--text); margin-bottom:3px; word-break:break-all; }
+.hf-sub { font-size:.65rem; color:var(--muted); }
+.hf-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:10px; margin-bottom:32px; }
 .news-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:18px; cursor:pointer; transition:all .2s; display:flex; flex-direction:column; gap:10px; }
 .news-card:hover { border-color:rgba(79,156,255,.4); transform:translateY(-2px); background:var(--surface2); }
 .news-score { display:inline-flex; align-items:center; gap:6px; background:rgba(255,179,71,.1); border:1px solid rgba(255,179,71,.2); border-radius:6px; padding:3px 10px; font-family:'Roboto Mono',monospace; font-size:.62rem; color:var(--warn); width:fit-content; }
@@ -547,6 +628,18 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
       </button>
       <button class="tab-btn" onclick="showTab('news')" id="tab-news">
         <span class="tab-icon">📰</span> 뉴스
+      </button>
+      <button class="tab-btn" onclick="showTab('sports')" id="tab-sports">
+        <span class="tab-icon">⚾</span> 스포츠
+      </button>
+      <button class="tab-btn" onclick="showTab('ipo')" id="tab-ipo">
+        <span class="tab-icon">📋</span> 공모주
+      </button>
+      <button class="tab-btn" onclick="showTab('realestate')" id="tab-realestate">
+        <span class="tab-icon">🏠</span> 부동산
+      </button>
+      <button class="tab-btn" onclick="showTab('aitrend')" id="tab-aitrend">
+        <span class="tab-icon">🤖</span> AI 트렌드
       </button>
     </div>
     <div class="nav-right">
@@ -1029,6 +1122,140 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
 </div>
 
 <!-- ══════════════════════════════════════
+     SPORTS SECTION
+══════════════════════════════════════ -->
+<div class="section" id="section-sports">
+  <div class="wrap">
+    <div class="sec-head" style="margin-top:24px">
+      <div><div class="sec-title">// 스포츠 스코어보드</div><div class="sec-desc">KBO 프로야구 · K리그 · 네이버 스포츠 기준</div></div>
+      <div class="sec-line"></div>
+    </div>
+    <div class="sport-toggle-bar">
+      <button class="sport-btn active" id="sp-kbo" onclick="switchSport('kbo',this)">⚾ KBO 프로야구</button>
+      <button class="sport-btn" id="sp-kleague" onclick="switchSport('kleague',this)">⚽ K리그</button>
+    </div>
+
+    <!-- KBO -->
+    <div id="sport-kbo">
+      <div class="sec-head" style="margin-top:0;margin-bottom:12px">
+        <div><div class="sec-title" style="font-size:.8rem">📅 오늘의 경기</div></div>
+      </div>
+      <div class="game-grid" id="kbo-games"><div class="tv-loading">경기 정보 불러오는 중...</div></div>
+      <div class="sec-head" style="margin-top:0;margin-bottom:12px">
+        <div><div class="sec-title" style="font-size:.8rem">🏆 KBO 순위</div></div>
+      </div>
+      <div id="kbo-stand"><div class="tv-loading">순위 불러오는 중...</div></div>
+    </div>
+
+    <!-- K리그 -->
+    <div id="sport-kleague" style="display:none">
+      <div class="sec-head" style="margin-top:0;margin-bottom:12px">
+        <div><div class="sec-title" style="font-size:.8rem">📅 이번 주 경기</div></div>
+      </div>
+      <div class="game-grid" id="kl-games"><div class="tv-loading">경기 정보 불러오는 중...</div></div>
+      <div class="sec-head" style="margin-top:0;margin-bottom:12px">
+        <div><div class="sec-title" style="font-size:.8rem">🏆 K리그1 순위</div></div>
+      </div>
+      <div id="kl-stand"><div class="tv-loading">순위 불러오는 중...</div></div>
+    </div>
+
+    <footer style="margin-top:40px">
+      <div class="ft">PULSE DASHBOARD · 스포츠 스코어보드</div>
+      <div class="ft">DATA BY <span>NAVER SPORTS</span></div>
+    </footer>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     IPO SECTION
+══════════════════════════════════════ -->
+<div class="section" id="section-ipo">
+  <div class="wrap">
+    <div class="sec-head" style="margin-top:24px">
+      <div><div class="sec-title">// 공모주 캘린더</div><div class="sec-desc">2026년 공모주 청약 일정 · 한국거래소 기준</div></div>
+      <div class="sec-line"></div>
+    </div>
+    <div class="ipo-filter-bar">
+      <button class="ipo-filter-btn active" onclick="ipoFilter('all',this)">전체</button>
+      <button class="ipo-filter-btn" onclick="ipoFilter('upcoming',this)">청약예정</button>
+      <button class="ipo-filter-btn" onclick="ipoFilter('open',this)">청약중</button>
+      <button class="ipo-filter-btn" onclick="ipoFilter('listed',this)">상장예정</button>
+      <button class="ipo-filter-btn" onclick="ipoFilter('done',this)">완료</button>
+    </div>
+    <div class="ipo-grid" id="ipo-grid"></div>
+    <footer style="margin-top:40px">
+      <div class="ft">PULSE DASHBOARD · 공모주 캘린더</div>
+      <div class="ft">참고: <span>한국거래소</span> · <span>38커뮤니케이션</span></div>
+    </footer>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     REAL ESTATE SECTION
+══════════════════════════════════════ -->
+<div class="section" id="section-realestate">
+  <div class="wrap">
+    <div class="sec-head" style="margin-top:24px">
+      <div><div class="sec-title">// 부동산 시세 트래커</div><div class="sec-desc">주요 아파트 실거래가 · KB부동산 · 국토부 기준</div></div>
+      <div class="sec-line"></div>
+    </div>
+    <div class="re-city-bar" id="re-city-bar"></div>
+    <div class="re-grid" id="re-grid"></div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:32px">
+      <div style="font-size:.72rem;color:var(--muted);line-height:1.8">
+        📌 <b style="color:var(--text)">데이터 안내</b> — 표시 금액은 최근 실거래 참고가 기준이며 실제 시세와 다를 수 있습니다.<br>
+        정확한 실거래가 확인:
+        <a href="https://rt.molit.go.kr" target="_blank" style="color:var(--accent)">국토부 실거래가 공개시스템</a> ·
+        <a href="https://kbland.kr" target="_blank" style="color:var(--accent)">KB부동산</a> ·
+        <a href="https://m.land.naver.com" target="_blank" style="color:var(--accent)">네이버 부동산</a>
+      </div>
+    </div>
+    <footer style="margin-top:20px">
+      <div class="ft">PULSE DASHBOARD · 부동산 시세</div>
+      <div class="ft">참고: <span>국토부 실거래가</span> · <span>KB부동산</span></div>
+    </footer>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     AI TREND SECTION
+══════════════════════════════════════ -->
+<div class="section" id="section-aitrend">
+  <div class="wrap">
+    <div class="sec-head" style="margin-top:24px">
+      <div><div class="sec-title">// AI 트렌드</div><div class="sec-desc">HuggingFace 트렌딩 모델 · 주목할 AI 툴 큐레이션</div></div>
+      <div class="sec-line"></div>
+    </div>
+
+    <!-- HuggingFace 트렌딩 -->
+    <div class="sec-head" style="margin-top:0;margin-bottom:14px">
+      <div><div class="sec-title" style="font-size:.8rem">🔥 HuggingFace 트렌딩 모델</div></div>
+    </div>
+    <div class="hf-grid" id="hf-grid"><div class="tv-loading">모델 불러오는 중...</div></div>
+
+    <!-- 주목 AI 툴 -->
+    <div class="sec-head" style="margin-top:0;margin-bottom:14px">
+      <div><div class="sec-title" style="font-size:.8rem">✨ 주목할 AI 툴</div></div>
+    </div>
+    <div class="ai-cat-bar">
+      <button class="ai-cat-btn active" onclick="aiFilter('all',this)">전체</button>
+      <button class="ai-cat-btn" onclick="aiFilter('llm',this)">💬 LLM</button>
+      <button class="ai-cat-btn" onclick="aiFilter('image',this)">🖼 이미지</button>
+      <button class="ai-cat-btn" onclick="aiFilter('code',this)">💻 코드</button>
+      <button class="ai-cat-btn" onclick="aiFilter('video',this)">🎬 비디오</button>
+      <button class="ai-cat-btn" onclick="aiFilter('agent',this)">🤖 에이전트</button>
+      <button class="ai-cat-btn" onclick="aiFilter('voice',this)">🎤 음성</button>
+    </div>
+    <div class="ai-grid" id="ai-tools-grid"></div>
+
+    <footer style="margin-top:20px">
+      <div class="ft">PULSE DASHBOARD · AI 트렌드</div>
+      <div class="ft">DATA BY <span>HUGGINGFACE</span> · 큐레이션: <span>EDITOR</span></div>
+    </footer>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
      KOREA TRAVEL SECTION
 ══════════════════════════════════════ -->
 <div class="section" id="section-korea">
@@ -1168,7 +1395,7 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
 // ═══════════════════════════════════════════
 //  TAB NAVIGATION
 // ═══════════════════════════════════════════
-let stockLoaded = false, travelLoaded = false, newsLoaded = false, koreaLoaded = false, foodLoaded = false, entLoaded = false, weatherLoaded = false;
+let stockLoaded = false, travelLoaded = false, newsLoaded = false, koreaLoaded = false, foodLoaded = false, entLoaded = false, weatherLoaded = false, sportsLoaded = false, ipoLoaded = false, reLoaded = false, aiLoaded = false;
 
 const MINI_CHARTS = [
   {id:'mc-0', symbol:'NASDAQ:QQQ'},
@@ -1378,6 +1605,24 @@ function showTab(tab) {
   if (tab === 'ent' && !entLoaded) {
     entLoaded = true;
     entInit();
+  }
+  if (tab === 'sports' && !sportsLoaded) {
+    sportsLoaded = true;
+    loadKboGames();
+    loadKboStandings();
+  }
+  if (tab === 'ipo' && !ipoLoaded) {
+    ipoLoaded = true;
+    renderIpo('all');
+  }
+  if (tab === 'realestate' && !reLoaded) {
+    reLoaded = true;
+    reInit();
+  }
+  if (tab === 'aitrend' && !aiLoaded) {
+    aiLoaded = true;
+    loadHuggingFace();
+    renderAiTools('all');
   }
 }
 
@@ -4182,6 +4427,420 @@ async function krLoadWeather() {
   const catMap = {'전체':'all','섬':'island','바다':'sea','산·자연':'mountain','도시·역사':'city','음식':'food'};
   const cur = activeBtn ? catMap[activeBtn.textContent.trim().replace(/^.\s/,'')] || 'all' : 'all';
   krRender(cur);
+}
+
+// ═══════════════════════════════════════════
+//  SPORTS
+// ═══════════════════════════════════════════
+let currentSport = 'kbo';
+function switchSport(mode, btn) {
+  currentSport = mode;
+  document.querySelectorAll('.sport-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('sport-kbo').style.display      = mode==='kbo'      ? '' : 'none';
+  document.getElementById('sport-kleague').style.display  = mode==='kleague'  ? '' : 'none';
+  if (mode==='kleague' && !document.getElementById('kl-games').dataset.loaded) {
+    document.getElementById('kl-games').dataset.loaded='1';
+    loadKleagueGames();
+    loadKleagueStandings();
+  }
+}
+
+async function naverSportsAPI(url) {
+  const proxies = [
+    `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
+    `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+  ];
+  for (const p of proxies) {
+    try {
+      const ctrl = new AbortController();
+      const tid = setTimeout(()=>ctrl.abort(), 7000);
+      const r = await fetch(p, { signal: ctrl.signal });
+      clearTimeout(tid);
+      if (!r.ok) continue;
+      const text = await r.text();
+      let raw = text;
+      try { const j=JSON.parse(text); raw=j.contents??text; } catch {}
+      return JSON.parse(raw);
+    } catch { continue; }
+  }
+  return null;
+}
+
+function kboTeamEmoji(name) {
+  const map = {'삼성':'🦁','LG':'🐻','두산':'🐻','KT':'⚡','SSG':'🦅','롯데':'갈','한화':'🦅','KIA':'🐯','NC':'🦋','키움':'영'};
+  for (const [k,v] of Object.entries(map)) if (name.includes(k)) return v;
+  return '⚾';
+}
+
+function gameStatusLabel(status, inning) {
+  if (status==='RESULT') return '경기 종료';
+  if (status==='LIVE') return `🔴 LIVE ${inning||''}이닝`;
+  if (status==='CANCEL') return '우천취소';
+  if (status==='POSTPONE') return '연기';
+  return '경기 예정';
+}
+
+async function loadKboGames() {
+  const el = document.getElementById('kbo-games');
+  const d = new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Seoul'}));
+  const dateStr = `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+  const url = `https://m.sports.naver.com/api/v2/baseball/kbo/schedule?fields=basic,record&date=${dateStr}`;
+  const data = await naverSportsAPI(url);
+  const games = data?.result?.games ?? [];
+  if (!games.length) {
+    el.innerHTML = '<div style="padding:16px;color:var(--muted);font-size:.75rem">오늘 경기 없음</div>';
+    return;
+  }
+  el.innerHTML = games.map(g => {
+    const home = g.homeTeamName||'홈'; const away = g.awayTeamName||'원정';
+    const hs = g.homeTeamScore; const as = g.awayTeamScore;
+    const done = g.gameStatusCode==='RESULT';
+    const hWin = done && hs>as; const aWin = done && as>hs;
+    return `<div class="game-card">
+      <div class="game-date">${g.gameDate||dateStr} · ${g.stadium||''}</div>
+      <div class="game-teams">
+        <div class="game-team">
+          <div class="game-team-name">${away}</div>
+          <div class="game-score ${aWin?'up':''}">${as!=null?as:'—'}</div>
+        </div>
+        <div class="game-vs">VS</div>
+        <div class="game-team">
+          <div class="game-team-name">${home}</div>
+          <div class="game-score ${hWin?'up':''}">${hs!=null?hs:'—'}</div>
+        </div>
+      </div>
+      <div class="game-status">${gameStatusLabel(g.gameStatusCode, g.currentInning)}</div>
+    </div>`;
+  }).join('');
+}
+
+async function loadKboStandings() {
+  const el = document.getElementById('kbo-stand');
+  const d = new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Seoul'}));
+  const yr = d.getFullYear();
+  const url = `https://m.sports.naver.com/api/v2/baseball/kbo/standings?fields=basic,record&year=${yr}`;
+  const data = await naverSportsAPI(url);
+  const rows = data?.result?.standings ?? [];
+  if (!rows.length) { el.innerHTML='<div style="color:var(--muted);font-size:.75rem;padding:16px">순위 데이터 없음</div>'; return; }
+  el.innerHTML = `<table class="stand-table">
+    <thead><tr><th>#</th><th>팀</th><th>경기</th><th>승</th><th>패</th><th>무</th><th>승률</th><th>게임차</th></tr></thead>
+    <tbody>${rows.map((r,i)=>`<tr>
+      <td class="stand-rank ${i<4?'top':''}">${i+1}</td>
+      <td>${r.teamName||'—'}</td>
+      <td>${r.gameCount||0}</td>
+      <td>${r.win||0}</td>
+      <td>${r.lose||0}</td>
+      <td>${r.drawn||0}</td>
+      <td>${r.wra != null ? parseFloat(r.wra).toFixed(3) : '—'}</td>
+      <td>${r.gamesBehind!=null?r.gamesBehind:0}</td>
+    </tr>`).join('')}</tbody>
+  </table>`;
+}
+
+async function loadKleagueGames() {
+  const el = document.getElementById('kl-games');
+  const d = new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Seoul'}));
+  const dateStr = `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+  const url = `https://m.sports.naver.com/api/v2/soccer/kleague1/schedule?fields=basic,record&date=${dateStr}`;
+  const data = await naverSportsAPI(url);
+  const games = data?.result?.games ?? [];
+  if (!games.length) {
+    el.innerHTML = '<div style="padding:16px;color:var(--muted);font-size:.75rem">오늘 경기 없음 — 다음 경기 일정을 확인하세요</div>';
+    return;
+  }
+  el.innerHTML = games.map(g => {
+    const home = g.homeTeamName||'홈'; const away = g.awayTeamName||'원정';
+    const hs = g.homeTeamScore; const as = g.awayTeamScore;
+    const done = g.gameStatusCode==='RESULT';
+    const hWin = done && hs>as; const aWin = done && as>hs;
+    return `<div class="game-card">
+      <div class="game-date">${g.gameDate||dateStr} · ${g.stadium||'K리그'}</div>
+      <div class="game-teams">
+        <div class="game-team"><div class="game-team-name">${away}</div><div class="game-score ${aWin?'up':''}">${as!=null?as:'—'}</div></div>
+        <div class="game-vs">VS</div>
+        <div class="game-team"><div class="game-team-name">${home}</div><div class="game-score ${hWin?'up':''}">${hs!=null?hs:'—'}</div></div>
+      </div>
+      <div class="game-status">${gameStatusLabel(g.gameStatusCode, '')}</div>
+    </div>`;
+  }).join('');
+}
+
+async function loadKleagueStandings() {
+  const el = document.getElementById('kl-stand');
+  const d = new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Seoul'}));
+  const yr = d.getFullYear();
+  const url = `https://m.sports.naver.com/api/v2/soccer/kleague1/standings?fields=basic,record&year=${yr}`;
+  const data = await naverSportsAPI(url);
+  const rows = data?.result?.standings ?? [];
+  if (!rows.length) { el.innerHTML='<div style="color:var(--muted);font-size:.75rem;padding:16px">순위 데이터 없음</div>'; return; }
+  el.innerHTML = `<table class="stand-table">
+    <thead><tr><th>#</th><th>팀</th><th>경기</th><th>승</th><th>무</th><th>패</th><th>득점</th><th>실점</th><th>승점</th></tr></thead>
+    <tbody>${rows.map((r,i)=>`<tr>
+      <td class="stand-rank ${i<2?'top':''}">${i+1}</td>
+      <td>${r.teamName||'—'}</td>
+      <td>${r.matchCount||0}</td>
+      <td>${r.win||0}</td>
+      <td>${r.drawn||0}</td>
+      <td>${r.lose||0}</td>
+      <td>${r.goalFor||0}</td>
+      <td>${r.goalAgainst||0}</td>
+      <td><b>${r.points||0}</b></td>
+    </tr>`).join('')}</tbody>
+  </table>`;
+}
+
+// ═══════════════════════════════════════════
+//  공모주 캘린더
+// ═══════════════════════════════════════════
+const IPO_DATA = [
+  // status: upcoming(청약예정) | open(청약중) | listed(상장예정) | done(완료)
+  {name:'더본코리아', sector:'외식·프랜차이즈', status:'done',
+   subscribeStart:'2024-10-23', subscribeEnd:'2024-10-24', listDate:'2024-11-06',
+   priceRange:'2.3만~2.8만', offerPrice:34000, competition:'50:1', refund:'2024-10-29', marketCap:'3,400억'},
+  {name:'DN솔루션즈', sector:'공작기계', status:'done',
+   subscribeStart:'2024-06-07', subscribeEnd:'2024-06-10', listDate:'2024-06-20',
+   priceRange:'1.0만~1.2만', offerPrice:18500, competition:'98:1', refund:'2024-06-13', marketCap:'2.9조'},
+  {name:'HD현대마린솔루션', sector:'선박·해양', status:'done',
+   subscribeStart:'2024-04-16', subscribeEnd:'2024-04-17', listDate:'2024-05-09',
+   priceRange:'8.3만~9.8만', offerPrice:83500, competition:'85:1', refund:'2024-04-22', marketCap:'3.9조'},
+  {name:'LG CNS', sector:'IT서비스', status:'done',
+   subscribeStart:'2025-01-14', subscribeEnd:'2025-01-15', listDate:'2025-01-30',
+   priceRange:'5.3만~6.1만', offerPrice:61000, competition:'122:1', refund:'2025-01-20', marketCap:'9.5조'},
+  {name:'카카오페이증권', sector:'금융', status:'done',
+   subscribeStart:'2025-03-11', subscribeEnd:'2025-03-12', listDate:'2025-03-24',
+   priceRange:'2.0만~2.5만', offerPrice:25000, competition:'74:1', refund:'2025-03-17', marketCap:'1.1조'},
+  {name:'한화손해보험', sector:'보험·금융', status:'done',
+   subscribeStart:'2025-03-18', subscribeEnd:'2025-03-19', listDate:'2025-04-01',
+   priceRange:'4,500~5,500', offerPrice:5000, competition:'41:1', refund:'2025-03-24', marketCap:'8,500억'},
+  {name:'서울보증보험', sector:'금융·보험', status:'upcoming',
+   subscribeStart:'2026-04-07', subscribeEnd:'2026-04-08', listDate:'2026-04-22',
+   priceRange:'3.8만~4.7만', offerPrice:'미정', competition:'—', refund:'2026-04-11', marketCap:'~3.0조'},
+  {name:'와이즈넛', sector:'AI·빅데이터', status:'upcoming',
+   subscribeStart:'2026-04-09', subscribeEnd:'2026-04-10', listDate:'2026-04-23',
+   priceRange:'1.0만~1.2만', offerPrice:'미정', competition:'—', refund:'2026-04-14', marketCap:'~1,800억'},
+  {name:'하나금융티아이', sector:'IT서비스·금융', status:'upcoming',
+   subscribeStart:'2026-04-14', subscribeEnd:'2026-04-15', listDate:'2026-04-25',
+   priceRange:'1.5만~1.8만', offerPrice:'미정', competition:'—', refund:'2026-04-18', marketCap:'~4,500억'},
+  {name:'에이치이엠파마', sector:'바이오·제약', status:'upcoming',
+   subscribeStart:'2026-04-21', subscribeEnd:'2026-04-22', listDate:'2026-05-06',
+   priceRange:'2.2만~2.8만', offerPrice:'미정', competition:'—', refund:'2026-04-25', marketCap:'~2,200억'},
+  {name:'레이언스', sector:'반도체·디스플레이', status:'upcoming',
+   subscribeStart:'2026-05-07', subscribeEnd:'2026-05-08', listDate:'2026-05-20',
+   priceRange:'1.8만~2.2만', offerPrice:'미정', competition:'—', refund:'2026-05-12', marketCap:'~3,500억'},
+  {name:'토스뱅크', sector:'핀테크·인터넷은행', status:'upcoming',
+   subscribeStart:'2026-06-10', subscribeEnd:'2026-06-11', listDate:'2026-06-24',
+   priceRange:'7.0만~8.5만', offerPrice:'미정', competition:'—', refund:'2026-06-16', marketCap:'~6.0조'},
+];
+
+let curIpoFilter = 'all';
+function ipoFilter(f, btn) {
+  curIpoFilter = f;
+  document.querySelectorAll('.ipo-filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderIpo(f);
+}
+function renderIpo(f) {
+  const list = f==='all' ? IPO_DATA : IPO_DATA.filter(d=>d.status===f);
+  const sorted = [...list].sort((a,b)=>new Date(b.subscribeStart)-new Date(a.subscribeStart));
+  const badgeLabel = s => ({upcoming:'청약예정',open:'청약중',listed:'상장예정',done:'완료'}[s]||s);
+  document.getElementById('ipo-grid').innerHTML = sorted.map(d=>`
+    <div class="ipo-card">
+      <div class="ipo-name">${d.name}</div>
+      <div class="ipo-sector">${d.sector}</div>
+      <span class="ipo-badge ${d.status}">${badgeLabel(d.status)}</span>
+      <div class="ipo-rows">
+        <div class="ipo-row"><span class="ipo-row-label">청약일</span><span class="ipo-row-val">${d.subscribeStart} ~ ${d.subscribeEnd}</span></div>
+        <div class="ipo-row"><span class="ipo-row-label">환불일</span><span class="ipo-row-val">${d.refund}</span></div>
+        <div class="ipo-row"><span class="ipo-row-label">상장일</span><span class="ipo-row-val">${d.listDate}</span></div>
+        <div class="ipo-row"><span class="ipo-row-label">공모가</span><span class="ipo-row-val">${typeof d.offerPrice==='number'?d.offerPrice.toLocaleString()+'원':d.offerPrice} <span style="font-size:.62rem;color:var(--muted)">(${d.priceRange})</span></span></div>
+        ${d.competition!=='—'?`<div class="ipo-row"><span class="ipo-row-label">경쟁률</span><span class="ipo-row-val up">${d.competition}</span></div>`:''}
+        <div class="ipo-row"><span class="ipo-row-label">시가총액</span><span class="ipo-row-val">${d.marketCap}</span></div>
+      </div>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════
+//  부동산 시세 트래커
+// ═══════════════════════════════════════════
+const RE_DATA = {
+  '서울': [
+    {name:'래미안 퍼스티지', addr:'서초구 반포동', size:'84㎡', price:390000, prev:375000, tradeDate:'2026-03', floor:'12층'},
+    {name:'아크로리버파크', addr:'서초구 반포동', size:'84㎡', price:420000, prev:405000, tradeDate:'2026-03', floor:'15층'},
+    {name:'헬리오시티', addr:'송파구 가락동', size:'84㎡', price:220000, prev:215000, tradeDate:'2026-02', floor:'20층'},
+    {name:'잠실 엘스', addr:'송파구 잠실동', size:'84㎡', price:240000, prev:230000, tradeDate:'2026-03', floor:'8층'},
+    {name:'마포래미안푸르지오', addr:'마포구 아현동', size:'84㎡', price:155000, prev:150000, tradeDate:'2026-02', floor:'6층'},
+    {name:'이촌 한가람', addr:'용산구 이촌동', size:'84㎡', price:175000, prev:168000, tradeDate:'2026-01', floor:'11층'},
+    {name:'목동신시가지 7단지', addr:'양천구 목동', size:'89㎡', price:138000, prev:135000, tradeDate:'2026-03', floor:'4층'},
+    {name:'래미안 대치팰리스', addr:'강남구 대치동', size:'94㎡', price:360000, prev:348000, tradeDate:'2026-02', floor:'9층'},
+  ],
+  '경기': [
+    {name:'광교 자연앤힐스테이트', addr:'수원시 영통구', size:'84㎡', price:95000, prev:92000, tradeDate:'2026-03', floor:'7층'},
+    {name:'판교 봇들마을 7단지', addr:'성남시 분당구', size:'84㎡', price:148000, prev:143000, tradeDate:'2026-02', floor:'10층'},
+    {name:'동탄역 롯데캐슬', addr:'화성시 오산동', size:'84㎡', price:82000, prev:80000, tradeDate:'2026-03', floor:'5층'},
+    {name:'힐스테이트 과천 중앙', addr:'과천시 별양동', size:'84㎡', price:138000, prev:133000, tradeDate:'2026-02', floor:'14층'},
+    {name:'e편한세상 하남 유니버시티', addr:'하남시 신장동', size:'84㎡', price:78000, prev:76000, tradeDate:'2026-03', floor:'8층'},
+    {name:'의왕 내손 e편한세상', addr:'의왕시 내손동', size:'84㎡', price:68000, prev:67000, tradeDate:'2026-01', floor:'3층'},
+  ],
+  '부산': [
+    {name:'마린시티 자이', addr:'해운대구 우동', size:'84㎡', price:92000, prev:88000, tradeDate:'2026-03', floor:'22층'},
+    {name:'해운대 엘시티', addr:'해운대구 중동', size:'84㎡', price:145000, prev:138000, tradeDate:'2026-02', floor:'35층'},
+    {name:'사직 롯데캐슬', addr:'동래구 사직동', size:'84㎡', price:55000, prev:54000, tradeDate:'2026-02', floor:'6층'},
+    {name:'광안 자이', addr:'수영구 광안동', size:'84㎡', price:72000, prev:70000, tradeDate:'2026-03', floor:'9층'},
+  ],
+  '인천': [
+    {name:'더샵 파크원', addr:'연수구 송도동', size:'84㎡', price:78000, prev:75000, tradeDate:'2026-03', floor:'11층'},
+    {name:'힐스테이트 송도 더스카이', addr:'연수구 송도동', size:'84㎡', price:72000, prev:70000, tradeDate:'2026-02', floor:'25층'},
+    {name:'검단 아테라 자이', addr:'서구 불로동', size:'84㎡', price:54000, prev:52000, tradeDate:'2026-03', floor:'7층'},
+  ],
+  '대전': [
+    {name:'도안 힐스테이트', addr:'서구 도안동', size:'84㎡', price:58000, prev:56000, tradeDate:'2026-03', floor:'8층'},
+    {name:'유성 트리풀시티', addr:'유성구 지족동', size:'84㎡', price:48000, prev:47000, tradeDate:'2026-02', floor:'5층'},
+  ],
+  '대구': [
+    {name:'수성 레이크푸르지오', addr:'수성구 두산동', size:'84㎡', price:75000, prev:73000, tradeDate:'2026-03', floor:'10층'},
+    {name:'범어 동원로얄듀크', addr:'수성구 범어동', size:'84㎡', price:68000, prev:66000, tradeDate:'2026-02', floor:'7층'},
+  ],
+};
+let reCurCity = '서울';
+function reInit() {
+  const bar = document.getElementById('re-city-bar');
+  bar.innerHTML = Object.keys(RE_DATA).map((c,i)=>`<button class="re-city-btn${i===0?' active':''}" onclick="reSelectCity('${c}',this)">${c}</button>`).join('');
+  reRender('서울');
+}
+function reSelectCity(city, btn) {
+  reCurCity = city;
+  document.querySelectorAll('.re-city-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  reRender(city);
+}
+function reRender(city) {
+  const list = RE_DATA[city]||[];
+  document.getElementById('re-grid').innerHTML = list.map(d=>{
+    const chg = d.price - d.prev;
+    const pct = ((chg/d.prev)*100).toFixed(1);
+    const up = chg>=0;
+    const naverUrl = `https://m.land.naver.com/search/result?query=${encodeURIComponent(d.name)}`;
+    return `<div class="re-card" onclick="window.open('${naverUrl}','_blank')">
+      <div class="re-name">${d.name}</div>
+      <div class="re-addr">${d.addr} · ${d.floor} · ${d.size}</div>
+      <div style="display:flex;align-items:baseline;gap:6px">
+        <div class="re-price">${(d.price/10000).toFixed(1)}억<span class="re-unit">원</span></div>
+        <div class="re-chg ${up?'up':'down'}">${up?'▲':'▼'} ${Math.abs(chg).toLocaleString()}만 (${up?'+':''}${pct}%)</div>
+      </div>
+      <div class="re-meta">
+        <span>🗓 ${d.tradeDate} 거래</span>
+        <span>📐 ${d.size}</span>
+        <span>🔗 네이버 부동산</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════
+//  AI 트렌드
+// ═══════════════════════════════════════════
+const AI_TOOLS = [
+  {name:'Claude 3.7 Sonnet', org:'Anthropic', cat:'llm',
+   desc:'하이브리드 추론 모드 지원. Extended Thinking으로 복잡한 수학·코딩 문제를 단계별 사고로 해결.',
+   tags:['LLM','추론','코딩'], url:'https://claude.ai', likes:'★★★★★'},
+  {name:'GPT-4o', org:'OpenAI', cat:'llm',
+   desc:'텍스트·이미지·오디오 멀티모달 처리. 실시간 음성 대화, 영상 분석 가능한 최신 플래그십 모델.',
+   tags:['LLM','멀티모달','음성'], url:'https://chatgpt.com', likes:'★★★★★'},
+  {name:'Gemini 2.0 Flash', org:'Google DeepMind', cat:'llm',
+   desc:'1M 토큰 컨텍스트 창. 실시간 스트리밍, 영상·오디오·코드 동시 처리. Google 생태계 연동.',
+   tags:['LLM','멀티모달','장문'], url:'https://gemini.google.com', likes:'★★★★☆'},
+  {name:'Grok 3', org:'xAI', cat:'llm',
+   desc:'X(트위터) 실시간 데이터 접근. DeepSearch로 웹 심층 탐색. 수학·과학 추론 특화.',
+   tags:['LLM','실시간','추론'], url:'https://grok.com', likes:'★★★★☆'},
+  {name:'Gemma 3', org:'Google', cat:'llm',
+   desc:'로컬 실행 최적화 오픈소스 모델. 1B~27B 다양한 크기. 모바일 디바이스에서도 동작.',
+   tags:['LLM','오픈소스','로컬'], url:'https://huggingface.co/google/gemma-3-27b-it', likes:'★★★★☆'},
+  {name:'Llama 4 Scout', org:'Meta', cat:'llm',
+   desc:'10M 토큰 컨텍스트. MoE(Mixture of Experts) 아키텍처. 17B 활성 파라미터, 109B 전체.',
+   tags:['LLM','오픈소스','MoE'], url:'https://llama.meta.com', likes:'★★★★☆'},
+  {name:'Stable Diffusion 3.5', org:'Stability AI', cat:'image',
+   desc:'멀티모달 디퓨전 트랜스포머. 텍스트 렌더링 크게 개선. 8B 대형 모델부터 2B 미디엄까지.',
+   tags:['이미지생성','오픈소스'], url:'https://stability.ai', likes:'★★★★☆'},
+  {name:'FLUX.1', org:'Black Forest Labs', cat:'image',
+   desc:'포토리얼리즘 최강. 12B 파라미터 플로우 매칭 모델. 상업적 사용 가능 버전 포함.',
+   tags:['이미지생성','포토리얼'], url:'https://blackforestlabs.ai', likes:'★★★★★'},
+  {name:'Midjourney V7', org:'Midjourney', cat:'image',
+   desc:'Draft 모드로 20배 빠른 생성. 개인화 기능(Personal Style) 강화. 일관된 캐릭터 생성.',
+   tags:['이미지생성','아트'], url:'https://midjourney.com', likes:'★★★★★'},
+  {name:'Sora', org:'OpenAI', cat:'video',
+   desc:'텍스트로 최대 1분 분량 HD 영상 생성. 영상 편집·연장·결합 기능. 물리 세계 시뮬레이션.',
+   tags:['영상생성','멀티모달'], url:'https://sora.openai.com', likes:'★★★★☆'},
+  {name:'Veo 3', org:'Google DeepMind', cat:'video',
+   desc:'오디오 포함 영상 생성 최초 지원. 오케스트라, 대화, 효과음까지 동시 생성.',
+   tags:['영상생성','오디오'], url:'https://deepmind.google/veo', likes:'★★★★☆'},
+  {name:'Kling 2.0', org:'Kuaishou', cat:'video',
+   desc:'5초~3분 영상 생성. 카메라 무브먼트 제어. 이미지→영상 변환 탁월.',
+   tags:['영상생성','중국'], url:'https://klingai.com', likes:'★★★★☆'},
+  {name:'Cursor', org:'Anysphere', cat:'code',
+   desc:'AI 코드 편집기 1위. Claude·GPT-4o 연동. Tab 자동완성, Chat 코드 수정, Composer.',
+   tags:['코드','편집기'], url:'https://cursor.sh', likes:'★★★★★'},
+  {name:'Claude Code', org:'Anthropic', cat:'code',
+   desc:'터미널 기반 AI 코딩 에이전트. 파일 읽기/쓰기·Git·테스트 자동화. 프로젝트 전체 이해.',
+   tags:['코드','CLI','에이전트'], url:'https://claude.ai/code', likes:'★★★★★'},
+  {name:'GitHub Copilot', org:'Microsoft/GitHub', cat:'code',
+   desc:'VS Code 내장 AI 보조. GPT-4o 기반. 전체 함수 자동 생성, PR 요약, 코드 설명.',
+   tags:['코드','IDE'], url:'https://github.com/features/copilot', likes:'★★★★☆'},
+  {name:'Perplexity Pro', org:'Perplexity AI', cat:'llm',
+   desc:'실시간 웹 검색 기반 답변. 출처 인용. Deep Research로 심층 보고서 자동 생성.',
+   tags:['검색','연구','LLM'], url:'https://perplexity.ai', likes:'★★★★☆'},
+  {name:'ElevenLabs', org:'ElevenLabs', cat:'voice',
+   desc:'사람과 구별 불가능한 수준의 TTS. 29개 언어. 목소리 복제, 감정 표현 제어.',
+   tags:['음성합성','TTS'], url:'https://elevenlabs.io', likes:'★★★★★'},
+  {name:'Whisper v3 Turbo', org:'OpenAI', cat:'voice',
+   desc:'실시간 음성 인식 오픈소스. 96개 언어 지원. Turbo 버전은 8배 빠르고 정확도 유지.',
+   tags:['음성인식','STT','오픈소스'], url:'https://github.com/openai/whisper', likes:'★★★★☆'},
+  {name:'AutoGen', org:'Microsoft', cat:'agent',
+   desc:'멀티 AI 에이전트 프레임워크. 에이전트 간 대화로 복잡한 작업 자동화. Python 기반.',
+   tags:['에이전트','프레임워크'], url:'https://github.com/microsoft/autogen', likes:'★★★★☆'},
+  {name:'Manus', org:'Manus AI', cat:'agent',
+   desc:'범용 자율 AI 에이전트. 웹 검색·코드 실행·파일 관리를 스스로 수행하는 AI 비서.',
+   tags:['에이전트','자율'], url:'https://manus.im', likes:'★★★★☆'},
+];
+
+let aiCurCat = 'all';
+function aiFilter(cat, btn) {
+  aiCurCat = cat;
+  document.querySelectorAll('.ai-cat-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderAiTools(cat);
+}
+function renderAiTools(cat) {
+  const list = cat==='all' ? AI_TOOLS : AI_TOOLS.filter(t=>t.cat===cat);
+  document.getElementById('ai-tools-grid').innerHTML = list.map(t=>`
+    <div class="ai-card" onclick="window.open('${t.url}','_blank')">
+      <div class="ai-card-title">${t.name}</div>
+      <div class="ai-card-org">${t.org}</div>
+      <div class="ai-card-desc">${t.desc}</div>
+      <div class="ai-card-tags">${t.tags.map(g=>`<span class="ai-tag">${g}</span>`).join('')}</div>
+      <div class="ai-card-stats"><span>${t.likes}</span><span>🔗 바로가기</span></div>
+    </div>`).join('');
+}
+
+async function loadHuggingFace() {
+  const el = document.getElementById('hf-grid');
+  try {
+    const r = await fetch('https://huggingface.co/api/models?sort=trending&limit=18&full=false');
+    if (!r.ok) throw new Error();
+    const models = await r.json();
+    el.innerHTML = models.map((m,i)=>`
+      <div class="hf-card" onclick="window.open('https://huggingface.co/${m.id}','_blank')" style="cursor:pointer">
+        <div class="hf-rank">#${i+1}</div>
+        <div class="hf-title">${m.id}</div>
+        <div class="hf-sub" style="display:flex;gap:10px;margin-top:4px">
+          <span>❤️ ${(m.likes||0).toLocaleString()}</span>
+          <span>⬇️ ${m.downloads!=null?(m.downloads>1000?Math.round(m.downloads/1000)+'K':m.downloads):0}</span>
+          ${m.pipeline_tag?`<span class="ai-tag">${m.pipeline_tag}</span>`:''}
+        </div>
+      </div>`).join('');
+  } catch {
+    el.innerHTML = '<div style="color:var(--muted);font-size:.75rem;padding:16px">HuggingFace 데이터를 불러올 수 없습니다</div>';
+  }
 }
 </script>
 </body>
