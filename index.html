@@ -1088,10 +1088,10 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
       <div><div class="sec-title" style="font-size:.8rem">📡 공중파 인기 예능</div></div>
     </div>
     <div class="tv-sched-bar">
-      <button class="tv-sched-btn all active" onclick="tvFilter('all',this)">전체</button>
-      <button class="tv-sched-btn kbs"        onclick="tvFilter('kbs',this)">KBS</button>
-      <button class="tv-sched-btn mbc"        onclick="tvFilter('mbc',this)">MBC</button>
-      <button class="tv-sched-btn sbs"        onclick="tvFilter('sbs',this)">SBS</button>
+      <button class="tv-sched-btn all active" onclick="entTvFilter('all',this)">전체</button>
+      <button class="tv-sched-btn kbs"        onclick="entTvFilter('kbs',this)">KBS</button>
+      <button class="tv-sched-btn mbc"        onclick="entTvFilter('mbc',this)">MBC</button>
+      <button class="tv-sched-btn sbs"        onclick="entTvFilter('sbs',this)">SBS</button>
     </div>
     <div class="tv-grid" id="tv-grid"></div>
 
@@ -3738,7 +3738,7 @@ function tvCardHtml(d) {
   </div>`;
 }
 
-function tvFilter(ch, btn) {
+function entTvFilter(ch, btn) {
   entCurTV = ch;
   document.querySelectorAll('.tv-sched-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
