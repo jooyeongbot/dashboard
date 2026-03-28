@@ -595,6 +595,15 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
       <div class="w-chips" id="w-chips"></div>
     </div>
 
+    <!-- 내 지역 날씨 (화성시 고정) -->
+    <div class="sec-head" style="margin-top:0;margin-bottom:12px">
+      <div><div class="sec-title">// 내 지역 날씨</div><div class="sec-desc">경기도 화성시 · Open-Meteo 실시간</div></div>
+      <div class="sec-line"></div>
+    </div>
+    <div id="home-weather-card" style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px 24px;margin-bottom:36px;display:flex;align-items:center;gap:24px;flex-wrap:wrap">
+      <div style="font-family:'Roboto Mono',monospace;font-size:.62rem;color:var(--muted)">불러오는 중...</div>
+    </div>
+
     <!-- 상세 날씨 -->
     <div id="w-detail">
       <div class="sec-head"><div class="sec-title">// 상세 날씨</div><div class="sec-line"></div></div>
@@ -1798,7 +1807,7 @@ function sRenderTVChart(sym, interval) {
     container_id:'tv-chart', symbol:tvSym, interval, timezone:'America/New_York',
     theme:'dark', style:'1', locale:'ko', toolbar_bg:'#0c1220',
     enable_publishing:false, allow_symbol_change:true, save_image:false,
-    width:'100%', height:480, studies:['RSI@tv-basicstudies','MASimple@tv-basicstudies'],
+    width:'100%', height:480,
   });
 }
 
@@ -1861,9 +1870,11 @@ async function loadKrMarket() {
     const el = document.getElementById(t.elId);
     if (!el) continue;
     try {
-      const r = await fetch(`https://m.stock.naver.com/api/index/${t.id}/basic`);
+      const naverUrl = `https://m.stock.naver.com/api/index/${t.id}/basic`;
+      const r = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(naverUrl)}`);
       if (!r.ok) throw new Error();
-      const d = await r.json();
+      const j = await r.json();
+      const d = JSON.parse(j.contents);
       const price = parseFloat((d.closePrice||'0').replace(/,/g,''));
       const chg   = parseFloat((d.compareToPreviousClosePrice||'0').replace(/,/g,''));
       const pct   = parseFloat(d.fluctuationsRatio||'0');
@@ -2842,9 +2853,11 @@ async function loadKrMarket2() {
     const el = document.getElementById(t.elId);
     if (!el) continue;
     try {
-      const r = await fetch(`https://m.stock.naver.com/api/index/${t.id}/basic`);
+      const naverUrl = `https://m.stock.naver.com/api/index/${t.id}/basic`;
+      const r = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(naverUrl)}`);
       if (!r.ok) throw new Error();
-      const d = await r.json();
+      const j = await r.json();
+      const d = JSON.parse(j.contents);
       const price = parseFloat((d.closePrice||'0').replace(/,/g,''));
       const chg   = parseFloat((d.compareToPreviousClosePrice||'0').replace(/,/g,''));
       const pct   = parseFloat(d.fluctuationsRatio||'0');
@@ -2865,9 +2878,11 @@ async function loadKrMarket2() {
 
 // ── Naver Mobile API 개별 종목 조회 ─────────────
 async function fetchKrQuote(code) {
-  const r = await fetch(`https://m.stock.naver.com/api/stock/${code}/basic`);
+  const naverUrl = `https://m.stock.naver.com/api/stock/${code}/basic`;
+  const r = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(naverUrl)}`);
   if (!r.ok) throw new Error('fetch failed');
-  const d = await r.json();
+  const j = await r.json();
+  const d = JSON.parse(j.contents);
   const price = parseFloat((d.closePrice||'0').replace(/,/g,''));
   const chg   = parseFloat((d.compareToPreviousClosePrice||'0').replace(/,/g,''));
   const pct   = parseFloat(d.fluctuationsRatio||'0');
@@ -3034,7 +3049,7 @@ function krOpenChart(code, name) {
     container_id:'kr-tv-chart', symbol:`KRX:${code}`, interval:krCurrentInterval,
     timezone:'Asia/Seoul', theme:'dark', style:'1', locale:'ko', toolbar_bg:'#0c1220',
     enable_publishing:false, allow_symbol_change:true, save_image:false,
-    width:'100%', height:480, studies:['RSI@tv-basicstudies','MASimple@tv-basicstudies'],
+    width:'100%', height:480,
   });
   sec.scrollIntoView({behavior:'smooth', block:'start'});
 }
@@ -3216,6 +3231,66 @@ const KR_DEST = [
     spots:['화성(세계문화유산)','행궁동 벽화마을','수원화성박물관','광교호수공원','수원월드컵경기장'],
     lat:37.2636, lon:127.0286, naver_blog:'수원 여행', naver_map:'수원',
     traffic:'https://map.naver.com/v5/search/수원' },
+  { id:'ulleungdo', name:'울릉도', emoji:'🌋', region:'경상북도', cats:['island','sea','mountain'],
+    transport:[{icon:'⛴',label:'여객선',info:'포항→울릉도 3시간 / 강릉→울릉도 3시간'},{icon:'✈️',label:'소형항공',info:'울진공항→울릉 검토중'}],
+    food:['홍합밥','따개비칼국수','오징어내장탕','약소고기','호박엿'],
+    spots:['성인봉','나리분지','독도(선박)','봉래폭포','저동항'],
+    lat:37.4845, lon:130.9057, naver_blog:'울릉도 여행', naver_map:'울릉도',
+    traffic:'https://map.naver.com/v5/search/울릉도' },
+  { id:'taean', name:'태안', emoji:'🏖', region:'충청남도', cats:['sea','activity'],
+    transport:[{icon:'🚌',label:'고속버스',info:'서울→태안 2시간 30분'},{icon:'🚗',label:'자동차',info:'서해안고속도로 약 2시간 30분'}],
+    food:['꽃게탕','새조개샤브샤브','바지락칼국수','대하구이','조개구이'],
+    spots:['만리포해수욕장','안면도','꽃지해수욕장','신두리사구','천리포수목원'],
+    lat:36.7454, lon:126.2980, naver_blog:'태안 여행', naver_map:'태안',
+    traffic:'https://map.naver.com/v5/search/태안' },
+  { id:'boryeong', name:'보령', emoji:'🪸', region:'충청남도', cats:['sea','island','activity'],
+    transport:[{icon:'🚄',label:'KTX',info:'서울→대천 1시간 20분'},{icon:'🚌',label:'고속버스',info:'서울→대천 2시간'}],
+    food:['대천 꽃게','바지락칼국수','생선회','키조개관자','굴구이'],
+    spots:['대천해수욕장(머드축제)','외연도','무창포해수욕장','성주산','보령댐'],
+    lat:36.3333, lon:126.6128, naver_blog:'보령 대천 여행', naver_map:'보령',
+    traffic:'https://map.naver.com/v5/search/보령' },
+  { id:'muju', name:'무주', emoji:'⛷', region:'전북특별자치도', cats:['mountain','activity'],
+    transport:[{icon:'🚌',label:'고속버스',info:'서울→무주 2시간 30분'},{icon:'🚗',label:'자동차',info:'대전통영고속도로 약 2시간 30분'}],
+    food:['반딧불 한우','천마국수','머루와인','메기매운탕','도토리묵'],
+    spots:['덕유산 무주리조트','구천동계곡','머루와인동굴','나제통문','적상산'],
+    lat:35.9073, lon:127.6608, naver_blog:'무주 여행', naver_map:'무주',
+    traffic:'https://map.naver.com/v5/search/무주' },
+  { id:'jeongseon', name:'정선', emoji:'🚂', region:'강원특별자치도', cats:['mountain','activity'],
+    transport:[{icon:'🚄',label:'KTX',info:'서울→정선(아우라지) 2시간 10분'},{icon:'🚗',label:'자동차',info:'중앙고속도로 약 3시간'}],
+    food:['곤드레밥','메밀전병','수수부꾸미','황기족발','올챙이국수'],
+    spots:['정선5일장','레일바이크','아우라지','강원랜드','만항재(하늘길)'],
+    lat:37.3806, lon:128.6609, naver_blog:'정선 여행', naver_map:'정선',
+    traffic:'https://map.naver.com/v5/search/정선' },
+  { id:'gochang', name:'고창', emoji:'🫐', region:'전북특별자치도', cats:['city','food','mountain'],
+    transport:[{icon:'🚌',label:'고속버스',info:'서울→고창 3시간'},{icon:'🚗',label:'자동차',info:'호남고속도로 약 3시간'}],
+    food:['풍천장어','바지락회무침','복분자주','땅콩','장어탕'],
+    spots:['고창읍성(모양성)','선운사','고인돌유적지(세계문화유산)','병바위','동림저수지'],
+    lat:35.4357, lon:126.7021, naver_blog:'고창 여행', naver_map:'고창',
+    traffic:'https://map.naver.com/v5/search/고창' },
+  { id:'gwangju', name:'광주', emoji:'🎨', region:'광주광역시', cats:['city','food'],
+    transport:[{icon:'🚄',label:'KTX',info:'서울→광주송정 1시간 40분'},{icon:'✈️',label:'비행기',info:'김포→광주 55분'}],
+    food:['광주 한정식','무등산 보리밥','오리탕','떡갈비','광주식 육회'],
+    spots:['국립아시아문화전당','무등산','양림동 역사문화마을','광주비엔날레','충장로'],
+    lat:35.1595, lon:126.8526, naver_blog:'광주 여행', naver_map:'광주',
+    traffic:'https://map.naver.com/v5/search/광주' },
+  { id:'daejeon', name:'대전', emoji:'🔬', region:'대전광역시', cats:['city','food'],
+    transport:[{icon:'🚄',label:'KTX',info:'서울→대전 50분'},{icon:'🚌',label:'고속버스',info:'서울→대전 2시간'}],
+    food:['성심당 빵','두부두루치기','칼국수','어죽','대전 설렁탕'],
+    spots:['엑스포과학공원','대전오월드','유성온천','계족산황톳길','우암사적공원'],
+    lat:36.3504, lon:127.3845, naver_blog:'대전 여행', naver_map:'대전',
+    traffic:'https://map.naver.com/v5/search/대전' },
+  { id:'jinju', name:'진주', emoji:'🪔', region:'경상남도', cats:['city','food'],
+    transport:[{icon:'🚄',label:'KTX',info:'서울→진주 2시간 40분'},{icon:'🚌',label:'고속버스',info:'서울→진주 3시간 30분'}],
+    food:['진주냉면','진주비빔밥','헛제삿밥','재첩국','진주 육회'],
+    spots:['진주성(임진왜란 전적지)','촉석루','남강유등축제','국립진주박물관','진양호'],
+    lat:35.1798, lon:128.1076, naver_blog:'진주 여행', naver_map:'진주',
+    traffic:'https://map.naver.com/v5/search/진주' },
+  { id:'yeongju', name:'영주', emoji:'🌾', region:'경상북도', cats:['mountain','city'],
+    transport:[{icon:'🚄',label:'KTX',info:'서울→영주 2시간 (중앙선)'},{icon:'🚗',label:'자동차',info:'중앙고속도로 약 3시간'}],
+    food:['풍기인삼','한우구이','사과한우','두부김치','막걸리'],
+    spots:['부석사(세계문화유산)','소수서원','무섬마을','선비세상','희방사'],
+    lat:36.8057, lon:128.6236, naver_blog:'영주 여행', naver_map:'영주',
+    traffic:'https://map.naver.com/v5/search/영주' },
 ];
 
 const krWeatherCache = {};
