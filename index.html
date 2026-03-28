@@ -701,12 +701,14 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
       <div class="mini-item" id="mc-7"></div>
     </div>
 
-    <!-- 국내 시장 (KOSPI/KOSDAQ) -->
-    <div class="sec-head" style="margin-top:28px"><div><div class="sec-title">// 국내 시장</div><div class="sec-desc">KOSPI · KOSDAQ · KOSPI200 실시간 지수 · 네이버 금융 · KST 09:00~15:30 개장</div></div><div class="sec-line"></div></div>
-    <div class="kr-market-grid">
-      <div class="kr-idx-card" id="kr-kospi"><div class="kr-idx-name">KOSPI</div><div class="kr-idx-price" style="color:var(--muted)">—</div></div>
-      <div class="kr-idx-card" id="kr-kosdaq"><div class="kr-idx-name">KOSDAQ</div><div class="kr-idx-price" style="color:var(--muted)">—</div></div>
-      <div class="kr-idx-card" id="kr-kpi200"><div class="kr-idx-name">KOSPI 200</div><div class="kr-idx-price" style="color:var(--muted)">—</div></div>
+    <!-- 미국 주요 지수 -->
+    <div class="sec-head" style="margin-top:28px"><div><div class="sec-title">// 미국 주요 지수</div><div class="sec-desc">S&P 500 · NASDAQ · DOW · RUSSELL 2000 · VIX · Yahoo Finance 실시간</div></div><div class="sec-line"></div></div>
+    <div class="kr-market-grid" style="grid-template-columns:repeat(auto-fill,minmax(155px,1fr))">
+      <div class="kr-idx-card" id="idx-0" style="cursor:pointer" onclick="sOpenChart('^GSPC','S&amp;P 500')"><div class="idx-name">S&amp;P 500</div><div class="idx-price" style="color:var(--muted);font-size:1.3rem">—</div><div class="idx-chg" style="color:var(--muted)">—</div></div>
+      <div class="kr-idx-card" id="idx-1" style="cursor:pointer" onclick="sOpenChart('^IXIC','NASDAQ')"><div class="idx-name">NASDAQ</div><div class="idx-price" style="color:var(--muted);font-size:1.3rem">—</div><div class="idx-chg" style="color:var(--muted)">—</div></div>
+      <div class="kr-idx-card" id="idx-2" style="cursor:pointer" onclick="sOpenChart('^DJI','DOW JONES')"><div class="idx-name">DOW JONES</div><div class="idx-price" style="color:var(--muted);font-size:1.3rem">—</div><div class="idx-chg" style="color:var(--muted)">—</div></div>
+      <div class="kr-idx-card" id="idx-3" style="cursor:pointer" onclick="sOpenChart('^RUT','RUSSELL 2000')"><div class="idx-name">RUSSELL 2000</div><div class="idx-price" style="color:var(--muted);font-size:1.3rem">—</div><div class="idx-chg" style="color:var(--muted)">—</div></div>
+      <div class="kr-idx-card" id="idx-4" style="cursor:pointer" onclick="sOpenChart('^VIX','VIX')"><div class="idx-name">VIX 공포지수</div><div class="idx-price" style="color:var(--muted);font-size:1.3rem">—</div><div class="idx-chg" style="color:var(--muted)">—</div></div>
     </div>
 
     <!-- S&P500 히트맵 -->
@@ -814,18 +816,6 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
         <div class="kr-idx-card" id="kr-kpi200-2"><div class="kr-idx-name">KOSPI 200</div><div class="kr-idx-price" style="color:var(--muted)">—</div></div>
       </div>
 
-      <!-- 국내 미니차트 -->
-      <div class="sec-head" style="margin-top:28px"><div><div class="sec-title">// 국내 주요 종목 미니차트</div><div class="sec-desc">KOSPI 시가총액 상위 8개 종목 · TradingView KRX</div></div><div class="sec-line"></div></div>
-      <div class="mini-grid">
-        <div class="mini-item" id="krmc-0"></div>
-        <div class="mini-item" id="krmc-1"></div>
-        <div class="mini-item" id="krmc-2"></div>
-        <div class="mini-item" id="krmc-3"></div>
-        <div class="mini-item" id="krmc-4"></div>
-        <div class="mini-item" id="krmc-5"></div>
-        <div class="mini-item" id="krmc-6"></div>
-        <div class="mini-item" id="krmc-7"></div>
-      </div>
 
       <!-- 국내 차트 -->
       <div id="kr-chart-section" style="display:none">
@@ -1349,13 +1339,16 @@ function showTab(tab) {
     stockLoaded = true;
     loadMiniCharts();
     loadHeatmap();
-    loadKrMarket();
     loadForex();
     loadForexCharts();
     sLoadAll().then(() => {
       loadVolRank();
       loadTop3Month();
     });
+  }
+  if (tab === 'weather' && !document.getElementById('home-weather-card').dataset.loaded) {
+    document.getElementById('home-weather-card').dataset.loaded = '1';
+    loadHomeWeather();
   }
   if (tab === 'travel' && !travelLoaded) {
     travelLoaded = true;
@@ -2280,12 +2273,53 @@ function loadCgCongestion() {
   });
 }
 
+async function loadHomeWeather() {
+  const el = document.getElementById('home-weather-card');
+  if (!el) return;
+  try {
+    const url = 'https://api.open-meteo.com/v1/forecast?latitude=37.1996&longitude=126.8313'
+      + '&current_weather=true&hourly=relativehumidity_2m,apparent_temperature&forecast_days=1&timezone=Asia/Seoul';
+    const r = await fetch(url);
+    const d = await r.json();
+    const cw = d.current_weather;
+    const hr = d.hourly;
+    const nowH = new Date().getHours();
+    const hIdx = hr.time.findIndex(t => parseInt(t.slice(11,13)) === nowH);
+    const humid = hr.relativehumidity_2m?.[Math.max(0,hIdx)] ?? '—';
+    const feels = hr.apparent_temperature?.[Math.max(0,hIdx)];
+    const icons = {0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌦️',55:'🌦️',
+      61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'🌨️',80:'🌦️',81:'🌧️',82:'⛈️',95:'⛈️'};
+    const icon = icons[cw.weathercode] || '🌡️';
+    const now = new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
+    el.innerHTML = `
+      <div style="font-size:2.8rem;line-height:1">${icon}</div>
+      <div>
+        <div style="font-size:1.8rem;font-weight:700;color:var(--text)">${Math.round(cw.temperature)}°C</div>
+        <div style="font-size:.7rem;color:var(--muted);margin-top:3px">체감 ${feels!=null?Math.round(feels)+'°C':'—'}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:5px">
+        <div style="font-size:.72rem;color:var(--muted)">💧 습도 ${humid}%</div>
+        <div style="font-size:.72rem;color:var(--muted)">💨 풍속 ${cw.windspeed} km/h</div>
+      </div>
+      <div style="font-size:.65rem;color:var(--accent);margin-left:auto;font-family:'Roboto Mono',monospace;align-self:flex-end">${now} 기준</div>`;
+  } catch {
+    el.innerHTML = '<div style="font-size:.72rem;color:var(--muted)">날씨를 불러올 수 없습니다</div>';
+  }
+}
+
 async function loadTravel(forceRefresh) {
   if (!forceRefresh && tvData.length > 0) { tvRender(); return; }
-  document.getElementById('tv-grid').innerHTML = '<div class="tv-loading">🌍 여행지 날씨 분석 중... (잠시만 기다려주세요)</div>';
-  const results = await Promise.allSettled(TRAVEL_CITIES.map(c=>fetchCityWeather(c)));
-  tvData = results.filter(r=>r.status==='fulfilled').map(r=>r.value);
-  tvRender();
+  const grid = document.getElementById('tv-grid');
+  grid.innerHTML = '<div class="tv-loading">🌍 여행지 날씨 분석 중...</div>';
+  // 8개씩 배치 처리 → 첫 배치 즉시 렌더
+  const BATCH = 8;
+  tvData = [];
+  for (let i = 0; i < TRAVEL_CITIES.length; i += BATCH) {
+    const chunk = TRAVEL_CITIES.slice(i, i + BATCH);
+    const res = await Promise.allSettled(chunk.map(c => fetchCityWeather(c)));
+    res.forEach(r => { if (r.status === 'fulfilled') tvData.push(r.value); });
+    tvRender(); // 첫 배치부터 바로 표시
+  }
 }
 
 function tvCardHtml(city, rank, maxScore) {
@@ -2580,42 +2614,32 @@ function fetchWithTimeout(url, ms=8000) {
 }
 
 async function fetchRSS(url, fallbackSource) {
-  // 1순위: rss2json
+  const tryRss2json = async () => {
+    const r = await fetchWithTimeout(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}&count=30`, 6000);
+    if (!r.ok) throw new Error();
+    const d = await r.json();
+    if (d.status !== 'ok' || !d.items?.length) throw new Error();
+    return d.items.map(it => ({
+      title: it.title||'', link: it.link||'', desc: it.description||'',
+      pubDate: it.pubDate||'', source: it.author||fallbackSource||d.feed?.title||'',
+    })).filter(it => it.title && it.link);
+  };
+  const tryRaw = (proxyUrl) => async () => {
+    const r = await fetchWithTimeout(proxyUrl, 6000);
+    if (!r.ok) throw new Error();
+    const items = parseRSSXml(await r.text(), fallbackSource);
+    if (!items.length) throw new Error();
+    return items;
+  };
   try {
-    const r = await fetchWithTimeout(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}&count=30`);
-    if (r.ok) {
-      const d = await r.json();
-      if (d.status === 'ok' && d.items?.length) {
-        return d.items.map(it => ({
-          title:   it.title || '',
-          link:    it.link  || '',
-          desc:    it.description || '',
-          pubDate: it.pubDate || '',
-          source:  it.author || fallbackSource || d.feed?.title || '',
-        })).filter(it => it.title && it.link);
-      }
-    }
-  } catch {}
-
-  // 2순위: allorigins raw
-  try {
-    const r = await fetchWithTimeout(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`);
-    if (r.ok) {
-      const items = parseRSSXml(await r.text(), fallbackSource);
-      if (items.length) return items;
-    }
-  } catch {}
-
-  // 3순위: corsproxy.io
-  try {
-    const r = await fetchWithTimeout(`https://corsproxy.io/?${encodeURIComponent(url)}`);
-    if (r.ok) {
-      const items = parseRSSXml(await r.text(), fallbackSource);
-      if (items.length) return items;
-    }
-  } catch {}
-
-  return [];
+    return await Promise.any([
+      tryRss2json(),
+      tryRaw(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`)(),
+      tryRaw(`https://corsproxy.io/?${encodeURIComponent(url)}`)(),
+    ]);
+  } catch {
+    return [];
+  }
 }
 
 async function loadNaverNews(catKey) {
@@ -2623,19 +2647,16 @@ async function loadNaverNews(catKey) {
   if (newsCache[catKey]) { renderNewsItems(newsCache[catKey]); return; }
   el.innerHTML = '<div class="tv-loading">📰 뉴스 불러오는 중...</div>';
   const urls = NEWS_SOURCES[catKey] || NEWS_SOURCES.all;
-  let items = [];
-  for (const url of urls) {
-    try {
-      items = await fetchRSS(url, null);
-      if (items.length) break;
-    } catch {}
-  }
-  if (!items.length) {
+  try {
+    // 모든 소스 병렬 시도, 가장 빠른 성공 결과 사용
+    const items = await Promise.any(
+      urls.map(url => fetchRSS(url, null).then(r => { if (!r.length) throw new Error(); return r; }))
+    );
+    newsCache[catKey] = items;
+    renderNewsItems(items);
+  } catch {
     el.innerHTML = '<div style="color:var(--muted);padding:24px;font-size:.8rem">뉴스를 불러올 수 없습니다</div>';
-    return;
   }
-  newsCache[catKey] = items;
-  renderNewsItems(items);
 }
 
 function renderNewsItems(items) {
@@ -2805,7 +2826,6 @@ function switchMarket(mode, btn) {
   document.getElementById('stock-kr').style.display = mode === 'kr' ? '' : 'none';
   if (mode === 'kr' && !krStockLoaded) {
     krStockLoaded = true;
-    loadKrMiniCharts();
     buildKrStockGrid();
     loadKrMarket2();
     krStockLoadAll().then(() => {
@@ -2916,12 +2936,46 @@ function krUpdateCard(q) {
 
 // ── 전체 조회 & 렌더 ──────────────────────────
 async function krStockLoadAll() {
-  const results = await Promise.allSettled(KR_STOCKS.map(s => fetchKrQuote(s.code)));
-  results.forEach(r => {
-    if (r.status === 'fulfilled') {
-      krQuoteCache[r.value.code] = r.value;
-      krUpdateCard(r.value);
-    }
+  // Yahoo Finance batch: 1회 요청으로 전체 종목 조회 (allorigins 12번 → 1번)
+  const syms = KR_STOCKS.map(s => s.ySym).join(',');
+  const yahooUrl = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(syms)}`;
+  const proxies = [
+    `https://corsproxy.io/?url=${encodeURIComponent(yahooUrl)}`,
+    `https://api.allorigins.win/get?url=${encodeURIComponent(yahooUrl)}`,
+  ];
+  let quotes = [];
+  for (const proxy of proxies) {
+    try {
+      const ctrl = new AbortController();
+      const tid = setTimeout(() => ctrl.abort(), 8000);
+      const r = await fetch(proxy, { signal: ctrl.signal });
+      clearTimeout(tid);
+      if (!r.ok) continue;
+      const text = await r.text();
+      let raw = text;
+      try { const j = JSON.parse(text); raw = j.contents ?? text; } catch {}
+      const d = JSON.parse(raw);
+      quotes = d?.quoteResponse?.result ?? [];
+      if (quotes.length) break;
+    } catch { continue; }
+  }
+  // fallback: allorigins per-stock if batch failed
+  if (!quotes.length) {
+    const res = await Promise.allSettled(KR_STOCKS.map(s => fetchKrQuote(s.code)));
+    res.forEach(r => { if (r.status === 'fulfilled') { krQuoteCache[r.value.code]=r.value; krUpdateCard(r.value); }});
+    krRenderGainersLosers(Object.values(krQuoteCache));
+    loadKrVolRank();
+    return;
+  }
+  quotes.forEach(q => {
+    const stock = KR_STOCKS.find(s => s.ySym === q.symbol);
+    if (!stock) return;
+    const val = { code: stock.code, name: stock.name,
+      price: q.regularMarketPrice ?? 0,
+      chg:   q.regularMarketChange ?? 0,
+      pct:   q.regularMarketChangePercent ?? 0 };
+    krQuoteCache[stock.code] = val;
+    krUpdateCard(val);
   });
   krRenderGainersLosers(Object.values(krQuoteCache));
   loadKrVolRank();
