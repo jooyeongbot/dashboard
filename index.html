@@ -1072,11 +1072,6 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
     </div>
 
     <!-- TMDB 키 안내 -->
-    <div class="tv-tmdb-note" id="ent-tmdb-note" style="display:none">
-      🎬 <b>OTT 드라마·영화 포스터</b>를 보려면 무료 TMDB API 키가 필요합니다.
-      <a href="https://www.themoviedb.org/settings/api" target="_blank">여기서 무료 등록</a> 후
-      소스 상단 <code>TMDB_KEY</code> 변수에 입력하세요.
-    </div>
 
     <!-- ① OTT 인기 콘텐츠 -->
     <div class="sec-head" style="margin-top:0;margin-bottom:14px">
@@ -3917,7 +3912,6 @@ async function movieFilter(type, btn) {
 
 function entInit() {
   // TMDB 키 없을 때 안내
-  if (!TMDB_KEY) document.getElementById('ent-tmdb-note').style.display = 'flex';
   // OTT 렌더
   document.getElementById('ent-grid').innerHTML = OTT_DATA.map(entCardHtml).join('');
   // TMDB 포스터 비동기 로드 (키 있을 때)
