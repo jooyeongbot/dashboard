@@ -1106,7 +1106,7 @@ footer { border-top:1px solid var(--border); padding-top:20px; margin-top:56px; 
       <button class="tv-sched-btn mbc"        onclick="entTvFilter('mbc',this)">MBC</button>
       <button class="tv-sched-btn sbs"        onclick="entTvFilter('sbs',this)">SBS</button>
     </div>
-    <div class="tv-grid" id="tv-grid"></div>
+    <div class="tv-grid" id="tv-sched-grid"></div>
 
     <!-- ③ 현재 상영 영화 -->
     <div class="sec-head" style="margin-top:0;margin-bottom:14px">
@@ -3771,21 +3771,35 @@ function entCardHtml(d) {
   </div>`;
 }
 
-// ── TMDB로 OTT 포스터 자동 로드 ─────────────────
+// ── OTT 포스터 자동 로드 (TVmaze 무료 API + TMDB 선택) ───
 async function loadOTTPosters() {
-  if (!TMDB_KEY) return;
   for (const d of OTT_DATA) {
+    if (ottPosters[d.title]) continue;
     try {
-      const isTV = d.type !== '영화';
-      const query = encodeURIComponent(d.titleEn || d.title);
-      const url = `${TMDB_BASE}/search/${isTV ? 'tv' : 'movie'}?api_key=${TMDB_KEY}&query=${query}&language=ko-KR&page=1`;
-      const r = await fetch(url);
-      if (!r.ok) continue;
-      const data = await r.json();
-      const item = data.results?.[0];
-      if (item?.poster_path) {
-        ottPosters[d.title] = TMDB_IMG + item.poster_path;
-        // 로드된 카드 즉시 업데이트
+      let poster = null;
+
+      // 1차: TVmaze (완전 무료, 키 불필요, CORS 지원)
+      const q = encodeURIComponent(d.titleEn || d.title);
+      const r = await fetch(`https://api.tvmaze.com/search/shows?q=${q}`);
+      if (r.ok) {
+        const results = await r.json();
+        const img = results[0]?.show?.image;
+        if (img) poster = img.original || img.medium;
+      }
+
+      // 2차: TMDB (키 있을 때, 영화 포함)
+      if (!poster && TMDB_KEY) {
+        const isTV = d.type !== '영화';
+        const r2 = await fetch(`${TMDB_BASE}/search/${isTV?'tv':'movie'}?api_key=${TMDB_KEY}&query=${q}&language=ko-KR&page=1`);
+        if (r2.ok) {
+          const data = await r2.json();
+          const item = data.results?.[0];
+          if (item?.poster_path) poster = TMDB_IMG + item.poster_path;
+        }
+      }
+
+      if (poster) {
+        ottPosters[d.title] = poster;
         const list = entCurPlat === 'all' ? OTT_DATA : OTT_DATA.filter(x => x.plat === entCurPlat);
         document.getElementById('ent-grid').innerHTML = list.map(entCardHtml).join('');
       }
@@ -3821,7 +3835,7 @@ function entTvFilter(ch, btn) {
   document.querySelectorAll('.tv-sched-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   const list = ch === 'all' ? TV_SCHED : TV_SCHED.filter(d => d.ch === ch);
-  document.getElementById('tv-grid').innerHTML = list.map(tvCardHtml).join('');
+  document.getElementById('tv-sched-grid').innerHTML = list.map(tvCardHtml).join('');
 }
 
 function movieCardHtml(d, showRank) {
@@ -3909,7 +3923,7 @@ function entInit() {
   // TMDB 포스터 비동기 로드 (키 있을 때)
   loadOTTPosters();
   // TV 편성 렌더
-  document.getElementById('tv-grid').innerHTML = TV_SCHED.map(tvCardHtml).join('');
+  document.getElementById('tv-sched-grid').innerHTML = TV_SCHED.map(tvCardHtml).join('');
   // 영화 렌더 (kr 기본)
   movieFilter('kr', document.getElementById('mv-btn-kr'));
 }
